@@ -10,7 +10,6 @@
 
         .tabs {
             margin: 20px 0;
-            display: flex;
             gap: 10px;
     display: none;
         }
@@ -651,26 +650,31 @@ if (!jsonData[0]?.Sede || !jsonData[0]?.Fecha || !jsonData[0]?.Turno || !jsonDat
             contenedor.style.display = 'block';
         }
 
-        function cargarProgramacionTrabajador() {
-            const programacion = JSON.parse(localStorage.getItem('programacion')) || [];
-            const turnosUsuario = programacion.filter(t => t.Nombre === usuarioActual.username);
-            const tbody = document.querySelector('#turnosTrabajador tbody');
-            
-            tbody.innerHTML = turnosUsuario.map(turno => `
-                <tr>
-                    <td>${turno.Fecha}</td>
-                    <td>${turno.Turno}</td>
-                    <td>${turno.confirmado ? '✅ Confirmado' : '⏳ Pendiente'}</td>
-                    <td>
-                        <button ${turno.confirmado ? 'disabled' : ''} 
-                            class="confirmar-btn ${turno.confirmado ? 'confirmado' : ''}" 
-                            onclick="confirmarTurno('${turno.Fecha}')">
-                            ${turno.confirmado ? 'Confirmado' : 'Confirmar'}
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-        }
+function cargarProgramacionTrabajador() {
+    const programacion = JSON.parse(localStorage.getItem('programacion')) || [];
+    const turnosUsuario = programacion.filter(t => t.Nombre === usuarioActual.username);
+    const tbody = document.querySelector('#turnosTrabajador tbody');
+    
+    tbody.innerHTML = turnosUsuario.map(turno => `
+        <tr>
+            <td>${turno.Fecha}</td>
+            <td>${turno.Turno}</td>
+            <td>${turno.estado === 'confirmado' ? '✅ Confirmado' : 
+                  turno.estado === 'rechazado' ? '❌ Rechazado' : '⏳ Pendiente'}</td>
+            <td>
+                ${turno.estado !== 'confirmado' ? `
+                <button class="confirmar-btn" 
+                    onclick="confirmarTurno('${turno.Fecha}')">
+                    Confirmar
+                </button>
+                <button class="rechazar-btn" 
+                    onclick="rechazarTurno('${turno.Fecha}')">
+                    Rechazar
+                </button>` : 'Sin acciones'}
+            </td>
+        </tr>
+    `).join('');
+}
 
 
         function rechazarTurno(fecha) {
@@ -704,17 +708,7 @@ if (!jsonData[0]?.Sede || !jsonData[0]?.Fecha || !jsonData[0]?.Turno || !jsonDat
                 if(usuarioActual.role === 'admin') cargarNotificaciones();
             }
         }
-
-        // Modificar función de carga de turnos
-        function cargarProgramacionTrabajador() {
-            const programacion = JSON.parse(localStorage.getItem('programacion')) || [];
-            const tbody = document.querySelector('#turnosTrabajador tbody');
-
-    const turnosUsuario = programacion.filter(t => 
-        t.Nombre === usuarioActual.username && t.Turno && t.Fecha
-    );
-
-            
+          
             tbody.innerHTML = programacion
                 .filter(t => t.Nombre === usuarioActual.username)
                 .map(turno => `
