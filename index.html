@@ -368,21 +368,28 @@ if(!localStorage.getItem('notificaciones')) {
             document.getElementById('password').value = '';
         }
 
-        function inicializarMapa() {
-            if (!map) {
-                map = L.map('map', {
-                    maxZoom: CONFIG.opcionesMapa.maxZoom
-                }).setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
-
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                }).addTo(map);
-
-const destinoIcon = L.icon({
-    iconUrl: 'images/marker-icon-2x-red.png', // Ruta relativa al archivo
-    iconSize: [25, 41],
-    iconAnchor: [12, 41]
-});
+function inicializarMapa() {
+    if (!map) {
+        map = L.map('map', {
+            maxZoom: CONFIG.opcionesMapa.maxZoom
+        }).setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+        
+        const destinoIcon = L.icon({
+            iconUrl: 'images/marker-icon-2x-red.png', // Verifica la ruta del icono
+            iconSize: [25, 41],
+            iconAnchor: [12, 41]
+        });
+        
+        L.marker([CONFIG.destino.lat, CONFIG.destino.lng], { icon: destinoIcon })
+            .addTo(map)
+            .bindPopup('<b>Punto de Destino</b><br>Bogotá D.C.')
+            .openPopup();
+    }
+}
 
                 L.marker([CONFIG.destino.lat, CONFIG.destino.lng], {icon: destinoIcon})
                     .addTo(map)
