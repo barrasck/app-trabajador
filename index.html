@@ -430,7 +430,7 @@
             const φ1 = lat1 * Math.PI/180;
             const φ2 = lat2 * Math.PI/180;
             const Δφ = (lat2 - lat1) * Math.PI/180;
-            const Δλ = (lon2 - lon1) * Math.PI/180;
+            const Δλ = (lon1 - lon2) * Math.PI/180;
             const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
                       Math.cos(φ1) * Math.cos(φ2) *
                       Math.sin(Δλ/2) * Math.sin(Δλ/2);
@@ -467,7 +467,7 @@
                 }).addTo(map);
             }
             if (polyline) {
-                polyline.setLatLngs([[CONFIG.destino.lat, CONFIG.destino.lng], [                userCoords.lat, userCoords.lng]]);
+                polyline.setLatLngs([[CONFIG.destino.lat, CONFIG.destino                lat, CONFIG.destino.lng], [userCoords.lat, userCoords.lng]]);
             } else {
                 polyline = L.polyline([[CONFIG.destino.lat, CONFIG.destino.lng], [userCoords.lat, userCoords.lng]], CONFIG.estilos.lineaConexion).addTo(map);
             }
@@ -659,14 +659,14 @@
             cargarNotificaciones();
         }
 
-        function openTab(tabName, event) { // Añade "event" como parámetro
+        function openTab(tabName, event) {
             if(usuarioActual.role !== 'admin') return;
 
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             
             document.getElementById(tabName).classList.add('active');
-            event.currentTarget.classList.add('active'); // Ahora "event" está definido
+            event.currentTarget.classList.add('active');
 
             if(tabName === 'mapa' && !map) {
                 inicializarMapa();
