@@ -7,11 +7,10 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin=""/>
     <style>
         /* Estilos CSS mejorados */
-
         .tabs {
             margin: 20px 0;
             gap: 10px;
-    display: none;
+            display: none;
         }
         .tab-btn {
             padding: 10px 20px;
@@ -30,7 +29,6 @@
         .tab-content.active {
             display: block;
         }
-
         #map {
             height: 70vh;
             width: 100%;
@@ -39,21 +37,21 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
         #loginModal {
-            display: none; 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            background: rgba(0,0,0,0.5); 
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
             z-index: 1000;
             align-items: center;
             justify-content: center;
         }
         #loginModal div {
-            background: white; 
-            width: 300px; 
-            padding: 20px; 
+            background: white;
+            width: 300px;
+            padding: 20px;
             border-radius: 8px;
         }
         #loginModal input {
@@ -64,11 +62,11 @@
             width: 100%;
         }
         #loginModal button {
-            width: 100%; 
-            padding: 10px; 
-            background: #2563eb; 
-            color: white; 
-            border: none; 
+            width: 100%;
+            padding: 10px;
+            background: #2563eb;
+            color: white;
+            border: none;
             border-radius: 4px;
             cursor: pointer;
         }
@@ -96,7 +94,6 @@
                 margin: 10px 0;
             }
         }
-
         table {
             width: 100%;
             border-collapse: collapse;
@@ -127,7 +124,6 @@
         #logoutBtn:hover {
             background: #b91c1c;
         }
-
         .upload-section {
             margin: 15px;
             padding: 15px;
@@ -151,7 +147,6 @@
         .programacion-panel {
             display: none;
         }
-
         .rechazar-btn {
             padding: 5px 10px;
             background: #ef4444;
@@ -176,19 +171,14 @@
             justify-content: space-between;
             align-items: center;
         }
-.content-wrapper {
-    display: none;
-}
-
+        .content-wrapper {
+            display: none;
+        }
     </style>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
-
+</head>
 <body>
     <button id="logoutBtn" onclick="cerrarSesion()">🚪 Cerrar Sesión</button>
-
-
-
     <div id="loginModal">
         <div>
             <h2>🔐 Inicio de Sesión</h2>
@@ -197,54 +187,44 @@
             <button onclick="login()">Ingresar</button>
         </div>
     </div>
-
     <div class="tabs">
-<button class="tab-btn active" onclick="openTab('programacion', event)">📅 Programación</button>
-<button class="tab-btn" onclick="openTab('mapa', event)">🗺️ Mapa</button>
-<button class="tab-btn" onclick="openTab('sedes', event)">🏢 Sedes</button>
+        <button class="tab-btn active" onclick="openTab('programacion', event)">📅 Programación</button>
+        <button class="tab-btn" onclick="openTab('mapa', event)">🗺️ Mapa</button>
+        <button class="tab-btn" onclick="openTab('sedes', event)">🏢 Sedes</button>
     </div>
-
     <div class="content-wrapper">
         <!-- Panel para administradores -->
         <div class="info-panel">
-
-    <div id="programacion" class="tab-content active">
-        <div class="upload-section">
-            <h3>📤 Subir Programación</h3>
-    <input type="file" id="excelProgramacion" accept=".xlsx, .xls">
-    <!-- Cambiar la función del botón -->
-    <button onclick="procesarProgramacion()">Cargar Programación</button>
-    <div id="programacionData"></div>
+            <div id="programacion" class="tab-content active">
+                <div class="upload-section">
+                    <h3>📤 Subir Programación</h3>
+                    <input type="file" id="excelProgramacion" accept=".xlsx, .xls">
+                    <button onclick="procesarProgramacion()">Cargar Programación</button>
+                    <div id="programacionData"></div>
+                </div>
+                <div class="notificaciones-panel">
+                    <h3>🚨 Notificaciones</h3>
+                    <div id="listaNotificaciones"></div>
+                </div>
+            </div>
+            <div id="mapa" class="tab-content">
+                <h2>📍 Destino: Bogotá D.C.</h2>
+                <p id="distance">Distancia al destino: Calculando...</p>
+                <p id="coordinates">📌 Tus coordenadas: Obteniendo ubicación...</p>
+                <p id="status">🔄 Estado: Conectando...</p>
+                <div id="map"></div>
+            </div>
+            <div id="sedes" class="tab-content">
+                <div class="upload-section">
+                    <h3>📤 Subir Sedes</h3>
+                    <input type="file" id="excelSedes" accept=".xlsx, .xls">
+                    <button onclick="procesarSedes()">Cargar Sedes</button>
+                </div>
+                <div id="listaSedes"></div>
+            </div>
         </div>
-        <div class="notificaciones-panel">
-            <h3>🚨 Notificaciones</h3>
-            <div id="listaNotificaciones"></div>
-        </div>
-    </div>
-
-
-    <div id="mapa" class="tab-content">
-            <h2>📍 Destino: Bogotá D.C.</h2>
-            <p id="distance">Distancia al destino: Calculando...</p>
-            <p id="coordinates">📌 Tus coordenadas: Obteniendo ubicación...</p>
-            <p id="status">🔄 Estado: Conectando...</p>
-        <div id="map"></div>
-    </div>
-
-    <div id="sedes" class="tab-content">
-        <div class="upload-section">
-            <h3>📤 Subir Sedes</h3>
-            <input type="file" id="excelSedes" accept=".xlsx, .xls">
-            <button onclick="procesarSedes()">Cargar Sedes</button>
-        </div>
-        <div id="listaSedes"></div>
-    </div>
-
-
-
         <!-- Panel para trabajadores -->
         <div class="nomina-panel">
-
             <div class="programacion-panel">
                 <h3>📅 Turnos Asignados</h3>
                 <table id="turnosTrabajador">
@@ -259,7 +239,6 @@
                     <tbody></tbody>
                 </table>
             </div>
-
             <h2>📅 Liquidación de Nómina</h2>
             <div id="nomina-info">
                 <p>Usuario: <span id="nombre-trabajador"></span></p>
@@ -272,8 +251,7 @@
                             <th>Total Día</th>
                         </tr>
                     </thead>
-                    <tbody id="registro-nomina">
-                    </tbody>
+                    <tbody id="registro-nomina"></tbody>
                 </table>
                 <p style="margin-top: 15px; font-weight: bold;">
                     Total a pagar: $<span id="total-pagar">0</span>
@@ -281,21 +259,11 @@
             </div>
         </div>
     </div>
-
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
     <script>
-
-// Al inicio del script
-if(!localStorage.getItem('programacion')) {
-    localStorage.setItem('programacion', JSON.stringify([]));
-}
-if(!localStorage.getItem('notificaciones')) {
-    localStorage.setItem('notificaciones', JSON.stringify([]));
-}
-
         // Variables globales
         let map;
-        let sedes = JSON.parse(localStorage.getItem('sedes')) || [];
+        let sedes = [];
         let usuarioActual = null;
         let userMarker = null;
         let accuracyCircle = null;
@@ -312,7 +280,7 @@ if(!localStorage.getItem('notificaciones')) {
             },
             trabajadores: {
                 'PRUEBA': {
-                    password: 'PRUEBA123', 
+                    password: 'PRUEBA123',
                     role: 'worker',
                     nomina: [
                         { fecha: '2023-10-01', horas: 8, valorHora: 15000 },
@@ -350,11 +318,9 @@ if(!localStorage.getItem('notificaciones')) {
         function cerrarSesion() {
             sessionStorage.removeItem('session');
             usuarioActual = null;
-            
             document.querySelector('.content-wrapper').style.display = 'none';
             document.getElementById('loginModal').style.display = 'flex';
             document.getElementById('logoutBtn').style.display = 'none';
-            
             if(map) {
                 map.remove();
                 map = null;
@@ -362,119 +328,87 @@ if(!localStorage.getItem('notificaciones')) {
                 accuracyCircle = null;
                 polyline = null;
             }
-            
             document.getElementById('username').value = '';
             document.getElementById('password').value = '';
         }
 
-function inicializarMapa() {
-    if (!map) {
-        map = L.map('map', {
-            maxZoom: CONFIG.opcionesMapa.maxZoom
-        }).setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
-        
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        }).addTo(map);
-        
-        const destinoIcon = L.icon({
-            iconUrl: 'images/marker-icon-2x-red.png', // Verifica la ruta del icono
-            iconSize: [25, 41],
-            iconAnchor: [12, 41]
-        });
-        
-        L.marker([CONFIG.destino.lat, CONFIG.destino.lng], { icon: destinoIcon })
-            .addTo(map)
-            .bindPopup('<b>Punto de Destino</b><br>Bogotá D.C.')
-            .openPopup();
-    }
-}
-
-                L.marker([CONFIG.destino.lat, CONFIG.destino.lng], {icon: destinoIcon})
+        function inicializarMapa() {
+            if (!map) {
+                map = L.map('map', {
+                    maxZoom: CONFIG.opcionesMapa.maxZoom
+                }).setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                }).addTo(map);
+                const destinoIcon = L.icon({
+                    iconUrl: 'images/marker-icon-2x-red.png', // Verifica la ruta del icono
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41]
+                });
+                L.marker([CONFIG.destino.lat, CONFIG.destino.lng], { icon: destinoIcon })
                     .addTo(map)
                     .bindPopup('<b>Punto de Destino</b><br>Bogotá D.C.')
                     .openPopup();
             }
         }
 
-// Función login única y completa
-function login() {
-    const username = document.getElementById('username').value.toUpperCase();
-    const password = document.getElementById('password').value;
-    
-    const user = USUARIOS.administradores[username] || USUARIOS.trabajadores[username];
-    
-    if(user && user.password === password) {
-        usuarioActual = {
-            username: username,
-            role: user.role,
-            datos: user
-        };
-        
-        document.getElementById('loginModal').style.display = 'none';
-        document.querySelector('.content-wrapper').style.display = 'block';
-        document.getElementById('logoutBtn').style.display = 'block';
-        
-        sessionStorage.setItem('session', JSON.stringify(usuarioActual));
-        
-        actualizarUI();
-        
-if(usuarioActual.role === 'admin') {
-    inicializarMapa(); // Solo admin inicia el mapa
-    iniciarGeolocalizacion();
-    cargarNotificaciones();
-} else {
-    mostrarNomina();
-    cargarProgramacionTrabajador();
-    document.querySelector('.tabs').style.display = 'none';
-    document.querySelector('.nomina-panel').style.display = 'block';
-    document.getElementById('mapa').style.display = 'none';
-    document.getElementById('sedes').style.display = 'none';
-    document.querySelector('.notificaciones-panel').style.display = 'none';
-    document.querySelector('.upload-section').style.display = 'none';
-}
-        
-    } else {
-        alert('Credenciales incorrectas');
-        document.getElementById('username').value = '';
-        document.getElementById('password').value = '';
-        document.getElementById('username').focus();
-    }
-}
-
-// Función de confirmación de turno actualizada
-function confirmarTurno(fecha) {
-    let programacion = JSON.parse(localStorage.getItem('programacion'));
-    programacion = programacion.map(t => {
-        if(t.Nombre === usuarioActual.username && t.Fecha === fecha) {
-            return {...t, estado: 'confirmado'};
+        // Función login única y completa
+        function login() {
+            const username = document.getElementById('username').value.toUpperCase();
+            const password = document.getElementById('password').value;
+            const user = USUARIOS.administradores[username] || USUARIOS.trabajadores[username];
+            if(user && user.password === password) {
+                usuarioActual = {
+                    username: username,
+                    role: user.role,
+                    datos: user
+                };
+                document.getElementById('loginModal').style.display = 'none';
+                document.querySelector('.content-wrapper').style.display = 'block';
+                document.getElementById('logoutBtn').style.display = 'block';
+                sessionStorage.setItem('session', JSON.stringify(usuarioActual));
+                actualizarUI();
+                if(usuarioActual.role === 'admin') {
+                    inicializarMapa();
+                    iniciarGeolocalizacion();
+                    cargarNotificaciones();
+                } else {
+                    mostrarNomina();
+                    cargarProgramacionTrabajador();
+                    document.querySelector('.tabs').style.display = 'none';
+                    document.querySelector('.nomina-panel').style.display = 'block';
+                    document.getElementById('mapa').style.display = 'none';
+                    document.getElementById('sedes').style.display = 'none';
+                    document.querySelector('.notificaciones-panel').style.display = 'none';
+                    document.querySelector('.upload-section').style.display = 'none';
+                }
+            } else {
+                alert('Credenciales incorrectas');
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+                document.getElementById('username').focus();
+            }
         }
-        return t;
-    });
-    localStorage.setItem('programacion', JSON.stringify(programacion));
-    cargarProgramacionTrabajador();
-}
 
-function actualizarUI() {
-    if(usuarioActual.role === 'admin') {
-        document.querySelector('.tabs').style.display = 'flex';
-        document.querySelector('.content-wrapper').style.display = 'block';
-        document.querySelector('.nomina-panel').style.display = 'none'; // Asegurar ocultar nómina
-        openTab('programacion');
-    } else {
-        document.querySelector('.tabs').style.display = 'none';
-        document.querySelector('.nomina-panel').style.display = 'block';
-        document.getElementById('mapa').style.display = 'none';
-        document.getElementById('sedes').style.display = 'none';
-    }
-}
+        function actualizarUI() {
+            if(usuarioActual.role === 'admin') {
+                document.querySelector('.tabs').style.display = 'flex';
+                document.querySelector('.content-wrapper').style.display = 'block';
+                document.querySelector('.nomina-panel').style.display = 'none';
+                openTab('programacion');
+            } else {
+                document.querySelector('.tabs').style.display = 'none';
+                document.querySelector('.nomina-panel').style.display = 'block';
+                document.getElementById('mapa').style.display = 'none';
+                document.getElementById('sedes').style.display = 'none';
+            }
+        }
+
         function mostrarNomina() {
             const trabajador = usuarioActual.datos;
             const tbody = document.getElementById('registro-nomina');
             let total = 0;
-            
             document.getElementById('nombre-trabajador').textContent = trabajador.username;
-            
             tbody.innerHTML = '';
             trabajador.nomina.forEach(dia => {
                 const totalDia = dia.horas * dia.valorHora;
@@ -488,7 +422,6 @@ function actualizarUI() {
                     </tr>
                 `;
             });
-            
             document.getElementById('total-pagar').textContent = total.toLocaleString();
         }
 
@@ -498,12 +431,10 @@ function actualizarUI() {
             const φ2 = lat2 * Math.PI/180;
             const Δφ = (lat2 - lat1) * Math.PI/180;
             const Δλ = (lon2 - lon1) * Math.PI/180;
-
             const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
                       Math.cos(φ1) * Math.cos(φ2) *
                       Math.sin(Δλ/2) * Math.sin(Δλ/2);
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
             return R * c;
         };
 
@@ -513,21 +444,17 @@ function actualizarUI() {
                 lng: position.coords.longitude,
                 accuracy: position.coords.accuracy
             };
-
             document.getElementById('coordinates').textContent = `📌 Tus coordenadas: ${userCoords.lat.toFixed(5)}, ${userCoords.lng.toFixed(5)}`;
             const distancia = calcularDistancia(userCoords.lat, userCoords.lng, CONFIG.destino.lat, CONFIG.destino.lng);
             document.getElementById('distance').textContent = `Distancia al destino: ${distancia.toFixed(2)} metros`;
-
             if (distancia <= CONFIG.destino.radio) {
                 alert("¡Estás dentro del área permitida!");
             }
-
             if (userMarker) {
                 userMarker.setLatLng([userCoords.lat, userCoords.lng]);
             } else {
                 userMarker = L.marker([userCoords.lat, userCoords.lng]).addTo(map);
             }
-
             if (accuracyCircle) {
                 accuracyCircle.setLatLng([userCoords.lat, userCoords.lng])
                     .setRadius(userCoords.accuracy * CONFIG.estilos.precision.escala);
@@ -539,9 +466,8 @@ function actualizarUI() {
                     fillOpacity: CONFIG.estilos.precision.relleno, 
                 }).addTo(map);
             }
-
             if (polyline) {
-                polyline.setLatLngs([[CONFIG.destino.lat, CONFIG.destino.lng], [userCoords.lat, userCoords.lng]]);
+                polyline.setLatLngs([[CONFIG.destino.lat, CONFIG.destino.lng], [                userCoords.lat, userCoords.lng]]);
             } else {
                 polyline = L.polyline([[CONFIG.destino.lat, CONFIG.destino.lng], [userCoords.lat, userCoords.lng]], CONFIG.estilos.lineaConexion).addTo(map);
             }
@@ -586,51 +512,52 @@ function actualizarUI() {
             }
         };
 
-function procesarProgramacion() {
-    const file = document.getElementById('excelProgramacion').files[0];
-    if (!file) return;
+        function procesarProgramacion() {
+            const file = document.getElementById('excelProgramacion').files[0];
+            if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            const jsonData = XLSX.utils.sheet_to_json(sheet);
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet);
 
-            // Validar columnas requeridas (incluyendo Sede)
-if (!jsonData[0]?.Sede || !jsonData[0]?.Fecha || !jsonData[0]?.Turno || !jsonData[0]?.Nombre) {
-                throw new Error("Formato incorrecto. Columnas requeridas: Sede, Fecha, Turno, Nombre");
-            }
+                    // Validar columnas requeridas (incluyendo Sede)
+                    if (!jsonData[0]?.Sede || !jsonData[0]?.Fecha || !jsonData[0]?.Turno || !jsonData[0]?.Nombre) {
+                        throw new Error("Formato incorrecto. Columnas requeridas: Sede, Fecha, Turno, Nombre");
+                    }
 
-            // Validar que la sede exista
-            const sedesCargadas = JSON.parse(localStorage.getItem('sedes')) || [];
-            const sedesInvalidas = jsonData.filter(t => 
-                !sedesCargadas.some(s => s.Nombre === t.Sede)
-            );
-            
-            if (sedesInvalidas.length > 0) {
-                throw new Error(`Sedes no encontradas: ${sedesInvalidas.map(t => t.Sede).join(', ')}`);
-            }
+                    // Validar que la sede exista
+                    const sedesCargadas = JSON.parse(localStorage.getItem('sedes')) || [];
+                    const sedesInvalidas = jsonData.filter(t => 
+                        !sedesCargadas.some(s => s.Nombre === t.Sede)
+                    );
+                    
+                    if (sedesInvalidas.length > 0) {
+                        throw new Error(`Sedes no encontradas: ${sedesInvalidas.map(t => t.Sede).join(', ')}`);
+                    }
 
-            localStorage.setItem('programacion', JSON.stringify(jsonData));
-            mostrarProgramacionAdmin(jsonData);
-            alert("Programación cargada exitosamente!");
-        } catch (error) {
-            alert(error.message);
-            console.error(error);
+                    localStorage.setItem('programacion', JSON.stringify(jsonData));
+                    mostrarProgramacionAdmin(jsonData);
+                    alert("Programación cargada exitosamente!");
+                } catch (error) {
+                    alert(error.message);
+                    console.error(error);
+                }
+            };
+            reader.readAsArrayBuffer(file);
         }
-    };
-    reader.readAsArrayBuffer(file);
-}
 
         function mostrarProgramacionAdmin(data) {
             const contenedor = document.getElementById('programacionData');
             contenedor.innerHTML = `
-                <h4>Programación Cargada</h4>
+                <h4>📋 Programación Cargada</h4>
                 <table class="programacion-table">
                     <thead>
                         <tr>
+                            <th>Sede</th>
                             <th>Nombre</th>
                             <th>Fecha</th>
                             <th>Turno</th>
@@ -639,6 +566,7 @@ if (!jsonData[0]?.Sede || !jsonData[0]?.Fecha || !jsonData[0]?.Turno || !jsonDat
                     <tbody>
                         ${data.map(row => `
                             <tr>
+                                <td>${row.Sede}</td>
                                 <td>${row.Nombre}</td>
                                 <td>${row.Fecha}</td>
                                 <td>${row.Turno}</td>
@@ -650,32 +578,31 @@ if (!jsonData[0]?.Sede || !jsonData[0]?.Fecha || !jsonData[0]?.Turno || !jsonDat
             contenedor.style.display = 'block';
         }
 
-function cargarProgramacionTrabajador() {
-    const programacion = JSON.parse(localStorage.getItem('programacion')) || [];
-    const turnosUsuario = programacion.filter(t => t.Nombre === usuarioActual.username);
-    const tbody = document.querySelector('#turnosTrabajador tbody');
-    
-    tbody.innerHTML = turnosUsuario.map(turno => `
-        <tr>
-            <td>${turno.Fecha}</td>
-            <td>${turno.Turno}</td>
-            <td>${turno.estado === 'confirmado' ? '✅ Confirmado' : 
-                  turno.estado === 'rechazado' ? '❌ Rechazado' : '⏳ Pendiente'}</td>
-            <td>
-                ${turno.estado !== 'confirmado' ? `
-                <button class="confirmar-btn" 
-                    onclick="confirmarTurno('${turno.Fecha}')">
-                    Confirmar
-                </button>
-                <button class="rechazar-btn" 
-                    onclick="rechazarTurno('${turno.Fecha}')">
-                    Rechazar
-                </button>` : 'Sin acciones'}
-            </td>
-        </tr>
-    `).join('');
-}
-
+        function cargarProgramacionTrabajador() {
+            const programacion = JSON.parse(localStorage.getItem('programacion')) || [];
+            const turnosUsuario = programacion.filter(t => t.Nombre === usuarioActual.username);
+            const tbody = document.querySelector('#turnosTrabajador tbody');
+            
+            tbody.innerHTML = turnosUsuario.map(turno => `
+                <tr>
+                    <td>${turno.Fecha}</td>
+                    <td>${turno.Turno}</td>
+                    <td>${turno.estado === 'confirmado' ? '✅ Confirmado' : 
+                          turno.estado === 'rechazado' ? '❌ Rechazado' : '⏳ Pendiente'}</td>
+                    <td>
+                        ${turno.estado !== 'confirmado' ? `
+                        <button class="confirmar-btn" 
+                            onclick="confirmarTurno('${turno.Fecha}')">
+                            Confirmar
+                        </button>
+                        <button class="rechazar-btn" 
+                            onclick="rechazarTurno('${turno.Fecha}')">
+                            Rechazar
+                        </button>` : 'Sin acciones'}
+                    </td>
+                </tr>
+            `).join('');
+        }
 
         function rechazarTurno(fecha) {
             if(confirm("¿Estás seguro de rechazar este turno?")) {
@@ -708,31 +635,7 @@ function cargarProgramacionTrabajador() {
                 if(usuarioActual.role === 'admin') cargarNotificaciones();
             }
         }
-          
-            tbody.innerHTML = programacion
-                .filter(t => t.Nombre === usuarioActual.username)
-                .map(turno => `
-                    <tr>
-                        <td>${turno.Fecha}</td>
-                        <td>${turno.Turno}</td>
-                        <td>${turno.estado === 'confirmado' ? '✅ Confirmado' : 
-                              turno.estado === 'rechazado' ? '❌ Rechazado' : '⏳ Pendiente'}</td>
-                        <td>
-                            ${turno.estado !== 'confirmado' ? `
-                            <button class="confirmar-btn" 
-                                onclick="confirmarTurno('${turno.Fecha}')">
-                                Confirmar
-                            </button>
-                            <button class="rechazar-btn" 
-                                onclick="rechazarTurno('${turno.Fecha}')">
-                                Rechazar
-                            </button>` : 'Sin acciones'}
-                        </td>
-                    </tr>
-                `).join('');
-        }
 
-        // Función para cargar notificaciones
         function cargarNotificaciones() {
             const notificaciones = JSON.parse(localStorage.getItem('notificaciones') || '[]');
             const contenedor = document.getElementById('listaNotificaciones');
@@ -756,24 +659,20 @@ function cargarProgramacionTrabajador() {
             cargarNotificaciones();
         }
 
-        // Función para cambiar pestañas
-// Modifica la función openTab
-function openTab(tabName, event) { // Añade "event" como parámetro
-    if(usuarioActual.role !== 'admin') return;
+        function openTab(tabName, event) { // Añade "event" como parámetro
+            if(usuarioActual.role !== 'admin') return;
 
-    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    
-    document.getElementById(tabName).classList.add('active');
-    event.currentTarget.classList.add('active'); // Ahora "event" está definido
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabName).classList.add('active');
+            event.currentTarget.classList.add('active'); // Ahora "event" está definido
 
-    if(tabName === 'mapa' && !map) {
-        inicializarMapa();
-    }
-}
+            if(tabName === 'mapa' && !map) {
+                inicializarMapa();
+            }
         }
 
-        // Procesar archivo de sedes
         function procesarSedes() {
             const file = document.getElementById('excelSedes').files[0];
             if (!file) return;
@@ -802,37 +701,36 @@ function openTab(tabName, event) { // Añade "event" como parámetro
             reader.readAsArrayBuffer(file);
         }
 
-function actualizarSedesEnMapa() {
-    if (!map) return;
+        function actualizarSedesEnMapa() {
+            if (!map) return;
 
-    // Limpiar marcadores existentes (excepto el del usuario)
-    map.eachLayer(layer => {
-        if (layer instanceof L.Marker && layer !== userMarker) {
-            map.removeLayer(layer);
+            // Limpiar marcadores existentes (excepto el del usuario)
+            map.eachLayer(layer => {
+                if (layer instanceof L.Marker && layer !== userMarker) {
+                    map.removeLayer(layer);
+                }
+            });
+
+            // Añadir sedes desde el archivo
+            sedes.forEach(sede => {
+                L.marker([sede.Latitud, sede.Longitud])
+                    .addTo(map)
+                    .bindPopup(`<b>${sede.Nombre}</b>`);
+            });
+
+            // Buscar y marcar el destino principal
+            const destinoPrincipal = sedes.find(s => s.Nombre === "Bogotá D.C.");
+            if (destinoPrincipal) {
+                L.marker([destinoPrincipal.Latitud, destinoPrincipal.Longitud], {
+                    icon: L.icon({
+                        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                        iconSize: [25, 41]
+                    })
+                }).addTo(map)
+                .bindPopup('<b>Punto de Destino Principal</b>');
+            }
         }
-    });
 
-    // Añadir sedes desde el archivo
-    sedes.forEach(sede => {
-        L.marker([sede.Latitud, sede.Longitud])
-            .addTo(map)
-            .bindPopup(`<b>${sede.Nombre}</b>`);
-    });
-
-    // Buscar y marcar el destino principal
-    const destinoPrincipal = sedes.find(s => s.Nombre === "Bogotá D.C.");
-    if (destinoPrincipal) {
-        L.marker([destinoPrincipal.Latitud, destinoPrincipal.Longitud], {
-            icon: L.icon({
-                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-                iconSize: [25, 41]
-            })
-        }).addTo(map)
-        .bindPopup('<b>Punto de Destino Principal</b>');
-    }
-}
-
-        // Mostrar lista de sedes
         function mostrarListaSedes() {
             const contenedor = document.getElementById('listaSedes');
             contenedor.innerHTML = sedes.map(sede => `
@@ -843,35 +741,6 @@ function actualizarSedesEnMapa() {
             `).join('');
         }
 
-
-        // Modificar función de procesar programación
-function mostrarProgramacionAdmin(data) {
-    const contenedor = document.getElementById('programacionData');
-    contenedor.innerHTML = `
-        <h4>📋 Programación Cargada</h4>
-        <table class="programacion-table">
-            <thead>
-                <tr>
-                    <th>Sede</th>
-                    <th>Nombre</th>
-                    <th>Fecha</th>
-                    <th>Turno</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${data.map(row => `
-                    <tr>
-                        <td>${row.Sede}</td>
-                        <td>${row.Nombre}</td>
-                        <td>${row.Fecha}</td>
-                        <td>${row.Turno}</td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>
-    `;
-    contenedor.style.display = 'block';
-}
     </script>
 </body>
 </html>
