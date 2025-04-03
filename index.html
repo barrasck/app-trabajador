@@ -464,7 +464,7 @@ const manejarPosicion = (position) => {
         accuracyCircle.setLatLng([userCoords.lat, userCoords.lng])
             .setRadius(userCoords.accuracy * CONFIG.estilos.precision.escala);
     } else {
-        accuracyCircle = L.circle([user Coords.lat, userCoords.lng], { 
+        accuracyCircle = L.circle([userCoords.lat, userCoords.lng], { 
             radius: userCoords.accuracy * CONFIG.estilos.precision.escala,
             color: CONFIG.estilos.precision.color, 
             fillColor: CONFIG.estilos.precision.color, 
