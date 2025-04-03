@@ -1,10 +1,10 @@
-const CACHE_NAME = 'ama-v1';
+const CACHE_NAME = 'ama-v2'; // Cambia versión
 const ASSETS = [
-  '/',
-  '/pasada.html',
-  '/manifest.json',
-  '/icons/icon-maskable-192x192.png', // Ruta corregida
-  '/icons/icon-any-512x512.png' // Añadido ícono "any"
+  '/app-trabajador/',
+  '/app-trabajador/pasada.html',
+  '/app-trabajador/manifest.json',
+  '/app-trabajador/icono-192.png',
+  '/app-trabajador/icono-512.png'
 ];
 
 self.addEventListener('install', (e) => {
