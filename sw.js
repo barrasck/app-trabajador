@@ -11,7 +11,7 @@ self.addEventListener('install', (e) => {
   self.skipWaiting();
   e.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(ASSETS)) // Error de sintaxis corregido
+      .then(cache => cache.addAll(ASSETS))
   );
 });
 
