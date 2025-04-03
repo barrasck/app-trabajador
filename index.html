@@ -184,7 +184,7 @@
             <h2>🔐 Inicio de Sesión</h2>
             <input type="text" id="username" placeholder="Usuario">
             <input type="password" id="password" placeholder="Contraseña">
-            <button onclick="login()">Ingresar</button>
+            <button onclick="login(event)">Ingresar</button>
         </div>
     </div>
     <div class="tabs">
@@ -341,7 +341,7 @@
                     attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                 }).addTo(map);
                 const destinoIcon = L.icon({
-                    iconUrl: 'images/marker-icon-2x-red.png',
+                    iconUrl: './marker-icon-2x-red.png',
                     iconSize: [25, 41],
                     iconAnchor: [12, 41]
                 });
@@ -367,7 +367,7 @@
                 document.querySelector('.content-wrapper').style.display = 'block';
                 document.getElementById('logoutBtn').style.display = 'block';
                 sessionStorage.setItem('session', JSON.stringify(usuarioActual));
-                actualizarUI();
+                actualizarUI(event);
                 if(usuarioActual.role === 'admin') {
                     inicializarMapa();
                     iniciarGeolocalizacion();
@@ -395,7 +395,7 @@ function actualizarUI() {
         document.querySelector('.tabs').style.display = 'flex';
         document.querySelector('.content-wrapper').style.display = 'block';
         document.querySelector('.nomina-panel').style.display = 'none';
-        openTab('programacion');
+        openTab('programacion', event);
     } else {
         document.querySelector('.tabs').style.display = 'none';
         document.querySelector('.nomina-panel').style.display = 'block';
