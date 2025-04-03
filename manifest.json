@@ -23,12 +23,12 @@
   ],
   "lang": "es-CO",
   "dir": "ltr",
-  "scope": "/",
-  "orientation": "portrait",  // Valor válido añadido
-  "launch_handler": {  // Campo requerido
+  "scope": "/app-trabajador/",
+  "orientation": "portrait",
+  "launch_handler": {
     "client_mode": "navigate-existing"
   },
-  "screenshots": [  // Array requerido
+  "screenshots": [
     {
       "src": "screenshots/pantalla1.jpg",
       "sizes": "1080x1920",
@@ -36,5 +36,5 @@
       "label": "Vista principal"
     }
   ],
-  "categories": ["business", "productivity"]  // Campo recomendado
+  "categories": ["business", "productivity"]
 }
