@@ -4,7 +4,7 @@
     <title>Seguimiento de Ubicación y Nómina</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin=""/>
+   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin=""/>
     <style>
         /* Estilos CSS mejorados */
         .tabs {
@@ -390,19 +390,19 @@
             }
         }
 
-        function actualizarUI() {
-            if(usuarioActual.role === 'admin') {
-                document.querySelector('.tabs').style.display = 'flex';
-                document.querySelector('.content-wrapper').style.display = 'block';
-                document.querySelector('.nomina-panel').style.display = 'none';
-                openTab('programacion');
-            } else {
-                document.querySelector('.tabs').style.display = 'none';
-                document.querySelector('.nomina-panel').style.display = 'block';
-                document.getElementById('mapa').style.display = 'none';
-                document.getElementById('sedes').style.display = 'none';
-            }
-        }
+function actualizarUI() {
+    if(usuarioActual.role === 'admin') {
+        document.querySelector('.tabs').style.display = 'flex';
+        document.querySelector('.content-wrapper').style.display = 'block';
+        document.querySelector('.nomina-panel').style.display = 'none';
+        openTab('programacion');
+    } else {
+        document.querySelector('.tabs').style.display = 'none';
+        document.querySelector('.nomina-panel').style.display = 'block';
+        document.getElementById('mapa').style.display = 'none';
+        document.getElementById('sedes').style.display = 'none';
+    }
+}
 
         function mostrarNomina() {
             const trabajador = usuarioActual.datos;
@@ -492,25 +492,30 @@
             }
         }
 
-        window.onload = function() {
-            const session = sessionStorage.getItem('session');
-            document.getElementById('logoutBtn').style.display = session ? 'block' : 'none';
+window.onload = function() {
+    try {
+        const session = sessionStorage.getItem('session');
+        document.getElementById('logoutBtn').style.display = session ? 'block' : 'none';
+        
+        if(!session) {
+            document.getElementById('loginModal').style.display = 'flex';
+        } else {
+            document.querySelector('.content-wrapper').style.display = 'block';
+            usuarioActual = JSON.parse(session);
+            actualizarUI();
             
-            if(!session) {
-                document.getElementById('loginModal').style.display = 'flex';
+            if(usuarioActual.role === 'admin') {
+                inicializarMapa();
+                iniciarGeolocalizacion();
             } else {
-                document.querySelector('.content-wrapper').style.display = 'block';
-                usuarioActual = JSON.parse(session);
-                actualizarUI();
-                
-                if(usuarioActual.role === 'admin') {
-                    inicializarMapa();
-                    iniciarGeolocalizacion();
-                } else {
-                    mostrarNomina();
-                }
+                mostrarNomina();
             }
-        };
+        }
+    } catch (error) {
+        console.error('Error during initialization:', error);
+        alert('An error occurred during initialization. Check the console for details.');
+    }
+};
 
         function procesarProgramacion() {
             const file = document.getElementById('excelProgramacion').files[0];
