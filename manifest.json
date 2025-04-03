@@ -1,9 +1,9 @@
 {
-  "name": "AMA Logística",
+ "name": "AMA Logística",
   "short_name": "AMA",
   "id": "ama-logistica-app",
   "description": "Sistema de seguimiento de ubicación y nómina para logística",
-  "start_url": "/pasada.html",
+  "start_url": "/app-trabajador/pasada.html",
   "display": "standalone",
   "background_color": "#2563eb",
   "theme_color": "#2563eb",
