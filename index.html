@@ -452,7 +452,7 @@ const manejarPosicion = (position) => {
     }
     if (map) {  // Asegúrate de que el mapa esté inicializado
         if (userMarker) {
-            userMarker.setLatLng([userCoords.lat, userCoords.lng]);
+            userMarker.setLatLng([userCoords.lat, userCoords.lng]);X    
         } else {
             userMarker = L.marker([userCoords.lat, userCoords.lng]).addTo(map);
         }
