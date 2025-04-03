@@ -5,6 +5,7 @@
   "description": "Sistema de seguimiento de ubicación y nómina para logística",
   "start_url": "/app-trabajador/pasada.html",
   "display": "standalone",
+  "display_override": ["window-controls-overlay"],
   "background_color": "#2563eb",
   "theme_color": "#2563eb",
   "icons": [
@@ -25,8 +26,26 @@
   "dir": "ltr",
   "scope": "/app-trabajador/",
   "orientation": "portrait",
-  "launch_handler": { 
-    "client_mode": "navigate-existing"
-  },
-  "prefer_related_applications": false
+  "screenshots": [
+    {
+      "src": "screenshots/pantalla1.jpg",
+      "sizes": "1080x1920",
+      "type": "image/jpeg",
+      "label": "Vista principal"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "file_handlers": [
+    {
+      "action": "/abrir-archivo",
+      "accept": { "application/pdf": [".pdf"] }
+    }
+  ],
+  "handle_links": "preferred",
+  "protocol_handlers": [
+    {
+      "protocol": "web+ama",
+      "url": "/abrir-enlace?url=%s"
+    }
+  ]
 }
