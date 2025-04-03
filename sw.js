@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ama-v2'; // Cambia versión
+const CACHE_NAME = 'ama-v1';
 const ASSETS = [
   '/app-trabajador/',
   '/app-trabajador/pasada.html',
@@ -8,16 +8,12 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', (e) => {
-  self.skipWaiting();
   e.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(ASSETS))
+    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)
   );
 });
 
 self.addEventListener('fetch', (e) => {
   e.respondWith(
-    fetch(e.request)
-      .catch(() => caches.match(e.request))
-  );
+    caches.match(e.request).then(cached => cached || fetch(e.request))
 });
