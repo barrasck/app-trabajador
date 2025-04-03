@@ -395,7 +395,7 @@ function actualizarUI() {
         document.querySelector('.tabs').style.display = 'flex';
         document.querySelector('.content-wrapper').style.display = 'block';
         document.querySelector('.nomina-panel').style.display = 'none';
-        openTab('programacion', event);
+        openTab('programacion', { currentTarget: document.querySelector('.tab-btn.active') }); // Pass a mock event
     } else {
         document.querySelector('.tabs').style.display = 'none';
         document.querySelector('.nomina-panel').style.display = 'block';
