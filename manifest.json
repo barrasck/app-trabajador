@@ -28,5 +28,5 @@
   "launch_handler": { 
     "client_mode": "navigate-existing"
   },
-  "prefer_related_applications": false // ¡Nuevo! Esto corrige el error
+  "prefer_related_applications": false
 }
