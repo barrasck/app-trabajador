@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<link rel="manifest" href="manifest.json">
+    
     <title>Seguimiento de Ubicación y Nómina</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -261,6 +263,13 @@
     </div>
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
     <script>
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+      .then(() => console.log('App funciona offline'))
+      .catch(err => console.log('Error:', err));
+  }
+        
         // Variables globales
         let map;
         let sedes = [];
@@ -349,6 +358,10 @@ function inicializarMapa() {
             .addTo(map)
             .bindPopup('<b>Punto de Destino</b><br>Bogotá D.C.')
             .openPopup();
+
+        if (usuarioActual.role === 'admin') {
+            cargarUbicacionesTrabajadores();
+        }
     }
 }
 
@@ -389,6 +402,22 @@ function inicializarMapa() {
                 document.getElementById('username').focus();
             }
         }
+
+function cargarUbicacionesTrabajadores() {
+    const ubicacionesTrabajadores = [
+        // Ejemplo de datos de trabajadores
+        { username: 'TRABAJADOR1', lat: 4.7010, lng: -74.1440 },
+        { username: 'TRABAJADOR2', lat: 4.7120, lng: -74.1340 },
+        // Agrega más ubicaciones de trabajadores aquí
+    ];
+
+    ubicacionesTrabajadores.forEach(trabajador => {
+        L.marker([trabajador.lat, trabajador.lng])
+            .addTo(map)
+            .bindPopup(`<b>${trabajador.username}</b>`);
+    });
+}
+
 
 function actualizarUI() {
     if(usuarioActual.role === 'admin') {
