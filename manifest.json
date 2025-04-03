@@ -1,6 +1,7 @@
 {
   "name": "AMA Logística",
   "short_name": "AMA",
+  "id": "ama-logistica-app",
   "description": "Sistema de seguimiento de ubicación y nómina para logística",
   "start_url": "/pasada.html",
   "display": "standalone",
@@ -17,10 +18,23 @@
       "src": "icono-512.png.png.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any"
     }
   ],
   "lang": "es-CO",
   "dir": "ltr",
-  "scope": "/"
+  "scope": "/",
+  "orientation": "portrait",  // Valor válido añadido
+  "launch_handler": {  // Campo requerido
+    "client_mode": "navigate-existing"
+  },
+  "screenshots": [  // Array requerido
+    {
+      "src": "screenshots/pantalla1.jpg",
+      "sizes": "1080x1920",
+      "type": "image/jpeg",
+      "label": "Vista principal"
+    }
+  ],
+  "categories": ["business", "productivity"]  // Campo recomendado
 }
