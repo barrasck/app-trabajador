@@ -430,26 +430,12 @@ const calcularDistancia = (lat1, lon1, lat2, lon2) => {
     const φ1 = lat1 * Math.PI/180;
     const φ2 = lat2 * Math.PI/180;
     const Δφ = (lat2 - lat1) * Math.PI/180;
-    const Δλ = (lon1 - lon2) * Math.PI/180;
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
-};
-
-
-const calcularDistancia = (lat1, lon1, lat2, lon2) => {
-    const R = 6371e3;
-    const φ1 = lat1 * Math.PI/180;
-    const φ2 = lat2 * Math.PI/180;
-    const Δφ = (lat2 - lat1) * Math.PI/180;
-    const Δλ = (lon1 - lon2) * Math.PI/180;
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
+const Δλ = (lon1 - lon2) * Math.PI/180;
+const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+          Math.cos(φ1) * Math.cos(φ2) *
+          Math.sin(Δλ/2) * Math.sin(Δλ/2);
+const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+return R * c;
 };
 
 const manejarPosicion = (position) => {
@@ -531,7 +517,6 @@ function iniciarGeolocalizacion() {
     }
 }
 
-
 window.onload = function() {
     try {
         const session = sessionStorage.getItem('session');
@@ -557,235 +542,235 @@ window.onload = function() {
     }
 };
 
-        function procesarProgramacion() {
-            const file = document.getElementById('excelProgramacion').files[0];
-            if (!file) return;
+function procesarProgramacion() {
+    const file = document.getElementById('excelProgramacion').files[0];
+    if (!file) return;
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(sheet);
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(sheet);
 
-                    // Validar columnas requeridas (incluyendo Sede)
-                    if (!jsonData[0]?.Sede || !jsonData[0]?.Fecha || !jsonData[0]?.Turno || !jsonData[0]?.Nombre) {
-                        throw new Error("Formato incorrecto. Columnas requeridas: Sede, Fecha, Turno, Nombre");
-                    }
+            // Validar columnas requeridas (incluyendo Sede)
+            if (!jsonData[0]?.Sede || !jsonData[0]?.Fecha || !jsonData[0]?.Turno || !jsonData[0]?.Nombre) {
+                throw new Error("Formato incorrecto. Columnas requeridas: Sede, Fecha, Turno, Nombre");
+            }
 
-                    // Validar que la sede exista
-                    const sedesCargadas = JSON.parse(localStorage.getItem('sedes')) || [];
-                    const sedesInvalidas = jsonData.filter(t => 
-                        !sedesCargadas.some(s => s.Nombre === t.Sede)
-                    );
-                    
-                    if (sedesInvalidas.length > 0) {
-                        throw new Error(`Sedes no encontradas: ${sedesInvalidas.map(t => t.Sede).join(', ')}`);
-                    }
-
-                    localStorage.setItem('programacion', JSON.stringify(jsonData));
-                    mostrarProgramacionAdmin(jsonData);
-                    alert("Programación cargada exitosamente!");
-                } catch (error) {
-                    alert(error.message);
-                    console.error(error);
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        
-
-        function mostrarProgramacionAdmin(data) {
-            const contenedor = document.getElementById('programacionData');
-            contenedor.innerHTML = `
-                <h4>📋 Programación Cargada</h4>
-                <table class="programacion-table">
-                    <thead>
-                        <tr>
-                            <th>Sede</th>
-                            <th>Nombre</th>
-                            <th>Fecha</th>
-                            <th>Turno</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${data.map(row => `
-                            <tr>
-                                <td>${row.Sede}</td>
-                                <td>${row.Nombre}</td>
-                                <td>${row.Fecha}</td>
-                                <td>${row.Turno}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-            contenedor.style.display = 'block';
-        }
-
-        function cargarProgramacionTrabajador() {
-            const programacion = JSON.parse(localStorage.getItem('programacion')) || [];
-            const turnosUsuario = programacion.filter(t => t.Nombre === usuarioActual.username);
-            const tbody = document.querySelector('#turnosTrabajador tbody');
+            // Validar que la sede exista
+            const sedesCargadas = JSON.parse(localStorage.getItem('sedes')) || [];
+            const sedesInvalidas = jsonData.filter(t => 
+                !sedesCargadas.some(s => s.Nombre === t.Sede)
+            );
             
-            tbody.innerHTML = turnosUsuario.map(turno => `
+            if (sedesInvalidas.length > 0) {
+                throw new Error(`Sedes no encontradas: ${sedesInvalidas.map(t => t.Sede).join(', ')}`);
+            }
+
+            localStorage.setItem('programacion', JSON.stringify(jsonData));
+            mostrarProgramacionAdmin(jsonData);
+            alert("Programación cargada exitosamente!");
+        } catch (error) {
+            alert(error.message);
+            console.error(error);
+        }
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function mostrarProgramacionAdmin(data) {
+    const contenedor = document.getElementById('programacionData');
+    contenedor.innerHTML = `
+        <h4>📋 Programación Cargada</h4>
+        <table class="programacion-table">
+            <thead>
                 <tr>
-                    <td>${turno.Fecha}</td>
-                    <td>${turno.Turno}</td>
-                    <td>${turno.estado === 'confirmado' ? '✅ Confirmado' : 
-                          turno.estado === 'rechazado' ? '❌ Rechazado' : '⏳ Pendiente'}</td>
-                    <td>
-                        ${turno.estado !== 'confirmado' ? `
-                        <button class="confirmar-btn" 
-                            onclick="confirmarTurno('${turno.Fecha}')">
-                            Confirmar
-                        </button>
-                        <button class="rechazar-btn" 
-                            onclick="rechazarTurno('${turno.Fecha}')">
-                            Rechazar
-                        </button>` : 'Sin acciones'}
-                    </td>
+                    <th>Sede</th>
+                    <th>Nombre</th>
+                    <th>Fecha</th>
+                    <th>Turno</th>
                 </tr>
-            `).join('');
-        }
+            </thead>
+            <tbody>
+                ${data.map(row => `
+                    <tr>
+                        <td>${row.Sede}</td>
+                        <td>${row.Nombre}</td>
+                        <td>${row.Fecha}</td>
+                        <td>${row.Turno}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+    contenedor.style.display = 'block';
+}
 
-        function rechazarTurno(fecha) {
-            if(confirm("¿Estás seguro de rechazar este turno?")) {
-                let programacion = JSON.parse(localStorage.getItem('programacion'));
-                programacion = programacion.map(t => {
-                    if(t.Nombre === usuarioActual.username && t.Fecha === fecha) {
-                        const turnoRechazado = {
-                            ...t,
-                            estado: 'rechazado',
-                            fechaRechazo: new Date().toISOString()
-                        };
-                        
-                        // Agregar notificación
-                        const notificaciones = JSON.parse(localStorage.getItem('notificaciones') || '[]');
-                        notificaciones.push({
-                            trabajador: usuarioActual.username,
-                            fecha: fecha,
-                            turno: t.Turno,
-                            timestamp: new Date().toISOString()
-                        });
-                        localStorage.setItem('notificaciones', JSON.stringify(notificaciones));
-                        
-                        return turnoRechazado;
-                    }
-                    return t;
-                });
+function cargarProgramacionTrabajador() {
+    const programacion = JSON.parse(localStorage.getItem('programacion')) || [];
+    const turnosUsuario = programacion.filter(t => t.Nombre === usuarioActual.username);
+    const tbody = document.querySelector('#turnosTrabajador tbody');
+    
+    tbody.innerHTML = turnosUsuario.map(turno => `
+        <tr>
+            <td>${turno.Fecha}</td>
+            <td>${turno.Turno}</td>
+            <td>${turno.estado === 'confirmado' ? '✅ Confirmado' : 
+                  turno.estado === 'rechazado' ? '❌ Rechazado' : '⏳ Pendiente'}</td>
+            <td>
+                ${turno.estado !== 'confirmado' ? `
+                <button class="confirmar-btn" 
+                    onclick="confirmarTurno('${turno.Fecha}')">
+                    Confirmar
+                </button>
+                <button class="rechazar-btn" 
+                    onclick="rechazarTurno('${turno.Fecha}')">
+                    Rechazar
+                </button>` : 'Sin acciones'}
+            </td>
+        </tr>
+    `).join('');
+}
+
+function rechazarTurno(fecha) {
+    if(confirm("¿Estás seguro de rechazar este turno?")) {
+        let programacion = JSON.parse(localStorage.getItem('programacion'));
+        programacion = programacion.map(t => {
+            if(t.Nombre === usuarioActual.username && t.Fecha === fecha) {
+                const turnoRechazado = {
+                    ...t,
+                    estado: 'rechazado',
+                    fechaRechazo: new Date().toISOString()
+                };
                 
-                localStorage.setItem('programacion', JSON.stringify(programacion));
-                cargarProgramacionTrabajador();
-                if(usuarioActual.role === 'admin') cargarNotificaciones();
+                // Agregar notificación
+                const notificaciones = JSON.parse(localStorage.getItem('notificaciones') || '[]');
+                notificaciones.push({
+                    trabajador: usuarioActual.username,
+                    fecha: fecha,
+                    turno: t.Turno,
+                    timestamp: new Date().toISOString()
+                });
+                localStorage.setItem('notificaciones', JSON.stringify(notificaciones));
+                
+                return turnoRechazado;
             }
-        }
+            return t;
+        });
+        
+        localStorage.setItem('programacion', JSON.stringify(programacion));
+        cargarProgramacionTrabajador();
+        if(usuarioActual.role === 'admin') cargarNotificaciones();
+    }
+}
 
-        function cargarNotificaciones() {
-            const notificaciones = JSON.parse(localStorage.getItem('notificaciones') || '[]');
-            const contenedor = document.getElementById('listaNotificaciones');
-            
-            contenedor.innerHTML = notificaciones.map((notif, index) => `
-                <div class="notificacion-item">
-                    <div>
-                        <strong>${notif.trabajador}</strong> rechazó el turno 
-                        del ${notif.fecha} (${notif.turno})
-                        <br><small>${new Date(notif.timestamp).toLocaleString()}</small>
-                    </div>
-                    <button onclick="marcarComoResuelto(${index})">🗑️</button>
-                </div>
-            `).join('');
-        }
+function cargarNotificaciones() {
+    const notificaciones = JSON.parse(localStorage.getItem('notificaciones') || '[]');
+    const contenedor = document.getElementById('listaNotificaciones');
+    
+    contenedor.innerHTML = notificaciones.map((notif, index) => `
+        <div class="notificacion-item">
+            <div>
+                <strong>${notif.trabajador}</strong> rechazó el turno 
+                del ${notif.fecha} (${notif.turno})
+                <br><small>${new Date(notif.timestamp).toLocaleString()}</small>
+            </div>
+            <button onclick="marcarComoResuelto(${index})">🗑️</button>
+        </div>
+    `).join('');
+}
 
-        function marcarComoResuelto(index) {
-            const notificaciones = JSON.parse(localStorage.getItem('notificaciones'));
-            notificaciones.splice(index, 1);
-            localStorage.setItem('notificaciones', JSON.stringify(notificaciones));
-            cargarNotificaciones();
-        }
+function marcarComoResuelto(index) {
+    const notificaciones = JSON.parse(localStorage.getItem('notificaciones'));
+    notificaciones.splice(index, 1);
+    localStorage.setItem('notificaciones', JSON.stringify(notificaciones));
+    cargarNotificaciones();
+}
 
-        function openTab(tabName, event) {
-            if(usuarioActual.role !== 'admin') return;
+function openTab(tabName, event) {
+    if(usuarioActual.role !== 'admin') return;
 
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            
-            document.getElementById(tabName).classList.add('active');
-            event.currentTarget.classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    
+    document.getElementById(tabName).classList.add('active');
+    event.currentTarget.classList.add('active');
 
-            if(tabName === 'mapa' && !map) {
-                inicializarMapa();
+    if(tabName === 'mapa' && !map) {
+        inicializarMapa();
+    }
+}
+
+function procesarSedes() {
+    const file = document.getElementById('excelSedes').files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+            if(!jsonData[0]?.Nombre || !jsonData[0]?.Latitud || !jsonData[0]?.Longitud) {
+                throw new Error("Formato incorrecto. Se requieren columnas: Nombre, Latitud, Longitud");
             }
+
+            sedes = jsonData;
+            localStorage.setItem('sedes', JSON.stringify(sedes));
+            actualizarSedesEnMapa();
+            mostrarListaSedes();
+            alert("Sedes cargadas exitosamente!");
+        } catch (error) {
+            alert(error.message);
         }
+    };
+    reader.readAsArrayBuffer(file);
+}
 
-        function procesarSedes() {
-            const file = document.getElementById('excelSedes').files[0];
-            if (!file) return;
+function actualizarSedesEnMapa() {
+    if (!map) return;
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, {type: 'array'});
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(sheet);
-
-                    if(!jsonData[0]?.Nombre || !jsonData[0]?.Latitud || !jsonData[0]?.Longitud) {
-                        throw new Error("Formato incorrecto. Se requieren columnas: Nombre, Latitud, Longitud");
-                    }
-
-                    sedes = jsonData;
-                    localStorage.setItem('sedes', JSON.stringify(sedes));
-                    actualizarSedesEnMapa();
-                    mostrarListaSedes();
-                    alert("Sedes cargadas exitosamente!");
-                } catch (error) {
-                    alert(error.message);
-                }
-            };
-            reader.readAsArrayBuffer(file);
+    // Limpiar marcadores existentes (excepto el del usuario)
+    map.eachLayer(layer => {
+        if (layer instanceof L.Marker && layer !== userMarker) {
+            map.removeLayer(layer);
         }
+    });
 
-        function actualizarSedesEnMapa() {
-            if (!map) return;
+    // Añadir sedes desde el archivo
+    sedes.forEach(sede => {
+        L.marker([sede.Latitud, sede.Longitud])
+            .addTo(map)
+            .bindPopup(`<b>${sede.Nombre}</b>`);
+    });
 
-            // Limpiar marcadores existentes (excepto el del usuario)
-            map.eachLayer(layer => {
-                if (layer instanceof L.Marker && layer !== userMarker) {
-                    map.removeLayer(layer);
-                }
-            });
+    // Buscar y marcar el destino principal
+    const destinoPrincipal = sedes.find(s => s.Nombre === "Bogotá D.C.");
+    if (destinoPrincipal) {
+        L.marker([destinoPrincipal.Latitud, destinoPrincipal.Longitud], {
+            icon: L.icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                iconSize: [25, 41]
+            })
+        }).addTo(map)
+        .bindPopup('<b>Punto de Destino Principal</b>');
+    }
+}
 
-            // Añadir sedes desde el archivo
-            sedes.forEach(sede => {
-                L.marker([sede.Latitud, sede.Longitud])
-                    .addTo(map)
-                    .bindPopup(`<b>${sede.Nombre}</b>`);
-            });
+function mostrarListaSedes() {
+    const contenedor = document.getElementById('listaSedes');
+    contenedor.innerHTML = sedes.map(sede => `
+        <div class="sede-item">
+            <h4>${sede.Nombre}</h4>
+            <p>Lat: ${sede.Latitud}, Lng: ${sede.Longitud}</p>
+        </div>
+    `).join('');
+}
 
-            // Buscar y marcar el destino principal
-            const destinoPrincipal = sedes.find(s => s.Nombre === "Bogotá D.C.");
-            if (destinoPrincipal) {
-                L.marker([destinoPrincipal.Latitud, destinoPrincipal.Longitud], {
-                    icon: L.icon({
-                        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-                        iconSize: [25, 41]
-                    })
-                }).addTo(map)
-                .bindPopup('<b>Punto de Destino Principal</b>');
-            }
-        }
-
-        function mostrarListaSedes() {
-            const contenedor = document.getElementById('listaSedes');
-            contenedor.innerHTML = sedes.map(sede => `
-                <div class="sede-item">
-                    <h4>${sede.Nombre}</h4>
-                    <p>Lat: ${sede.Latitud}, Lng: ${sede.Longitud}</p>
-                </div>
-            `).join('');
-        }
-
-    </script>
+</script>
 </body>
 </html>
