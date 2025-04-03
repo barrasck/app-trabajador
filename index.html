@@ -341,7 +341,7 @@
                     attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                 }).addTo(map);
                 const destinoIcon = L.icon({
-                    iconUrl: 'images/marker-icon-2x-red.png', // Verifica la ruta del icono
+                    iconUrl: 'images/marker-icon-2x-red.png',
                     iconSize: [25, 41],
                     iconAnchor: [12, 41]
                 });
@@ -467,7 +467,7 @@ function actualizarUI() {
                 }).addTo(map);
             }
             if (polyline) {
-                polyline.setLatLngs([[CONFIG.destino.lat, CONFIG.destino                lat, CONFIG.destino.lng], [userCoords.lat, userCoords.lng]]);
+polyline.setLatLngs([[CONFIG.destino.lat, CONFIG.destino.lng], [userCoords.lat, userCoords.lng]]);
             } else {
                 polyline = L.polyline([[CONFIG.destino.lat, CONFIG.destino.lng], [userCoords.lat, userCoords.lng]], CONFIG.estilos.lineaConexion).addTo(map);
             }
