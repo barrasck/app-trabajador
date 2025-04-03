@@ -1,21 +1,22 @@
 {
- "name": "AMA Logística",
+  "name": "AMA Logística",
   "short_name": "AMA",
   "id": "ama-logistica-app",
   "description": "Sistema de seguimiento de ubicación y nómina para logística",
   "start_url": "/app-trabajador/pasada.html",
   "display": "standalone",
+  "display_override": ["window-controls-overlay"],
   "background_color": "#2563eb",
   "theme_color": "#2563eb",
   "icons": [
     {
-      "src": "icono-192.png.png.png",
+      "src": "icono-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "icono-512.png.png.png",
+      "src": "icono-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
@@ -25,9 +26,6 @@
   "dir": "ltr",
   "scope": "/app-trabajador/",
   "orientation": "portrait",
-  "launch_handler": {
-    "client_mode": "navigate-existing"
-  },
   "screenshots": [
     {
       "src": "screenshots/pantalla1.jpg",
@@ -36,5 +34,18 @@
       "label": "Vista principal"
     }
   ],
-  "categories": ["business", "productivity"]
+  "categories": ["business", "productivity"],
+  "file_handlers": [
+    {
+      "action": "/abrir-archivo",
+      "accept": { "application/pdf": [".pdf"] }
+    }
+  ],
+  "handle_links": "preferred",
+  "protocol_handlers": [
+    {
+      "protocol": "web+ama",
+      "url": "/abrir-enlace?url=%s"
+    }
+  ]
 }
