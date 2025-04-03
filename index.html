@@ -438,40 +438,44 @@ function actualizarUI() {
             return R * c;
         };
 
-        const manejarPosicion = (position) => {
-            const userCoords = {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude,
-                accuracy: position.coords.accuracy
-            };
-            document.getElementById('coordinates').textContent = `📌 Tus coordenadas: ${userCoords.lat.toFixed(5)}, ${userCoords.lng.toFixed(5)}`;
-            const distancia = calcularDistancia(userCoords.lat, userCoords.lng, CONFIG.destino.lat, CONFIG.destino.lng);
-            document.getElementById('distance').textContent = `Distancia al destino: ${distancia.toFixed(2)} metros`;
-            if (distancia <= CONFIG.destino.radio) {
-                alert("¡Estás dentro del área permitida!");
-            }
-            if (userMarker) {
-                userMarker.setLatLng([userCoords.lat, userCoords.lng]);
-            } else {
-                userMarker = L.marker([userCoords.lat, userCoords.lng]).addTo(map);
-            }
-            if (accuracyCircle) {
-                accuracyCircle.setLatLng([userCoords.lat, userCoords.lng])
-                    .setRadius(userCoords.accuracy * CONFIG.estilos.precision.escala);
-            } else {
-                accuracyCircle = L.circle([userCoords.lat, userCoords.lng], { 
-                    radius: userCoords.accuracy * CONFIG.estilos.precision.escala,
-                    color: CONFIG.estilos.precision.color, 
-                    fillColor: CONFIG.estilos.precision.color, 
-                    fillOpacity: CONFIG.estilos.precision.relleno, 
-                }).addTo(map);
-            }
-            if (polyline) {
-polyline.setLatLngs([[CONFIG.destino.lat, CONFIG.destino.lng], [userCoords.lat, userCoords.lng]]);
-            } else {
-                polyline = L.polyline([[CONFIG.destino.lat, CONFIG.destino.lng], [userCoords.lat, userCoords.lng]], CONFIG.estilos.lineaConexion).addTo(map);
-            }
-        };
+const manejarPosicion = (position) => {
+    const userCoords = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+        accuracy: position.coords.accuracy
+    };
+    document.getElementById('coordinates').textContent = `📌 Tus coordenadas: ${userCoords.lat.toFixed(5)}, ${userCoords.lng.toFixed(5)}`;
+    const distancia = calcularDistancia(userCoords.lat, userCoords.lng, CONFIG.destino.lat, CONFIG.destino.lng);
+    document.getElementById('distance').textContent = `Distancia al destino: ${distancia.toFixed(2)} metros`;
+    if (distancia <= CONFIG.destino.radio) {
+        alert("¡Estás dentro del área permitida!");
+    }
+    if (map) {  // Asegúrate de que el mapa esté inicializado
+        if (userMarker) {
+            userMarker.setLatLng([userCoords.lat, userCoords.lng]);
+        } else {
+            userMarker = L.marker([userCoords.lat, userCoords.lng]).addTo(map);
+        }
+        if (accuracyCircle) {
+            accuracyCircle.setLatLng([userCoords.lat, userCoords.lng])
+                .setRadius(userCoords.accuracy * CONFIG.estilos.precision.escala);
+        } else {
+            accuracyCircle = L.circle([userCoords.lat, userCoords.lng], { 
+                radius: userCoords.accuracy * CONFIG.estilos.precision.escala,
+                color: CONFIG.estilos.precision.color, 
+                fillColor: CONFIG.estilos.precision.color, 
+                fillOpacity: CONFIG.estilos.precision.relleno, 
+            }).addTo(map);
+        }
+        if (polyline) {
+            polyline.setLatLngs([[CONFIG.destino.lat, CONFIG.destino.lng], [userCoords.lat, userCoords.lng]]);
+        } else {
+            polyline = L.polyline([[CONFIG.destino.lat, CONFIG.destino.lng], [userCoords.lat, userCoords.lng]], CONFIG.estilos.lineaConexion).addTo(map);
+        }
+    } else {
+        console.error("El mapa no está inicializado.");
+    }
+};
 
         function iniciarGeolocalizacion() {
             if (navigator.geolocation) {
