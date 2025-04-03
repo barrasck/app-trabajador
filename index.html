@@ -471,11 +471,11 @@ const manejarPosicion = (position) => {
             fillOpacity: CONFIG.estilos.precision.relleno, 
         }).addTo(map);
     }
-    if (polyline) {
-        polyline.setLatLngs([[CONFIG.destino.lat, CONFIG.destino.lng], [userCoords.lat, userCoords.lng]]);
-    } else {
-        polyline = L.polyline([[CONFIG.destino.lat, CONFIG.destino.lng], [userCoords.lat, userCoords.lng]], CONFIG.estilos.lineaConexion).addTo(map);
-    }
+if (polyline) {
+    polyline.setLatLngs([[CONFIG.destino.lat, CONFIG.destino.lng], [userCoords.lat, userCoords.lng]]);
+} else {
+    polyline = L.polyline([[CONFIG.destino.lat, CONFIG.destino.lng], [userCoords.lat, userCoords.lng]], CONFIG.estilos.lineaConexion).addTo(map);
+}
 };
 
 function inicializarMapa() {
