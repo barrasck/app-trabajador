@@ -5,11 +5,6 @@ const ASSETS = [
   '/app-trabajador/manifest.json',
   '/app-trabajador/icono-192.png',
   '/app-trabajador/icono-512.png',
-  '/app-trabajador/turnos.html',
-  '/app-trabajador/nomina.html',
-  '/app-trabajador/turnos.png',
-  '/app-trabajador/nomina.png',
-  '/app-trabajador/screenshots/pantalla1.jpg'
 ];
 
 self.addEventListener('install', (e) => {
