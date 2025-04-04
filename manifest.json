@@ -39,7 +39,6 @@
       "name": "Turnos",
       "short_name": "Turnos",
       "description": "Ver tus turnos asignados",
-      "url": "/app-trabajador/turnos.html",
       "icons": [{ "src": "/app-trabajador/turnos.png", "sizes": "192x192" }]
     },
     {
