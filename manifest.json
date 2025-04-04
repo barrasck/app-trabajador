@@ -5,7 +5,6 @@
   "description": "Sistema de seguimiento de ubicación y nómina para logística",
   "start_url": "/app-trabajador/pasada.html",
   "display": "standalone",
-  "display_override": ["window-controls-overlay"],
   "background_color": "#2563eb",
   "theme_color": "#2563eb",
   "icons": [
@@ -28,24 +27,43 @@
   "orientation": "portrait",
   "screenshots": [
     {
-      "src": "screenshots/pantalla1.jpg",
+      "src": "/app-trabajador/screenshots/pantalla1.jpg",
       "sizes": "1080x1920",
       "type": "image/jpeg",
       "label": "Vista principal"
     }
   ],
   "categories": ["business", "productivity"],
-  "file_handlers": [
+  "shortcuts": [
     {
-      "action": "/abrir-archivo",
-      "accept": { "application/pdf": [".pdf"] }
+      "name": "Turnos",
+      "short_name": "Turnos",
+      "description": "Ver tus turnos asignados",
+      "url": "/app-trabajador/turnos.html",
+      "icons": [{ "src": "/app-trabajador/turnos.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Nómina",
+      "short_name": "Nómina",
+      "description": "Ver tu liquidación de nómina",
+      "url": "/app-trabajador/nomina.html",
+      "icons": [{ "src": "/app-trabajador/nomina.png", "sizes": "192x192" }]
     }
   ],
-  "handle_links": "preferred",
-  "protocol_handlers": [
-    {
-      "protocol": "web+ama",
-      "url": "/abrir-enlace?url=%s"
+  "share_target": {
+    "action": "/app-trabajador/share-target",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "file",
+          "accept": ["image/*", "video/*", "audio/*"]
+        }
+      ]
     }
-  ]
+  }
 }
