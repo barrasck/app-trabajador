@@ -45,7 +45,6 @@
       "name": "Nómina",
       "short_name": "Nómina",
       "description": "Ver tu liquidación de nómina",
-      "url": "/app-trabajador/nomina.html",
       "icons": [{ "src": "/app-trabajador/nomina.png", "sizes": "192x192" }]
     }
   ],
