@@ -170,7 +170,7 @@
             border-radius: 4px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: center.
         }
         .content-wrapper {
             display: none;
@@ -426,10 +426,17 @@
         }
 
         // Función login única y completa
-        function login() {
+        async function login() {
             const username = document.getElementById('username').value.toUpperCase();
             const password = document.getElementById('password').value;
-            const trabajadoresImportados = JSON.parse(localStorage.getItem('trabajadores')) || {};
+            const trabajadoresImportadosResponse = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/trabajadores.json?ref=main', {
+                headers: {
+                    'Authorization': `token TU_TOKEN_DE_ACCESO_PERSONAL`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+            const trabajadoresImportadosData = await trabajadoresImportadosResponse.json();
+            const trabajadoresImportados = JSON.parse(atob(trabajadoresImportadosData.content));
             const USUARIOS_COMBINADOS = {
                 ...USUARIOS,
                 trabajadores: {...USUARIOS.trabajadores, ...trabajadoresImportados}
@@ -480,7 +487,7 @@
             const data = await response.json();
             const ubicaciones = JSON.parse(atob(data.content));
 
-            const asignacionesResponse = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/asignaciones.json?ref=main', {
+            contents/asignaciones.json?ref=main', {
                 headers: {
                     'Authorization': `token TU_TOKEN_DE_ACCESO_PERSONAL`,
                     'Accept': 'application/vnd.github.v3+json'
@@ -489,7 +496,7 @@
             const asignacionesData = await asignacionesResponse.json();
             const asignaciones = JSON.parse(atob(asignacionesData.content));
 
-                        const sedesResponse = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/sedes.json?ref=main', {
+            const sedesResponse = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/sedes.json?ref=main', {
                 headers: {
                     'Authorization': `token TU_TOKEN_DE_ACCESO_PERSONAL`,
                     'Accept': 'application/vnd.github.v3+json'
@@ -959,7 +966,7 @@
             const data = await response.json();
             const notificaciones = JSON.parse(atob(data.content));
 
-                        notificaciones.splice(index, 1);
+            notificaciones.splice(index, 1);
             await guardarEnRepositorio('notificaciones.json', JSON.stringify(notificaciones, null, 2));
             cargarNotificaciones();
         }
