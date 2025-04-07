@@ -480,57 +480,54 @@
         }
 
         // Función para tracking en tiempo real de trabajadores
-        function iniciarTrackingTrabajador() {
-            if(navigator.geolocation) {
-                navigator.geolocation         // Función para tracking en tiempo real de trabajadores
-        function iniciarTrackingTrabajador() {
-            if(navigator.geolocation) {
-                navigator.geolocation.watchPosition(position => {
-                    const ubicacion = {
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude,
-                        timestamp: new Date().toISOString()
-                    };
+function iniciarTrackingTrabajador() {
+    if(navigator.geolocation) {
+        navigator.geolocation.watchPosition(position => {
+            const ubicacion = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+                timestamp: new Date().toISOString()
+            };
 
-                    const ubicaciones = JSON.parse(localStorage.getItem('ubicaciones')) || {};
-                    ubicaciones[usuarioActual.username] = ubicacion;
-                    localStorage.setItem('ubicaciones', JSON.stringify(ubicaciones));
+            const ubicaciones = JSON.parse(localStorage.getItem('ubicaciones')) || {};
+            ubicaciones[usuarioActual.username] = ubicacion;
+            localStorage.setItem('ubicaciones', JSON.stringify(ubicaciones));
 
-                    // Actualizar marcador del trabajador en el mapa
-                    if (userMarker) {
-                        userMarker.setLatLng([ubicacion.lat, ubicacion.lng]);
-                    } else {
-                        userMarker = L.marker([ubicacion.lat, ubicacion.lng]).addTo(map);
-                    }
-
-                    // Actualizar círculo de precisión
-                    if (accuracyCircle) {
-                        accuracyCircle.setLatLng([ubicacion.lat, ubicacion.lng])
-                            .setRadius(position.coords.accuracy * CONFIG.estilos.precision.escala);
-                    } else {
-                        accuracyCircle = L.circle([ubicacion.lat, ubicacion.lng], { 
-                            radius: position.coords.accuracy * CONFIG.estilos.precision.escala,
-                            color: CONFIG.estilos.precision.color, 
-                            fillColor: CONFIG.estilos.precision.color, 
-                            fillOpacity: CONFIG.estilos.precision.relleno, 
-                        }).addTo(map);
-                    }
-
-                    // Actualizar línea entre usuario y destino
-                    if (polyline) {
-                        polyline.setLatLngs([[CONFIG.destino.lat, CONFIG.destino.lng], [ubicacion.lat, ubicacion.lng]]);
-                    } else {
-                        polyline = L.polyline([[CONFIG.destino.lat, CONFIG.destino.lng], [ubicacion.lat, ubicacion.lng]], CONFIG.estilos.lineaConexion).addTo(map);
-                    }
-                }, error => {
-                    console.error(`Error de geolocalización (${error.code}): ${error.message}`);
-                }, {
-                    enableHighAccuracy: true,
-                    maximumAge: 10000,
-                    timeout: 15000
-                });
+            // Actualizar marcador del trabajador en el mapa
+            if (userMarker) {
+                userMarker.setLatLng([ubicacion.lat, ubicacion.lng]);
+            } else {
+                userMarker = L.marker([ubicacion.lat, ubicacion.lng]).addTo(map);
             }
-        }
+
+            // Actualizar círculo de precisión
+            if (accuracyCircle) {
+                accuracyCircle.setLatLng([ubicacion.lat, ubicacion.lng])
+                    .setRadius(position.coords.accuracy * CONFIG.estilos.precision.escala);
+            } else {
+                accuracyCircle = L.circle([ubicacion.lat, ubicacion.lng], { 
+                    radius: position.coords.accuracy * CONFIG.estilos.precision.escala,
+                    color: CONFIG.estilos.precision.color, 
+                    fillColor: CONFIG.estilos.precision.color, 
+                    fillOpacity: CONFIG.estilos.precision.relleno, 
+                }).addTo(map);
+            }
+
+            // Actualizar línea entre usuario y destino
+            if (polyline) {
+                polyline.setLatLngs([[CONFIG.destino.lat, CONFIG.destino.lng], [ubicacion.lat, ubicacion.lng]]);
+            } else {
+                polyline = L.polyline([[CONFIG.destino.lat, CONFIG.destino.lng], [ubicacion.lat, ubicacion.lng]], CONFIG.estilos.lineaConexion).addTo(map);
+            }
+        }, error => {
+            console.error(`Error de geolocalización (${error.code}): ${error.message}`);
+        }, {
+            enableHighAccuracy: true,
+            maximumAge: 10000,
+            timeout: 15000
+        });
+    }
+}
 
         function actualizarUI() {
             if(usuarioActual.role === 'admin') {
@@ -538,11 +535,13 @@
                 document.querySelector('.content-wrapper').style.display = 'block';
                 document.querySelector('.nomina-panel').style.display = 'none';
                 openTab('programacion', { currentTarget: document.querySelector('.tab-btn.active') }); // Pass a mock event
+                document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
             } else {
                 document.querySelector('.tabs').style.display = 'none';
                 document.querySelector('.nomina-panel').style.display = 'block';
                 document.getElementById('mapa').style.display = 'none';
                 document.getElementById('sedes').style.display = 'none';
+                document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
             }
         }
 
