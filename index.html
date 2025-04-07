@@ -476,11 +476,13 @@ function procesarTrabajadores() {
                 throw new Error("Formato incorrecto. Columnas requeridas: Número de Documento, Nombre, Número de Celular");
             }
 
-                        const trabajadores = jsonData.reduce((acc, t) => {
-                acc[t.Nombre.toUpperCase()] = {
-                    password: t['Número de Documento'],
+            const trabajadores = jsonData.reduce((acc, t) => {
+                const documento = t['Número de Documento'];
+                acc[documento] = {
+                    password: documento,
                     role: 'worker',
-                    documento: t['Número de Documento'],
+                    documento: documento,
+                                        nombre: t['Nombre'],
                     celular: t['Número de Celular'],
                     nomina: []
                 };
@@ -510,7 +512,7 @@ function actualizarListaTrabajadores() {
     selectSede.innerHTML = '<option value="">Seleccionar Sede</option>';
 
     Object.keys(trabajadores).forEach(t => {
-        selectTrabajador.innerHTML += `<option value="${t}">${t}</option>`;
+        selectTrabajador.innerHTML += `<option value="${t}">${trabajadores[t].nombre}</option>`;
     });
 
     sedes.forEach(s => {
