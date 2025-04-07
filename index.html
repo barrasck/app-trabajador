@@ -6,6 +6,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css">
     <style>
         /* Estilos CSS mejorados */
         .tabs {
@@ -177,124 +179,8 @@
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
-</head>
-<body>
-    <button id="logoutBtn" onclick="cerrarSesion()">🚪 Cerrar Sesión</button>
-    <div id="loginModal">
-        <div>
-            <h2>🔐 Inicio de Sesión</h2>
-            <input type="text" id="username" name="username" placeholder="Usuario" autocomplete="username">
-            <input type="password" id="password" name="password" placeholder="Contraseña" autocomplete="current-password">
-            <button onclick="login(event)">Ingresar</button>
-        </div>
-    </div>
-    <div class="tabs">
-        <button class="tab-btn active" onclick="openTab('programacion', event)">📅 Programación</button>
-        <button class="tab-btn" onclick="openTab('mapa', event)">🗺️ Mapa</button>
-        <button class="tab-btn" onclick="openTab('sedes', event)">🏢 Sedes</button>
-        <button class="tab-btn" onclick="openTab('trabajadores', event)">👷 Trabajadores</button>
-    </div>
-    <div class="content-wrapper">
-        <!-- Panel para administradores -->
-        <div class="info-panel">
-            <div id="programacion" class="tab-content active">
-                <div class="upload-section">
-                    <h3>📤 Subir Programación</h3>
-                    <input type="file" id="excelProgramacion" accept=".xlsx, .xls">
-                    <button onclick="procesarProgramacion()">Cargar Programación</button>
-                    <div id="programacionData"></div>
-                </div>
-                <div class="notificaciones-panel">
-                    <h3>🚨 Notificaciones</h3>
-                    <div id="listaNotificaciones"></div>
-                </div>
-            </div>
-            <div id="mapa" class="tab-content">
-                <h2>📍 Destino: Bogotá D.C.</h2>
-                <p id="distance">Distancia al destino: Calculando...</p>
-                <p id="coordinates">📌 Tus coordenadas: Obteniendo ubicación...</p>
-                <p id="status">🔄 Estado: Conectando...</p>
-                <div id="map"></div>
-            </div>
-            <div id="sedes" class="tab-content">
-                <div class="upload-section">
-                    <h3>📤 Subir Sedes</h3>
-                    <input type="file" id="excelSedes" accept=".xlsx, .xls">
-                    <button onclick="procesarSedes()">Cargar Sedes</button>
-                </div>
-                <div id="listaSedes"></div>
-            </div>
-            <div id="trabajadores" class="tab-content"> <!-- Nuevo tab -->
-                <div class="upload-section">
-                    <h3>📤 Importar Trabajadores</h3>
-                    <input type="file" id="excelTrabajadores" accept=".xlsx, .xls">
-                    <button onclick="procesarTrabajadores()">Cargar Trabajadores</button>
-                </div>
-                <div class="asignacion-section">
-                    <h3>🔗 Asignar Sedes</h3>
-                    <select id="selectTrabajador">
-                        <option value="">Seleccionar Trabajador</option>
-                    </select>
-                    <select id="selectSede">
-                        <option value="">Seleccionar Sede</option>
-                    </select>
-                    <button onclick="asignarSede()">Asignar Sede</button>
-                </div>
-                <div id="listaTrabajadores"></div>
-                <div class="workers-table">
-                    <h3>📋 Lista de Trabajadores</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Nombre</th>
-                                <th>Documento</th>
-                                <th>Celular</th>
-                                <th>Usuario</th>
-                                <th>Contraseña</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tablaTrabajadores"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <!-- Panel para trabajadores -->
-        <div class="nomina-panel">
-            <div class="programacion-panel">
-                <h3>📅 Turnos Asignados</h3>
-                <table id="turnosTrabajador">
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Turno</th>
-                            <th>Estado</th>
-                            <th>Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-            <h2>📅 Liquidación de Nómina</h2>
-            <div id="nomina-info">
-                <p>Usuario: <span id="nombre-trabajador"></span></p>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Horas Trabajadas</th>
-                            <th>Valor por Hora</th>
-                            <th>Total Día</th>
-                        </tr>
-                    </thead>
-                    <tbody id="registro-nomina"></tbody>
-                </table>
-                <p style="margin-top: 15px; font-weight: bold;">
-                    Total a pagar: $<span id="total-pagar">0</span>
-                </p>
-            </div>
-        </div>
-    </div>
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js')
@@ -311,6 +197,7 @@
         let polyline = null;
         let trabajadoresMarkers = {};
         let sedeAssignments = {};
+        let markerCluster;
 
         const USUARIOS = {
             administradores: {
@@ -370,6 +257,10 @@
                 userMarker = null;
                 accuracyCircle = null;
                 polyline = null;
+                if (markerCluster) {
+                    markerCluster.clearLayers();
+                    markerCluster = null;
+                }
             }
             document.getElementById('username').value = '';
             document.getElementById('password').value = '';
@@ -378,13 +269,12 @@
         function inicializarMapa() {
             if (!map) {
                 map = L.map('map', {
+                    preferCanvas: true, // Usar canvas para mejorar el rendimiento
                     maxZoom: CONFIG.opcionesMapa.maxZoom
                 }).setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-    attribution: '© OpenStreetMap © CartoDB',
-    subdomains: 'abcd',
-    maxZoom: 19
-}).addTo(map);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                }).addTo(map);
                 const destinoIcon = L.icon({
                     iconUrl: './marker-icon-2x-red.png',
                     iconSize: [25, 41],
@@ -395,10 +285,50 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r
                     .bindPopup('<b>Punto de Destino</b><br>Bogotá D.C.')
                     .openPopup();
 
+                // Inicializar el cluster de marcadores
+                markerCluster = L.markerClusterGroup();
+                map.addLayer(markerCluster);
+
                 if (usuarioActual.role === 'admin') {
                     cargarUbicacionesTrabajadores();
                 }
             }
+        }
+
+        function cargarUbicacionesTrabajadores() {
+            const ubicaciones = JSON.parse(localStorage.getItem('ubicaciones')) || {};
+            const asignaciones = JSON.parse(localStorage.getItem('asignaciones')) || {};
+            const sedes = JSON.parse(localStorage.getItem('sedes')) || [];
+
+            Object.keys(ubicaciones).forEach(trabajador => {
+                const ubicacion = ubicaciones[trabajador];
+                const sedeAsignada = sedes.find(s => s.Nombre === asignaciones[trabajador]);
+
+                if(trabajadoresMarkers[trabajador]) {
+                    trabajadoresMarkers[trabajador].setLatLng([ubicacion.lat, ubicacion.lng]);
+                } else {
+                    const marker = L.marker([ubicacion.lat, ubicacion.lng], {
+                        icon: L.icon({
+                            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                            iconSize: [25, 41]
+                        })
+                    });
+
+                    let popupContent = `<b>${trabajador}</b><br>Última actualización: ${new Date(ubicacion.timestamp).toLocaleTimeString()}`;
+
+                    if(sedeAsignada) {
+                        popupContent += `<br>Sede asignada: ${sedeAsignada.Nombre}`;
+                        L.polyline([[ubicacion.lat, ubicacion.lng], [sedeAsignada.Latitud, sedeAsignada.Longitud]], {
+                            color: 'gray',
+                            dashArray: '5'
+                        }).addTo(map);
+                    }
+
+                    marker.bindPopup(popupContent);
+                    trabajadoresMarkers[trabajador] = marker;
+                    markerCluster.addLayer(marker); // Añadir al cluster de marcadores
+                }
+            });
         }
 
         // Función login única y completa
@@ -473,11 +403,6 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r
 
                     const trabajadores = jsonData.reduce((acc, t) => {
                         acc[t.Nombre.toUpperCase()] = {
-                            password: t['Número de Documento'],
-                            role: 'worker',
-                            documento: t['Número de Documento'],
-                            celular: t['Número de Celular'],
-                            nomina: []                        acc[t.Nombre.toUpperCase()] = {
                             password: t['Número de Documento'],
                             role: 'worker',
                             documento: t['Número de Documento'],
@@ -557,6 +482,9 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r
         // Función para tracking en tiempo real de trabajadores
         function iniciarTrackingTrabajador() {
             if(navigator.geolocation) {
+                navigator.geolocation         // Función para tracking en tiempo real de trabajadores
+        function iniciarTrackingTrabajador() {
+            if(navigator.geolocation) {
                 navigator.geolocation.watchPosition(position => {
                     const ubicacion = {
                         lat: position.coords.latitude,
@@ -567,6 +495,39 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r
                     const ubicaciones = JSON.parse(localStorage.getItem('ubicaciones')) || {};
                     ubicaciones[usuarioActual.username] = ubicacion;
                     localStorage.setItem('ubicaciones', JSON.stringify(ubicaciones));
+
+                    // Actualizar marcador del trabajador en el mapa
+                    if (userMarker) {
+                        userMarker.setLatLng([ubicacion.lat, ubicacion.lng]);
+                    } else {
+                        userMarker = L.marker([ubicacion.lat, ubicacion.lng]).addTo(map);
+                    }
+
+                    // Actualizar círculo de precisión
+                    if (accuracyCircle) {
+                        accuracyCircle.setLatLng([ubicacion.lat, ubicacion.lng])
+                            .setRadius(position.coords.accuracy * CONFIG.estilos.precision.escala);
+                    } else {
+                        accuracyCircle = L.circle([ubicacion.lat, ubicacion.lng], { 
+                            radius: position.coords.accuracy * CONFIG.estilos.precision.escala,
+                            color: CONFIG.estilos.precision.color, 
+                            fillColor: CONFIG.estilos.precision.color, 
+                            fillOpacity: CONFIG.estilos.precision.relleno, 
+                        }).addTo(map);
+                    }
+
+                    // Actualizar línea entre usuario y destino
+                    if (polyline) {
+                        polyline.setLatLngs([[CONFIG.destino.lat, CONFIG.destino.lng], [ubicacion.lat, ubicacion.lng]]);
+                    } else {
+                        polyline = L.polyline([[CONFIG.destino.lat, CONFIG.destino.lng], [ubicacion.lat, ubicacion.lng]], CONFIG.estilos.lineaConexion).addTo(map);
+                    }
+                }, error => {
+                    console.error(`Error de geolocalización (${error.code}): ${error.message}`);
+                }, {
+                    enableHighAccuracy: true,
+                    maximumAge: 10000,
+                    timeout: 15000
                 });
             }
         }
