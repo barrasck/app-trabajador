@@ -355,7 +355,7 @@
                 document.querySelector('.content-wrapper').style.display = 'block';
                 document.getElementById('logoutBtn').style.display = 'block';
                 sessionStorage.setItem('session', JSON.stringify(usuarioActual));
-                actualizarUI(event);
+                actualizarUI();
 
                 if(usuarioActual.role === 'admin') {
                     inicializarMapa();
@@ -445,23 +445,23 @@
         }
 
         // Función para mostrar la tabla de trabajadores
-        function mostrarTablaTrabajadores(trabajadores) {
-            const tbody = document.getElementById('tablaTrabajadores');
-            tbody.innerHTML = '';
+function mostrarTablaTrabajadores(trabajadores) {
+    const tbody = document.getElementById('tablaTrabajadores');
+    tbody.innerHTML = '';
 
-            Object.values(trabajadores).forEach(trabajador => {
-                const row = `
-                    <tr>
-                        <td>${trabajador.documento}</td>
-                        <td>${trabajador.documento}</td>
-                        <td>${trabajador.celular}</td>
-                        <td>${trabajador.documento}</td>
-                        <td>${trabajador.password}</td>
-                    </tr>
-                `;
-                tbody.innerHTML += row;
-            });
-        }
+    Object.entries(trabajadores).forEach(([nombre, datos]) => {
+        const row = `
+            <tr>
+                <td>${nombre}</td>
+                <td>${datos.documento}</td>
+                <td>${datos.celular}</td>
+                <td>${datos.role}</td>
+                <td>${datos.password}</td>
+            </tr>
+        `;
+        tbody.innerHTML += row;
+    });
+}
 
         // Función para asignar sedes
         function asignarSede() {
