@@ -651,6 +651,57 @@ if (polyline) {
 }
 };
 
+function login() {
+    const username = document.getElementById('username').value.toUpperCase();
+    const password = document.getElementById('password').value;
+    
+    // Cargar trabajadores desde localStorage
+    const trabajadoresImportados = JSON.parse(localStorage.getItem('trabajadores')) || {};
+    const USUARIOS_COMBINADOS = {
+        ...USUARIOS,
+        trabajadores: {...USUARIOS.trabajadores, ...trabajadoresImportados}
+    };
+
+    const user = USUARIOS_COMBINADOS.administradores[username] || USUARIOS_COMBINADOS.trabajadores[username];
+    
+    if(user && user.password === password) {
+        usuarioActual = {
+            username: username,
+            role: user.role,
+            datos: user
+        };
+        document.getElementById('loginModal').style.display = 'none';
+        document.querySelector('.content-wrapper').style.display = 'block';
+        document.getElementById('logoutBtn').style.display = 'block';
+        sessionStorage.setItem('session', JSON.stringify(usuarioActual));
+        actualizarUI(event);
+
+        if(usuarioActual.role === 'admin') {
+            inicializarMapa();
+            iniciarGeolocalizacion();
+            cargarNotificaciones();
+        } else {
+            mostrarNomina();
+            cargarProgramacionTrabajador();
+            document.querySelector('.tabs').style.display = 'none';
+            document.querySelector('.nomina-panel').style.display = 'block';
+            document.getElementById('mapa').style.display = 'none';
+            document.getElementById('sedes').style.display = 'none';
+            document.querySelector('.notificaciones-panel').style.display = 'none';
+            document.querySelector('.upload-section').style.display = 'none';
+        }
+
+        if(usuarioActual.role === 'worker') {
+            iniciarTrackingTrabajador();
+        }
+    } else {
+        alert('Credenciales incorrectas');
+        document.getElementById('username').value = '';
+        document.getElementById('password').value = '';
+        document.getElementById('username').focus();
+    }
+}
+
 function iniciarGeolocalizacion() {
     if (navigator.geolocation) {
         navigator.geolocation.watchPosition(
