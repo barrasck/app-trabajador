@@ -452,7 +452,7 @@
             Object.values(trabajadores).forEach(trabajador => {
                 const row = `
                     <tr>
-                        <td>${trabajador.nombre}</td>
+                        <td>${trabajador.documento}</td>
                         <td>${trabajador.documento}</td>
                         <td>${trabajador.celular}</td>
                         <td>${trabajador.documento}</td>
@@ -477,57 +477,60 @@
             asignaciones[trabajador] = sede;
             localStorage.setItem('asignaciones', JSON.stringify(asignaciones));
             alert("Sede asignada exitosamente!");
+
+            // Actualizar la interfaz de usuario
+            actualizarListaTrabajadores();
         }
 
         // Función para tracking en tiempo real de trabajadores
-function iniciarTrackingTrabajador() {
-    if(navigator.geolocation) {
-        navigator.geolocation.watchPosition(position => {
-            const ubicacion = {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude,
-                timestamp: new Date().toISOString()
-            };
+        function iniciarTrackingTrabajador() {
+            if(navigator.geolocation) {
+                navigator.geolocation.watchPosition(position => {
+                    const ubicacion = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                        timestamp: new Date().toISOString()
+                    };
 
-            const ubicaciones = JSON.parse(localStorage.getItem('ubicaciones')) || {};
-            ubicaciones[usuarioActual.username] = ubicacion;
-            localStorage.setItem('ubicaciones', JSON.stringify(ubicaciones));
+                    const ubicaciones = JSON.parse(localStorage.getItem('ubicaciones')) || {};
+                    ubicaciones[usuarioActual.username] = ubicacion;
+                    localStorage.setItem('ubicaciones', JSON.stringify(ubicaciones));
 
-            // Actualizar marcador del trabajador en el mapa
-            if (userMarker) {
-                userMarker.setLatLng([ubicacion.lat, ubicacion.lng]);
-            } else {
-                userMarker = L.marker([ubicacion.lat, ubicacion.lng]).addTo(map);
+                    // Actualizar marcador del trabajador en el mapa
+                    if (userMarker) {
+                        userMarker.setLatLng([ubicacion.lat, ubicacion.lng]);
+                    } else {
+                        userMarker = L.marker([ubicacion.lat, ubicacion.lng]).addTo(map);
+                    }
+
+                    // Actualizar círculo de precisión
+                    if (accuracyCircle) {
+                        accuracyCircle.setLatLng([ubicacion.lat, ubicacion.lng])
+                            .setRadius(position.coords.accuracy * CONFIG.estilos.precision.escala);
+                    } else {
+                        accuracyCircle = L.circle([ubicacion.lat, ubicacion.lng], { 
+                            radius: position.coords.accuracy * CONFIG.estilos.precision.escala,
+                            color: CONFIG.estilos.precision.color, 
+                            fillColor: CONFIG.estilos.precision.color, 
+                            fillOpacity: CONFIG.estilos.precision.relleno, 
+                        }).addTo(map);
+                    }
+
+                    // Actualizar línea entre usuario y destino
+                    if (polyline) {
+                        polyline.setLatLngs([[CONFIG.destino.lat, CONFIG.destino.lng], [ubicacion.lat, ubicacion.lng]]);
+                    } else {
+                        polyline = L.polyline([[CONFIG.destino.lat, CONFIG.destino.lng], [ubicacion.lat, ubicacion.lng]], CONFIG.estilos.lineaConexion).addTo(map);
+                    }
+                }, error => {
+                    console.error(`Error de geolocalización (${error.code}): ${error.message}`);
+                }, {
+                    enableHighAccuracy: true,
+                    maximumAge: 10000,
+                    timeout: 15000
+                });
             }
-
-            // Actualizar círculo de precisión
-            if (accuracyCircle) {
-                accuracyCircle.setLatLng([ubicacion.lat, ubicacion.lng])
-                    .setRadius(position.coords.accuracy * CONFIG.estilos.precision.escala);
-            } else {
-                accuracyCircle = L.circle([ubicacion.lat, ubicacion.lng], { 
-                    radius: position.coords.accuracy * CONFIG.estilos.precision.escala,
-                    color: CONFIG.estilos.precision.color, 
-                    fillColor: CONFIG.estilos.precision.color, 
-                    fillOpacity: CONFIG.estilos.precision.relleno, 
-                }).addTo(map);
-            }
-
-            // Actualizar línea entre usuario y destino
-            if (polyline) {
-                polyline.setLatLngs([[CONFIG.destino.lat, CONFIG.destino.lng], [ubicacion.lat, ubicacion.lng]]);
-            } else {
-                polyline = L.polyline([[CONFIG.destino.lat, CONFIG.destino.lng], [ubicacion.lat, ubicacion.lng]], CONFIG.estilos.lineaConexion).addTo(map);
-            }
-        }, error => {
-            console.error(`Error de geolocalización (${error.code}): ${error.message}`);
-        }, {
-            enableHighAccuracy: true,
-            maximumAge: 10000,
-            timeout: 15000
-        });
-    }
-}
+        }
 
         function actualizarUI() {
             if(usuarioActual.role === 'admin') {
@@ -894,3 +897,4 @@ function iniciarTrackingTrabajador() {
     </script>
 </body>
 </html>
+           
