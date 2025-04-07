@@ -212,7 +212,6 @@
             </div>
             <div id="mapa" class="tab-content">
                 <h2>📍 Destino: Bogotá D.C.</h2>
-                <p id="distance">Distancia al destino: Calculando...</p>
                 <p id="coordinates">📌 Tus coordenadas: Obteniendo ubicación...</p>
                 <p id="status">🔄 Estado: Conectando...</p>
                 <div id="map"></div>
@@ -298,7 +297,6 @@
         let usuarioActual = null;
         let userMarker = null;
         let accuracyCircle = null;
-        let polyline = null;
         let trabajadoresMarkers = {};
         let sedeAssignments = {};
         
@@ -335,11 +333,6 @@
                 maxZoom: 19
             },
             estilos: {
-                lineaConexion: {
-                    color: '#2563eb',
-                    peso: 3,
-                    opacidad: 0.7
-                },
                 precision: {
                     color: '#3b82f6',
                     relleno: 0.2,
@@ -359,7 +352,6 @@
                 map = null;
                 userMarker = null;
                 accuracyCircle = null;
-                polyline = null;
             }
             document.getElementById('username').value = '';
             document.getElementById('password').value = '';
@@ -487,7 +479,7 @@ function procesarTrabajadores() {
                 throw new Error("Formato incorrecto. Columnas requeridas: Número de Documento, Nombre, Número de Celular");
             }
 
-            const trabajadores = jsonData.reduce((acc, t) => {
+                        const trabajadores = jsonData.reduce((acc, t) => {
                 acc[t.Nombre.toUpperCase()] = {
                     password: t['Número de Documento'],
                     role: 'worker',
@@ -562,7 +554,6 @@ function iniciarTrackingTrabajador() {
     }
 }
 
-        
 function actualizarUI() {
     if(usuarioActual.role === 'admin') {
         document.querySelector('.tabs').style.display = 'flex';
@@ -577,79 +568,26 @@ function actualizarUI() {
     }
 }
 
-        function mostrarNomina() {
-            const trabajador = usuarioActual.datos;
-            const tbody = document.getElementById('registro-nomina');
-            let total = 0;
-            document.getElementById('nombre-trabajador').textContent = trabajador.username;
-            tbody.innerHTML = '';
-            trabajador.nomina.forEach(dia => {
-                const totalDia = dia.horas * dia.valorHora;
-                total += totalDia;
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${dia.fecha}</td>
-                        <td>${dia.horas}</td>
-                        <td>$${dia.valorHora.toLocaleString()}</td>
-                        <td>$${totalDia.toLocaleString()}</td>
-                    </tr>
-                `;
-            });
-            document.getElementById('total-pagar').textContent = total.toLocaleString();
-        }
-
-const calcularDistancia = (lat1, lon1, lat2, lon2) => {
-    const R = 6371e3;
-    const φ1 = lat1 * Math.PI/180;
-    const φ2 = lat2 * Math.PI/180;
-    const Δφ = (lat2 - lat1) * Math.PI/180;
-    const Δλ = (lon1 - lon2) * Math.PI/180;
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
-};
-
-const manejarPosicion = (position) => {
-    if (!map) {
-        console.error("El mapa no está inicializado.");
-        return;
-    }
-
-    const userCoords = {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude,
-        accuracy: position.coords.accuracy
-    };
-    document.getElementById('coordinates').textContent = `📌 Tus coordenadas: ${userCoords.lat.toFixed(5)}, ${userCoords.lng.toFixed(5)}`;
-    const distancia = calcularDistancia(userCoords.lat, userCoords.lng, CONFIG.destino.lat, CONFIG.destino.lng);
-    document.getElementById('distance').textContent = `Distancia al destino: ${distancia.toFixed(2)} metros`;
-    if (distancia <= CONFIG.destino.radio) {
-        alert("¡Estás dentro del área permitida!");
-    }
-    if (userMarker) {
-        userMarker.setLatLng([userCoords.lat, userCoords.lng]);
-    } else {
-        userMarker = L.marker([userCoords.lat, userCoords.lng]).addTo(map);
-    }
-    if (accuracyCircle) {
-        accuracyCircle.setLatLng([userCoords.lat, userCoords.lng])
-            .setRadius(userCoords.accuracy * CONFIG.estilos.precision.escala);
-    } else {
-        accuracyCircle = L.circle([userCoords.lat, userCoords.lng], { 
-            radius: userCoords.accuracy * CONFIG.estilos.precision.escala,
-            color: CONFIG.estilos.precision.color, 
-            fillColor: CONFIG.estilos.precision.color, 
-            fillOpacity: CONFIG.estilos.precision.relleno, 
-        }).addTo(map);
-    }
-if (polyline) {
-    polyline.setLatLngs([[CONFIG.destino.lat, CONFIG.destino.lng], [userCoords.lat, userCoords.lng]]);
-} else {
-    polyline = L.polyline([[CONFIG.destino.lat, CONFIG.destino.lng], [userCoords.lat, userCoords.lng]], CONFIG.estilos.lineaConexion).addTo(map);
+function mostrarNomina() {
+    const trabajador = usuarioActual.datos;
+    const tbody = document.getElementById('registro-nomina');
+    let total = 0;
+    document.getElementById('nombre-trabajador').textContent = trabajador.username;
+    tbody.innerHTML = '';
+    trabajador.nomina.forEach(dia => {
+        const totalDia = dia.horas * dia.valorHora;
+        total += totalDia;
+        tbody.innerHTML += `
+            <tr>
+                <td>${dia.fecha}</td>
+                <td>${dia.horas}</td>
+                <td>$${dia.valorHora.toLocaleString()}</td>
+                <td>$${totalDia.toLocaleString()}</td>
+            </tr>
+        `;
+    });
+    document.getElementById('total-pagar').textContent = total.toLocaleString();
 }
-};
 
 function iniciarGeolocalizacion() {
     if (navigator.geolocation) {
@@ -667,6 +605,37 @@ function iniciarGeolocalizacion() {
         );
     } else {
         document.getElementById('status').innerHTML = "❌ Tu navegador no soporta geolocalización";
+    }
+}
+
+function manejarPosicion(position) {
+    if (!map) {
+        console.error("El mapa no está inicializado.");
+        return;
+    }
+
+    const userCoords = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+        accuracy: position.coords.accuracy
+    };
+    document.getElementById('coordinates').textContent = `📌 Tus coordenadas: ${userCoords.lat.toFixed(5)}, ${userCoords.lng.toFixed(5)}`;
+
+    if (userMarker) {
+        userMarker.setLatLng([userCoords.lat, userCoords.lng]);
+    } else {
+        userMarker = L.marker([userCoords.lat, userCoords.lng]).addTo(map);
+    }
+    if (accuracyCircle) {
+        accuracyCircle.setLatLng([userCoords.lat, userCoords.lng])
+            .setRadius(userCoords.accuracy * CONFIG.estilos.precision.escala);
+    } else {
+        accuracyCircle = L.circle([userCoords.lat, userCoords.lng], { 
+            radius: userCoords.accuracy * CONFIG.estilos.precision.escala,
+            color: CONFIG.estilos.precision.color, 
+            fillColor: CONFIG.estilos.precision.color, 
+            fillOpacity: CONFIG.estilos.precision.relleno, 
+        }).addTo(map);
     }
 }
 
