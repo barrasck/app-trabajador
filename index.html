@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<link rel="manifest" href="manifest.json">
-    
+    <link rel="manifest" href="manifest.json">
     <title>Seguimiento de Ubicación y Nómina</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin=""/>
     <style>
         /* Estilos CSS mejorados */
         .tabs {
@@ -35,8 +34,6 @@
             height: 70vh;
             width: 100%;
             margin: 20px 0;
-                contain: strict; /* Optimiza renderizado */
-    will-change: transform;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
@@ -186,15 +183,15 @@
     <div id="loginModal">
         <div>
             <h2>🔐 Inicio de Sesión</h2>
-<input type="text" id="username" name="username" placeholder="Usuario" autocomplete="username">
-<input type="password" id="password" name="password" placeholder="Contraseña" autocomplete="current-password">
+            <input type="text" id="username" name="username" placeholder="Usuario" autocomplete="username">
+            <input type="password" id="password" name="password" placeholder="Contraseña" autocomplete="current-password">
             <button onclick="login(event)">Ingresar</button>
         </div>
     </div>
     <div class="tabs">
-<button class="tab-btn active" onclick="openTab('programacion', event)">📅 Programación</button>
-<button class="tab-btn" onclick="openTab('mapa', event)">🗺️ Mapa</button>
-<button class="tab-btn" onclick="openTab('sedes', event)">🏢 Sedes</button>
+        <button class="tab-btn active" onclick="openTab('programacion', event)">📅 Programación</button>
+        <button class="tab-btn" onclick="openTab('mapa', event)">🗺️ Mapa</button>
+        <button class="tab-btn" onclick="openTab('sedes', event)">🏢 Sedes</button>
         <button class="tab-btn" onclick="openTab('trabajadores', event)">👷 Trabajadores</button>
     </div>
     <div class="content-wrapper">
@@ -249,238 +246,227 @@
         </div>
     </div>
         
-        <!-- Panel para trabajadores -->
-        <div class="nomina-panel">
-            <div class="programacion-panel">
-                <h3>📅 Turnos Asignados</h3>
-                <table id="turnosTrabajador">
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Turno</th>
-                            <th>Estado</th>
-                            <th>Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-            <h2>📅 Liquidación de Nómina</h2>
-            <div id="nomina-info">
-                <p>Usuario: <span id="nombre-trabajador"></span></p>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Horas Trabajadas</th>
-                            <th>Valor por Hora</th>
-                            <th>Total Día</th>
-                        </tr>
-                    </thead>
-                    <tbody id="registro-nomina"></tbody>
-                </table>
-                <p style="margin-top: 15px; font-weight: bold;">
-                    Total a pagar: $<span id="total-pagar">0</span>
-                </p>
-            </div>
+    <!-- Panel para trabajadores -->
+    <div class="nomina-panel">
+        <div class="programacion-panel">
+            <h3>📅 Turnos Asignados</h3>
+            <table id="turnosTrabajador">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Turno</th>
+                        <th>Estado</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <h2>📅 Liquidación de Nómina</h2>
+        <div id="nomina-info">
+            <p>Usuario: <span id="nombre-trabajador"></span></p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Horas Trabajadas</th>
+                        <th>Valor por Hora</th>
+                        <th>Total Día</th>
+                    </tr>
+                </thead>
+                <tbody id="registro-nomina"></tbody>
+            </table>
+            <p style="margin-top: 15px; font-weight: bold;">
+                Total a pagar: $<span id="total-pagar">0</span>
+            </p>
         </div>
     </div>
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
     <script>
-
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js')
       .then(() => console.log('App funciona offline'))
       .catch(err => console.log('Error:', err));
   }
         
-        // Variables globales
-        let map;
-        let sedes = [];
-        let usuarioActual = null;
-        let userMarker = null;
-        let accuracyCircle = null;
-        let polyline = null;
-        let trabajadoresMarkers = {};
-        let sedeAssignments = {};
-        let markersCluster;
-        
-        const USUARIOS = {
-            administradores: {
-                'WENDY': {password: 'WENDY123!', role: 'admin'},
-                'LAURA': {password: 'LAURA456@', role: 'admin'},
-                'JOSE': {password: 'JOSE789#', role: 'admin'},
-                'ANDRES': {password: 'ANDRES012$', role: 'admin'},
-                'FABIO': {password: 'FABIO345%', role: 'admin'},
-                'CRISTIAN': {password: 'CRISTIAN678^', role: 'admin'}
-            },
-            trabajadores: {
-                'PRUEBA': {
-                    password: 'PRUEBA123',
-                    role: 'worker',
-                    nomina: [
-                        { fecha: '2023-10-01', horas: 8, valorHora: 15000 },
-                        { fecha: '2023-10-02', horas: 6, valorHora: 15000 },
-                        { fecha: '2023-10-03', horas: 7, valorHora: 15000 }
-                    ]
-                }
-            }
-        };
+  // Variables globales
+  let map;
+  let sedes = [];
+  let usuarioActual = null;
+  let userMarker = null;
+  let accuracyCircle = null;
+  let polyline = null;
+  let trabajadoresMarkers = {};
+  let sedeAssignments = {};
+  
+  const USUARIOS = {
+      administradores: {
+          'WENDY': {password: 'WENDY123!', role: 'admin'},
+          'LAURA': {password: 'LAURA456@', role: 'admin'},
+          'JOSE': {password: 'JOSE789#', role: 'admin'},
+          'ANDRES': {password: 'ANDRES012$', role: 'admin'},
+          'FABIO': {password: 'FABIO345%', role: 'admin'},
+          'CRISTIAN': {password: 'CRISTIAN678^', role: 'admin'}
+      },
+      trabajadores: {
+          'PRUEBA': {
+              password: 'PRUEBA123',
+              role: 'worker',
+              nomina: [
+                  { fecha: '2023-10-01', horas: 8, valorHora: 15000 },
+                  { fecha: '2023-10-02', horas: 6, valorHora: 15000 },
+                  { fecha: '2023-10-03', horas: 7, valorHora: 15000 }
+              ]
+          }
+      }
+  };
 
-        const CONFIG = {
-            destino: {
-                lat: 4.688636,
-                lng: -74.132025,
-                radio: 170
-            },
-            opcionesMapa: {
-                zoomInicial: 15,
-                maxZoom: 19
-            },
-            estilos: {
-                lineaConexion: {
-                    color: '#2563eb',
-                    peso: 3,
-                    opacidad: 0.7
-                },
-                precision: {
-                    color: '#3b82f6',
-                    relleno: 0.2,
-                    escala: 0.5
-                }
-            }
-        };
+  const CONFIG = {
+      destino: {
+          lat: 4.688636,
+          lng: -74.132025,
+          radio: 170
+      },
+      opcionesMapa: {
+          zoomInicial: 15,
+          maxZoom: 19
+      },
+      estilos: {
+          lineaConexion: {
+              color: '#2563eb',
+              peso: 3,
+              opacidad: 0.7
+          },
+          precision: {
+              color: '#3b82f6',
+              relleno: 0.2,
+              escala: 0.5
+          }
+      }
+  };
 
-        function cerrarSesion() {
-            sessionStorage.removeItem('session');
-            usuarioActual = null;
-            document.querySelector('.content-wrapper').style.display = 'none';
-            document.getElementById('loginModal').style.display = 'flex';
-            document.getElementById('logoutBtn').style.display = 'none';
-            if(map) {
-                map.remove();
-                map = null;
-                userMarker = null;
-                accuracyCircle = null;
-                polyline = null;
-            }
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
-        }
+  function cerrarSesion() {
+      sessionStorage.removeItem('session');
+      usuarioActual = null;
+      document.querySelector('.content-wrapper').style.display = 'none';
+      document.getElementById('loginModal').style.display = 'flex';
+      document.getElementById('logoutBtn').style.display = 'none';
+      if(map) {
+          map.remove();
+          map = null;
+          userMarker = null;
+          accuracyCircle = null;
+          polyline = null;
+      }
+      document.getElementById('username').value = '';
+      document.getElementById('password').value = '';
+  }
 
-JavaScript
+  function inicializarMapa() {
+      if (!map) {
+          map = L.map('map', {
+              maxZoom: CONFIG.opcionesMapa.maxZoom
+          }).setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          }).addTo(map);
+          const destinoIcon = L.icon({
+              iconUrl: './marker-icon-2x-red.png',
+              iconSize: [25, 41],
+              iconAnchor: [12, 41]
+          });
+          L.marker([CONFIG.destino.lat, CONFIG.destino.lng], { icon: destinoIcon })
+              .addTo(map)
+              .bindPopup('<b>Punto de Destino</b><br>Bogotá D.C.')
+              .openPopup();
 
-function inicializarMapa() {
-    if (!map) {
-        map = L.map('map', {
-            maxZoom: CONFIG.opcionesMapa.maxZoom
-        }).setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
+          if (usuarioActual.role === 'admin') {
+              cargarUbicacionesTrabajadores();
+          }
+      }
+  }
 
-        // Usando un proveedor de tiles con CDN (puedes probar otros)
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
+  // Función login única y completa
+  function login() {
+      const username = document.getElementById('username').value.toUpperCase();
+      const password = document.getElementById('password').value;
+      const trabajadoresImportados = JSON.parse(localStorage.getItem('trabajadores')) || {};
+      const USUARIOS_COMBINADOS = {
+          ...USUARIOS,
+          trabajadores: {...USUARIOS.trabajadores, ...trabajadoresImportados}
+      };
 
-        const destinoIcon = L.icon({
-            iconUrl: './marker-icon-2x-red.png', // Asegúrate de que la ruta sea correcta
-            iconSize: [25, 41],
-            iconAnchor: [12, 41]
-        });
+      const user = USUARIOS_COMBINADOS.administradores[username] || USUARIOS_COMBINADOS.trabajadores[username];
 
-        L.marker([CONFIG.destino.lat, CONFIG.destino.lng], { icon: destinoIcon })
-            .addTo(map)
-            .bindPopup('<b>Punto de Destino</b><br>Bogotá D.C.')
-            .openPopup();
+      if(user && user.password === password) {
+          usuarioActual = {
+              username: username,
+              role: user.role,
+              datos: user
+          };
+          document.getElementById('loginModal').style.display = 'none';
+          document.querySelector('.content-wrapper').style.display = 'block';
+          document.getElementById('logoutBtn').style.display = 'block';
+          sessionStorage.setItem('session', JSON.stringify(usuarioActual));
+          actualizarUI(event);
+          if(usuarioActual.role === 'admin') {
+              inicializarMapa();
+              iniciarGeolocalizacion();
+              cargarNotificaciones();
+          } else {
+              mostrarNomina();
+              cargarProgramacionTrabajador();
+              document.querySelector('.tabs').style.display = 'none';
+              document.querySelector('.nomina-panel').style.display = 'block';
+              document.getElementById('mapa').style.display = 'none';
+              document.getElementById('sedes').style.display = 'none';
+              document.querySelector('.notificaciones-panel').style.display = 'none';
+              document.querySelector('.upload-section').style.display = 'none';
+          }
+      } else {
+          alert('Credenciales incorrectas');
+          document.getElementById('username').value = '';
+          document.getElementById('password').value = '';
+          document.getElementById('username').focus();
+      }
+  }
 
-        if (usuarioActual.role === 'admin') {
-            markersCluster = L.markerClusterGroup(); // Inicializa el grupo de marcadores
-            cargarUbicacionesTrabajadores(markersCluster); // Pasa el grupo a la función
-            map.addLayer(markersCluster); // Añade el grupo al mapa
-        }
-    }
-}
+  function cargarUbicacionesTrabajadores() {
+      const ubicaciones = JSON.parse(localStorage.getItem('ubicaciones')) || {};
+      const asignaciones = JSON.parse(localStorage.getItem('asignaciones')) || {};
+      const sedes = JSON.parse(localStorage.getItem('sedes')) || [];
 
-        // Función login única y completa
-        function login() {
-            const username = document.getElementById('username').value.toUpperCase();
-            const password = document.getElementById('password').value;
-             const trabajadoresImportados = JSON.parse(localStorage.getItem('trabajadores')) || {};
-    const USUARIOS_COMBINADOS = {
-        ...USUARIOS,
-        trabajadores: {...USUARIOS.trabajadores, ...trabajadoresImportados}
-    };
+      Object.keys(ubicaciones).forEach(trabajador => {
+          const ubicacion = ubicaciones[trabajador];
+          const sedeAsignada = sedes.find(s => s.Nombre === asignaciones[trabajador]);
 
-    const user = USUARIOS_COMBINADOS.administradores[username] || USUARIOS_COMBINADOS.trabajadores[username];
+          if(trabajadoresMarkers[trabajador]) {
+              trabajadoresMarkers[trabajador].setLatLng([ubicacion.lat, ubicacion.lng]);
+          } else {
+              const marker = L.marker([ubicacion.lat, ubicacion.lng], {
+                  icon: L.icon({
+                      iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                      iconSize: [25, 41]
+                  })
+              }).addTo(map);
 
-            if(user && user.password === password) {
-                usuarioActual = {
-                    username: username,
-                    role: user.role,
-                    datos: user
-                };
-                document.getElementById('loginModal').style.display = 'none';
-                document.querySelector('.content-wrapper').style.display = 'block';
-                document.getElementById('logoutBtn').style.display = 'block';
-                sessionStorage.setItem('session', JSON.stringify(usuarioActual));
-                actualizarUI(event);
-                if(usuarioActual.role === 'admin') {
-                    inicializarMapa();
-                    iniciarGeolocalizacion();
-                    cargarNotificaciones();
-                } else {
-                    mostrarNomina();
-                    cargarProgramacionTrabajador();
-                    document.querySelector('.tabs').style.display = 'none';
-                    document.querySelector('.nomina-panel').style.display = 'block';
-                    document.getElementById('mapa').style.display = 'none';
-                    document.getElementById('sedes').style.display = 'none';
-                    document.querySelector('.notificaciones-panel').style.display = 'none';
-                    document.querySelector('.upload-section').style.display = 'none';
-                }
-            } else {
-                alert('Credenciales incorrectas');
-                document.getElementById('username').value = '';
-                document.getElementById('password').value = '';
-                document.getElementById('username').focus();
-            }
-        }
+              let popupContent = `<b>${trabajador}</b><br>Última actualización: ${new Date(ubicacion.timestamp).toLocaleTimeString()}`;
 
-function cargarUbicacionesTrabajadores() {
-    const ubicaciones = JSON.parse(localStorage.getItem('ubicaciones')) || {};
-    const asignaciones = JSON.parse(localStorage.getItem('asignaciones')) || {};
-    const sedes = JSON.parse(localStorage.getItem('sedes')) || [];
+              if(sedeAsignada) {
+                  popupContent += `<br>Sede asignada: ${sedeAsignada.Nombre}`;
+                  L.polyline([[ubicacion.lat, ubicacion.lng], [sedeAsignada.Latitud, sedeAsignada.Longitud]], {
+                      color: 'gray',
+                      dashArray: '5'
+                  }).addTo(map);
+              }
 
-    Object.keys(ubicaciones).forEach(trabajador => {
-        const ubicacion = ubicaciones[trabajador];
-        const sedeAsignada = sedes.find(s => s.Nombre === asignaciones[trabajador]);
+              marker.bindPopup(popupContent);
+              trabajadoresMarkers[trabajador] = marker;
+          }
+      });
+  }
 
-        if(trabajadoresMarkers[trabajador]) {
-            trabajadoresMarkers[trabajador].setLatLng([ubicacion.lat, ubicacion.lng]);
-        } else {
-            const marker = L.marker([ubicacion.lat, ubicacion.lng], {
-                icon: L.icon({
-                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-                    iconSize: [25, 41]
-                })
-            }).addTo(map);
-
-            let popupContent = `<b>${trabajador}</b><br>Última actualización: ${new Date(ubicacion.timestamp).toLocaleTimeString()}`;
-
-            if(sedeAsignada) {
-                popupContent += `<br>Sede asignada: ${sedeAsignada.Nombre}`;
-                L.polyline([[ubicacion.lat, ubicacion.lng], [sedeAsignada.Latitud, sedeAsignada.Longitud]], {
-                    color: 'gray',
-                    dashArray: '5'
-                }).addTo(map);
-            }
-
-            marker.bindPopup(popupContent);
-            trabajadoresMarkers[trabajador] = marker;
-        }
-    });
-}
-
-// Función para procesar archivo de trabajadores
+  // Función para procesar archivo de trabajadores
 function procesarTrabajadores() {
     const file = document.getElementById('excelTrabajadores').files[0];
     if (!file) return;
@@ -489,12 +475,12 @@ function procesarTrabajadores() {
     reader.onload = function(e) {
         try {
             const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, {type: 'array'});
+            const workbook = XLSX.read(data, { type: 'array' });
             const sheet = workbook.Sheets[workbook.SheetNames[0]];
             const jsonData = XLSX.utils.sheet_to_json(sheet);
 
             // Validar columnas requeridas
-            if(!jsonData[0]?.['Número de Documento'] || !jsonData[0]?.Nombre || !jsonData[0]?.['Número de Celular']) {
+            if (!jsonData[0]?.['Número de Documento'] || !jsonData[0]?.Nombre || !jsonData[0]?.['Número de Celular']) {
                 throw new Error("Formato incorrecto. Columnas requeridas: Número de Documento, Nombre, Número de Celular");
             }
 
@@ -522,7 +508,7 @@ function procesarTrabajadores() {
 // Función para actualizar lista de trabajadores
 function actualizarListaTrabajadores() {
     const trabajadores = JSON.parse(localStorage.getItem('trabajadores')) || {};
-    const sedes = JSON.parse(localStorage.getItem('sedes')) || [];
+    const sedes = JSON.parse(localStorage.getItem('sedes')) || {};
 
     // Actualizar selects
     const selectTrabajador = document.getElementById('selectTrabajador');
@@ -535,8 +521,8 @@ function actualizarListaTrabajadores() {
         selectTrabajador.innerHTML += `<option value="${t}">${t}</option>`;
     });
 
-    sedes.forEach(s => {
-        selectSede.innerHTML += `<option value="${s.Nombre}">${s.Nombre}</option>`;
+    Object.keys(sedes).forEach(s => {
+        selectSede.innerHTML += `<option value="${s}">${s}</option>`;
     });
 }
 
@@ -545,7 +531,7 @@ function asignarSede() {
     const trabajador = document.getElementById('selectTrabajador').value;
     const sede = document.getElementById('selectSede').value;
 
-    if(!trabajador || !sede) {
+    if (!trabajador || !sede) {
         alert("Seleccione un trabajador y una sede");
         return;
     }
@@ -558,7 +544,7 @@ function asignarSede() {
 
 // Función para tracking en tiempo real de trabajadores
 function iniciarTrackingTrabajador() {
-    if(navigator.geolocation) {
+    if (navigator.geolocation) {
         navigator.geolocation.watchPosition(position => {
             const ubicacion = {
                 lat: position.coords.latitude,
@@ -573,62 +559,11 @@ function iniciarTrackingTrabajador() {
     }
 }
 
-        
-function actualizarUI() {
-    if(usuarioActual.role === 'admin') {
-        document.querySelector('.tabs').style.display = 'flex';
-        document.querySelector('.content-wrapper').style.display = 'block';
-        document.querySelector('.nomina-panel').style.display = 'none';
-        openTab('programacion', { currentTarget: document.querySelector('.tab-btn.active') }); // Pass a mock event
-    } else {
-        document.querySelector('.tabs').style.display = 'none';
-        document.querySelector('.nomina-panel').style.display = 'block';
-        document.getElementById('mapa').style.display = 'none';
-        document.getElementById('sedes').style.display = 'none';
-    }
-}
-
-        function mostrarNomina() {
-            const trabajador = usuarioActual.datos;
-            const tbody = document.getElementById('registro-nomina');
-            let total = 0;
-            document.getElementById('nombre-trabajador').textContent = trabajador.username;
-            tbody.innerHTML = '';
-            trabajador.nomina.forEach(dia => {
-                const totalDia = dia.horas * dia.valorHora;
-                total += totalDia;
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${dia.fecha}</td>
-                        <td>${dia.horas}</td>
-                        <td>$${dia.valorHora.toLocaleString()}</td>
-                        <td>$${totalDia.toLocaleString()}</td>
-                    </tr>
-                `;
-            });
-            document.getElementById('total-pagar').textContent = total.toLocaleString();
-        }
-
-const calcularDistancia = (lat1, lon1, lat2, lon2) => {
-    const R = 6371e3;
-    const φ1 = lat1 * Math.PI/180;
-    const φ2 = lat2 * Math.PI/180;
-    const Δφ = (lat2 - lat1) * Math.PI/180;
-    const Δλ = (lon1 - lon2) * Math.PI/180;
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
-};
-
-const manejarPosicion = (position) => {
+// Función para manejar la geolocalización
+function manejarPosicion(position) {
     if (!map) {
         console.error("El mapa no está inicializado.");
         return;
-            if(Date.now() - lastUpdate > 50000) {
-        lastUpdate = Date.now();
-        cargarUbicacionesTrabajadores();
     }
 
     const userCoords = {
@@ -658,64 +593,14 @@ const manejarPosicion = (position) => {
             fillOpacity: CONFIG.estilos.precision.relleno, 
         }).addTo(map);
     }
-if (polyline) {
-    polyline.setLatLngs([[CONFIG.destino.lat, CONFIG.destino.lng], [userCoords.lat, userCoords.lng]]);
-} else {
-    polyline = L.polyline([[CONFIG.destino.lat, CONFIG.destino.lng], [userCoords.lat, userCoords.lng]], CONFIG.estilos.lineaConexion).addTo(map);
-}
-};
-
-function login() {
-    const username = document.getElementById('username').value.toUpperCase();
-    const password = document.getElementById('password').value;
-    
-    // Cargar trabajadores desde localStorage
-    const trabajadoresImportados = JSON.parse(localStorage.getItem('trabajadores')) || {};
-    const USUARIOS_COMBINADOS = {
-        ...USUARIOS,
-        trabajadores: {...USUARIOS.trabajadores, ...trabajadoresImportados}
-    };
-
-    const user = USUARIOS_COMBINADOS.administradores[username] || USUARIOS_COMBINADOS.trabajadores[username];
-    
-    if(user && user.password === password) {
-        usuarioActual = {
-            username: username,
-            role: user.role,
-            datos: user
-        };
-        document.getElementById('loginModal').style.display = 'none';
-        document.querySelector('.content-wrapper').style.display = 'block';
-        document.getElementById('logoutBtn').style.display = 'block';
-        sessionStorage.setItem('session', JSON.stringify(usuarioActual));
-        actualizarUI(event);
-
-        if(usuarioActual.role === 'admin') {
-            inicializarMapa();
-            iniciarGeolocalizacion();
-            cargarNotificaciones();
-        } else {
-            mostrarNomina();
-            cargarProgramacionTrabajador();
-            document.querySelector('.tabs').style.display = 'none';
-            document.querySelector('.nomina-panel').style.display = 'block';
-            document.getElementById('mapa').style.display = 'none';
-            document.getElementById('sedes').style.display = 'none';
-            document.querySelector('.notificaciones-panel').style.display = 'none';
-            document.querySelector('.upload-section').style.display = 'none';
-        }
-
-        if(usuarioActual.role === 'worker') {
-            iniciarTrackingTrabajador();
-        }
+    if (polyline) {
+        polyline.setLatLngs([[CONFIG.destino.lat, CONFIG.destino.lng], [userCoords.lat, userCoords.lng]]);
     } else {
-        alert('Credenciales incorrectas');
-        document.getElementById('username').value = '';
-        document.getElementById('password').value = '';
-        document.getElementById('username').focus();
+        polyline = L.polyline([[CONFIG.destino.lat, CONFIG.destino.lng], [userCoords.lat, userCoords.lng]], CONFIG.estilos.lineaConexion).addTo(map);
     }
 }
 
+// Función para iniciar la geolocalización
 function iniciarGeolocalizacion() {
     if (navigator.geolocation) {
         navigator.geolocation.watchPosition(
@@ -740,14 +625,14 @@ window.onload = function() {
         const session = sessionStorage.getItem('session');
         document.getElementById('logoutBtn').style.display = session ? 'block' : 'none';
         
-        if(!session) {
+        if (!session) {
             document.getElementById('loginModal').style.display = 'flex';
         } else {
             document.querySelector('.content-wrapper').style.display = 'block';
             usuarioActual = JSON.parse(session);
             actualizarUI();
             
-            if(usuarioActual.role === 'admin') {
+            if (usuarioActual.role === 'admin') {
                 inicializarMapa();
                 iniciarGeolocalizacion();
             } else {
@@ -856,7 +741,7 @@ function rechazarTurno(fecha) {
     if(confirm("¿Estás seguro de rechazar este turno?")) {
         let programacion = JSON.parse(localStorage.getItem('programacion'));
         programacion = programacion.map(t => {
-            if(t.Nombre === usuarioActual.username && t.Fecha === fecha) {
+            if (t.Nombre === usuarioActual.username && t.Fecha === fecha) {
                 const turnoRechazado = {
                     ...t,
                     estado: 'rechazado',
@@ -880,7 +765,7 @@ function rechazarTurno(fecha) {
         
         localStorage.setItem('programacion', JSON.stringify(programacion));
         cargarProgramacionTrabajador();
-        if(usuarioActual.role === 'admin') cargarNotificaciones();
+        if (usuarioActual.role === 'admin') cargarNotificaciones();
     }
 }
 
@@ -908,7 +793,7 @@ function marcarComoResuelto(index) {
 }
 
 function openTab(tabName, event) {
-    if(usuarioActual.role !== 'admin') return;
+    if (usuarioActual.role !== 'admin') return;
 
     document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -916,7 +801,7 @@ function openTab(tabName, event) {
     document.getElementById(tabName).classList.add('active');
     event.currentTarget.classList.add('active');
 
-    if(tabName === 'mapa' && !map) {
+    if (tabName === 'mapa' && !map) {
         inicializarMapa();
     }
 }
@@ -933,7 +818,7 @@ function procesarSedes() {
             const sheet = workbook.Sheets[workbook.SheetNames[0]];
             const jsonData = XLSX.utils.sheet_to_json(sheet);
 
-            if(!jsonData[0]?.Nombre || !jsonData[0]?.Latitud || !jsonData[0]?.Longitud) {
+            if (!jsonData[0]?.Nombre || !jsonData[0]?.Latitud || !jsonData[0]?.Longitud) {
                 throw new Error("Formato incorrecto. Se requieren columnas: Nombre, Latitud, Longitud");
             }
 
@@ -988,7 +873,6 @@ function mostrarListaSedes() {
         </div>
     `).join('');
 }
-
 </script>
 </body>
 </html>
