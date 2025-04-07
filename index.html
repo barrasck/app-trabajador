@@ -365,26 +365,34 @@
             document.getElementById('password').value = '';
         }
 
+JavaScript
+
 function inicializarMapa() {
     if (!map) {
         map = L.map('map', {
             maxZoom: CONFIG.opcionesMapa.maxZoom
         }).setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
+
+        // Usando un proveedor de tiles con CDN (puedes probar otros)
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
+
         const destinoIcon = L.icon({
-            iconUrl: './marker-icon-2x-red.png',
+            iconUrl: './marker-icon-2x-red.png', // Asegúrate de que la ruta sea correcta
             iconSize: [25, 41],
             iconAnchor: [12, 41]
         });
+
         L.marker([CONFIG.destino.lat, CONFIG.destino.lng], { icon: destinoIcon })
             .addTo(map)
             .bindPopup('<b>Punto de Destino</b><br>Bogotá D.C.')
             .openPopup();
 
         if (usuarioActual.role === 'admin') {
-            cargarUbicacionesTrabajadores();
+            markersCluster = L.markerClusterGroup(); // Inicializa el grupo de marcadores
+            cargarUbicacionesTrabajadores(markersCluster); // Pasa el grupo a la función
+            map.addLayer(markersCluster); // Añade el grupo al mapa
         }
     }
 }
