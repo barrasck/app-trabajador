@@ -35,6 +35,8 @@
             height: 70vh;
             width: 100%;
             margin: 20px 0;
+                contain: strict; /* Optimiza renderizado */
+    will-change: transform;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
@@ -301,6 +303,7 @@
         let polyline = null;
         let trabajadoresMarkers = {};
         let sedeAssignments = {};
+        let markersCluster;
         
         const USUARIOS = {
             administradores: {
@@ -623,6 +626,9 @@ const manejarPosicion = (position) => {
     if (!map) {
         console.error("El mapa no está inicializado.");
         return;
+            if(Date.now() - lastUpdate > 50000) {
+        lastUpdate = Date.now();
+        cargarUbicacionesTrabajadores();
     }
 
     const userCoords = {
