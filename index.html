@@ -193,14 +193,13 @@
                 // Validación 2: Obtener trabajadores.json
                 const trabajadoresImportadosResponse = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/trabajadores.json?ref=main', {
                     headers: {
-                        'Authorization': `token TU_TOKEN_AQUI`, // ← Tu token aquí
                         'Accept': 'application/vnd.github.v3+json'
                     }
                 });
 
                 // Validación 3: Si hay error en la respuesta
                 if (!trabajadoresImportadosResponse.ok) {
-                    throw new Error("🚨 Error al cargar trabajadores. ¿Token válido?");
+                    throw new Error("🚨 Error al cargar trabajadores.");
                 }
 
                 const trabajadoresImportadosData = await trabajadoresImportadosResponse.json();
@@ -256,163 +255,8 @@
                 document.getElementById('password').value = '';
             }
         }
-    </script>
-</head>
-<body>
-    <button id="logoutBtn" onclick="cerrarSesion()">🚪 Cerrar Sesión</button>
-    <div id="loginModal">
-        <div>
-            <h2>🔐 Inicio de Sesión</h2>
-            <input type="text" id="username" name="username" placeholder="Usuario" autocomplete="username">
-            <input type="password" id="password" name="password" placeholder="Contraseña" autocomplete="current-password">
-            <button onclick="login(event)">Ingresar</button>
-        </div>
-    </div>
-    <div class="tabs">
-        <button class="tab-btn active" onclick="openTab('programacion', event)">📅 Programación</button>
-        <button class="tab-btn" onclick="openTab('mapa', event)">🗺️ Mapa</button>
-        <button class="tab-btn" onclick="openTab('sedes', event)">🏢 Sedes</button>
-        <button class="tab-btn" onclick="openTab('trabajadores', event)">👷 Trabajadores</button>
-    </div>
-    <div class="content-wrapper">
-        <!-- Panel para administradores -->
-        <div class="info-panel">
-            <div id="programacion" class="tab-content active">
-                <div class="upload-section">
-                    <h3>📤 Subir Programación</h3>
-                    <input type="file" id="excelProgramacion" accept=".xlsx, .xls">
-                    <button onclick="procesarProgramacion()">Cargar Programación</button>
-                    <div id="programacionData"></div>
-                </div>
-                <div class="notificaciones-panel">
-                    <h3>🚨 Notificaciones</h3>
-                    <div id="listaNotificaciones"></div>
-                </div>
-            </div>
-            <div id="mapa" class="tab-content">
-                <div id="map"></div>
-            </div>
-            <div id="sedes" class="tab-content">
-                <div class="upload-section">
-                    <h3>📤 Subir Sedes</h3>
-                    <input type="file" id="excelSedes" accept=".xlsx, .xls">
-                    <button onclick="procesarSedes()">Cargar Sedes</button>
-                </div>
-                <div id="listaSedes"></div>
-            </div>
-        </div>
-
-        <div id="trabajadores" class="tab-content"> <!-- Nuevo tab -->
-            <div class="upload-section">
-                <h3>📤 Importar Trabajadores</h3>
-                <input type="file" id="excelTrabajadores" accept=".xlsx, .xls">
-                <button onclick="procesarTrabajadores()">Cargar Trabajadores</button>
-            </div>
-            <div class="asignacion-section">
-                <h3>🔗 Asignar Sedes</h3>
-                <select id="selectTrabajador">
-                    <option value="">Seleccionar Trabajador</option>
-                </select>
-                <select id="selectSede">
-                    <option value="">Seleccionar Sede</option>
-                </select>
-                <button onclick="asignarSede()">Asignar Sede</button>
-            </div>
-            <div id="listaTrabajadores"></div>
-        </div>
-    </div>
-        
-        <!-- Panel para trabajadores -->
-        <div class="nomina-panel">
-            <div class="programacion-panel">
-                <h3>📅 Turnos Asignados</h3>
-                <table id="turnosTrabajador">
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Turno</th>
-                            <th>Estado</th>
-                            <th>Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-            <h2>📅 Liquidación de Nómina</h2>
-            <div id="nomina-info">
-                <p>Usuario: <span id="nombre-trabajador"></span></p>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Horas Trabajadas</th>
-                            <th>Valor por Hora</th>
-                            <th>Total Día</th>
-                        </tr>
-                    </thead>
-                    <tbody id="registro-nomina"></tbody>
-                </table>
-                <p style="margin-top: 15px; font-weight: bold;">
-                    Total a pagar: $<span id="total-pagar">0</span>
-                </p>
-            </div>
-        </div>
-    </div>
-    <script type="module">
-        import * as XLSX from 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js';
-
-        // Variables globales
-        let map;
-        let sedes = [];
-        let usuarioActual = null;
-        let userMarker = null;
-        let accuracyCircle = null;
-        let trabajadoresMarkers = {};
-        let sedeAssignments = {};
-
-        const USUARIOS = {
-            administradores: {
-                'WENDY': {password: 'WENDY123!', role: 'admin'},
-                'LAURA': {password: 'LAURA456@', role: 'admin'},
-                'JOSE': {password: 'JOSE789#', role: 'admin'},
-                'ANDRES': {password: 'ANDRES012$', role: 'admin'},
-                'FABIO': {password: 'FABIO345%', role: 'admin'},
-                'CRISTIAN': {password: 'CRISTIAN678^', role: 'admin'}
-            },
-            trabajadores: {
-                'PRUEBA': {
-                    password: 'PRUEBA123',
-                    role: 'worker',
-                    nomina: [
-                        { fecha: '2023-10-01', horas: 8, valorHora: 15000 },
-                        { fecha: '2023-10-02', horas: 6, valorHora: 15000 },
-                        { fecha: '2023-10-03', horas: 7, valorHora: 15000 }
-                    ]
-                }
-            }
-        };
-
-        const CONFIG = {
-            destino: {
-                lat: 4.688636,
-                lng: -74.132025,
-                radio: 170
-            },
-            opcionesMapa: {
-                zoomInicial: 15,
-                maxZoom: 19
-            },
-            estilos: {
-                precision: {
-                    color: '#3b82f6',
-                    relleno: 0.2,
-                    escala: 0.5
-                }
-            }
-        };
 
         async function guardarEnRepositorio(rutaArchivo, contenido) {
-            const token = 'TU_TOKEN_AQUI';  // Reemplaza con tu token de acceso personal
             const repo = 'barrasck/ubicacion';  // Reemplaza con el nombre de tu repositorio
             const branch = 'main';  // Reemplaza con el nombre de tu rama
 
@@ -421,7 +265,6 @@
             try {
                 const response = await fetch(`https://api.github.com/repos/${repo}/contents/${rutaArchivo}?ref=${branch}`, {
                     headers: {
-                        'Authorization': `token ${token}`,
                         'Accept': 'application/vnd.github.v3+json'
                     }
                 });
@@ -438,7 +281,6 @@
                 const response = await fetch(`https://api.github.com/repos/${repo}/contents/${rutaArchivo}`, {
                     method: 'PUT',
                     headers: {
-                        'Authorization': `token ${token}`,
                         'Accept': 'application/vnd.github.v3+json'
                     },
                     body: JSON.stringify({
@@ -476,7 +318,7 @@
         }
 
         function inicializarMapa() {
-                        if (!map) {
+            if (!map) {
                 map = L.map('map', {
                     maxZoom: CONFIG.opcionesMapa.maxZoom
                 }).setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
@@ -544,7 +386,6 @@
         async function actualizarListaTrabajadores() {
             const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/trabajadores.json?ref=main', {
                 headers: {
-                    'Authorization': `token TU_TOKEN_AQUI`,
                     'Accept': 'application/vnd.github.v3+json'
                 }
             });
@@ -553,7 +394,6 @@
 
             const sedesResponse = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/sedes.json?ref=main', {
                 headers: {
-                    'Authorization': `token TU_TOKEN_AQUI`,
                     'Accept': 'application/vnd.github.v3+json'
                 }
             });
@@ -588,7 +428,6 @@
 
             const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/asignaciones.json?ref=main', {
                 headers: {
-                    'Authorization': `token TU_TOKEN_AQUI`,
                     'Accept': 'application/vnd.github.v3+json'
                 }
             });
@@ -612,7 +451,6 @@
 
                     const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/ubicaciones.json?ref=main', {
                         headers: {
-                            'Authorization': `token TU_TOKEN_AQUI`,
                             'Accept': 'application/vnd.github.v3+json'
                         }
                     });
@@ -760,7 +598,6 @@
                     // Validar que la sede exista
                     const sedesResponse = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/sedes.json?ref=main', {
                         headers: {
-                            'Authorization': `token TU_TOKEN_AQUI`,
                             'Accept': 'application/vnd.github.v3+json'
                         }
                     });
@@ -818,7 +655,6 @@
         async function cargarProgramacionTrabajador() {
             const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/programacion.json?ref=main', {
                 headers: {
-                    'Authorization': `token TU_TOKEN_AQUI`,
                     'Accept': 'application/vnd.github.v3+json'
                 }
             });
@@ -854,7 +690,6 @@
             if(confirm("¿Estás seguro de rechazar este turno?")) {
                 const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/programacion.json?ref=main', {
                     headers: {
-                        'Authorization': `token TU_TOKEN_AQUI`,
                         'Accept': 'application/vnd.github.v3+json'
                     }
                 });
@@ -873,7 +708,6 @@
                         // Agregar notificación (movido fuera del map si es posible)
                         const notificacionesResponse = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/notificaciones.json?ref=main', {
                             headers: {
-                                'Authorization': `token TU_TOKEN_AQUI`,
                                 'Accept': 'application/vnd.github.v3+json'
                             }
                         });
@@ -903,7 +737,6 @@
         async function cargarNotificaciones() {
             const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/notificaciones.json?ref=main', {
                 headers: {
-                    'Authorization': `token TU_TOKEN_AQUI`,
                     'Accept': 'application/vnd.github.v3+json'
                 }
             });
@@ -928,7 +761,6 @@
         async function marcarComoResuelto(index) {
             const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/notificaciones.json?ref=main', {
                 headers: {
-                    'Authorization': `token TU_TOKEN_AQUI`,
                     'Accept': 'application/vnd.github.v3+json'
                 }
             });
@@ -943,9 +775,8 @@
         // Función para confirmar turno
         async function confirmarTurno(fecha) {
             if(confirm("¿Estás seguro de confirmar este turno?")) {
-                                const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/programacion.json?ref=main', {
+                const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/programacion.json?ref=main', {
                     headers: {
-                        'Authorization': `token TU_TOKEN_AQUI`,
                         'Accept': 'application/vnd.github.v3+json'
                     }
                 });
