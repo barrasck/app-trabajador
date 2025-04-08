@@ -424,7 +424,7 @@ async function login() {
     const password = document.getElementById('password').value;
 
     try {
-        const trabajadoresImportadosResponse = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/trabajadores.json?ref=main');
+        const trabajadoresImportadosResponse = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/trabajadores.json?ref=main');
         if (!trabajadoresImportadosResponse.ok) {
             throw new Error('No se pudo obtener el archivo trabajadores.json');
         }
