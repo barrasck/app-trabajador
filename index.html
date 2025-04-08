@@ -280,7 +280,7 @@
         </div>
     </div>
     <script type="module">
-        import { XLSX } from 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js';
+        import * as XLSX from 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js';
 
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js')
@@ -930,7 +930,7 @@
                         const turnoRechazado = {
                             ...t,
                             estado: 'rechazado',
-                                                        fechaRechazo: new Date().toISOString()
+                            fechaRechazo: new Date().toISOString()
                         };
                         
                         // Agregar notificación (movido fuera del map si es posible)
@@ -970,7 +970,7 @@
                     'Accept': 'application/vnd.github.v3+json'
                 }
             });
-            const data = await response.json();
+                        const data = await response.json();
             const notificaciones = JSON.parse(atob(data.content));
 
             const contenedor = document.getElementById('listaNotificaciones');
