@@ -339,19 +339,13 @@
         };
 
 async function guardarEnRepositorio(rutaArchivo, contenido) {
-    const token = 'TU_TOKEN_DE_ACCESO_PERSONAL';  // Reemplaza con tu token de acceso personal
     const repo = 'barrasck/ubicacion';  // Reemplaza con el nombre de tu repositorio
     const branch = 'main';  // Reemplaza con el nombre de tu rama
 
     // Obtener el SHA del archivo si existe
     let sha;
     try {
-        const response = await fetch(`https://api.github.com/repos/${repo}/contents/${rutaArchivo}?ref=${branch}`, {
-            headers: {
-                'Authorization': `token ${token}`,
-                'Accept': 'application/vnd.github.v3+json'
-            }
-        });
+        const response = await fetch(`https://api.github.com/repos/${repo}/contents/${rutaArchivo}?ref=${branch}`);
         if (response.ok) {
             const data = await response.json();
             sha = data.sha;
@@ -365,7 +359,6 @@ async function guardarEnRepositorio(rutaArchivo, contenido) {
         const response = await fetch(`https://api.github.com/repos/${repo}/contents/${rutaArchivo}`, {
             method: 'PUT',
             headers: {
-                'Authorization': `token ${token}`,
                 'Accept': 'application/vnd.github.v3+json'
             },
             body: JSON.stringify({
@@ -426,241 +419,207 @@ async function guardarEnRepositorio(rutaArchivo, contenido) {
             }
         }
 
-        // Función login única y completa
-        async function login() {
-            const username = document.getElementById('username').value.toUpperCase();
-            const password = document.getElementById('password').value;
-            const trabajadoresImportadosResponse = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/trabajadores.json?ref=main', {
-                headers: {
-                    'Authorization': `token TU_TOKEN_DE_ACCESO_PERSONAL`,
-                    'Accept': 'application/vnd.github.v3+json'
-                }
-            });
-            const trabajadoresImportadosData = await trabajadoresImportadosResponse.json();
-            const trabajadoresImportados = JSON.parse(atob(trabajadoresImportadosData.content));
-            const USUARIOS_COMBINADOS = {
-                ...USUARIOS,
-                trabajadores: {...USUARIOS.trabajadores, ...trabajadoresImportados}
-            };
+async function login() {
+    const username = document.getElementById('username').value.toUpperCase();
+    const password = document.getElementById('password').value;
 
-            const user = USUARIOS_COMBINADOS.administradores[username] || USUARIOS_COMBINADOS.trabajadores[username];
-
-            if(user && user.password === password) {
-                usuarioActual = {
-                    username: username,
-                    role: user.role,
-                    datos: user
-                };
-                document.getElementById('loginModal').style.display = 'none';
-                document.querySelector('.content-wrapper').style.display = 'block';
-                document.getElementById('logoutBtn').style.display = 'block';
-                sessionStorage.setItem('session', JSON.stringify(usuarioActual));
-                actualizarUI();
-                if(usuarioActual.role === 'admin') {
-                    inicializarMapa();
-                    iniciarGeolocalizacion();
-                    cargarNotificaciones();
-                } else {
-                    mostrarNomina();
-                    cargarProgramacionTrabajador();
-                    document.querySelector('.tabs').style.display = 'none';
-                    document.querySelector('.nomina-panel').style.display = 'block';
-                    document.getElementById('mapa').style.display = 'none';
-                    document.getElementById('sedes').style.display = 'none';
-                    document.querySelector('.notificaciones-panel').style.display = 'none';
-                    document.querySelector('.upload-section').style.display = 'none';
-                }
-            } else {
-                alert('Credenciales incorrectas');
-                document.getElementById('username').value = '';
-                document.getElementById('password').value = '';
-                document.getElementById('username').focus();
-            }
+    try {
+        const trabajadoresImportadosResponse = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/trabajadores.json?ref=main');
+        if (!trabajadoresImportadosResponse.ok) {
+            throw new Error('No se pudo obtener el archivo trabajadores.json');
         }
 
-        async function cargarUbicacionesTrabajadores() {
-                        const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/ubicaciones.json?ref=main', {
-                headers: {
-                    'Authorization': `token TU_TOKEN_DE_ACCESO_PERSONAL`,
-                    'Accept': 'application/vnd.github.v3+json'
-                }
-            });
+        const trabajadoresImportadosData = await trabajadoresImportadosResponse.json();
+        const trabajadoresImportados = JSON.parse(atob(trabajadoresImportadosData.content));
+        const USUARIOS_COMBINADOS = {
+            ...USUARIOS,
+            trabajadores: {...USUARIOS.trabajadores, ...trabajadoresImportados}
+        };
+
+        const user = USUARIOS_COMBINADOS.administradores[username] || USUARIOS_COMBINADOS.trabajadores[username];
+
+        if (user && user.password === password) {
+            usuarioActual = {
+                username: username,
+                role: user.role,
+                datos: user
+            };
+            document.getElementById('loginModal').style.display = 'none';
+            document.querySelector('.content-wrapper').style.display = 'block';
+            document.getElementById('logoutBtn').style.display = 'block';
+            sessionStorage.setItem('session', JSON.stringify(usuarioActual));
+            actualizarUI();
+            if (usuarioActual.role === 'admin') {
+                inicializarMapa();
+                iniciarGeolocalizacion();
+                cargarNotificaciones();
+            } else {
+                mostrarNomina();
+                cargarProgramacionTrabajador();
+                document.querySelector('.tabs').style.display = 'none';
+                document.querySelector('.nomina-panel').style.display = 'block';
+                document.getElementById('mapa').style.display = 'none';
+                document.getElementById('sedes').style.display = 'none';
+                document.querySelector('.notificaciones-panel').style.display = 'none';
+                document.querySelector('.upload-section').style.display = 'none';
+            }
+        } else {
+            alert('Credenciales incorrectas');
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('username').focus();
+        }
+    } catch (error) {
+        console.error('Error during login:', error);
+        alert('An error occurred during login. Check the console for details.');
+    }
+}
+
+        
+async function cargarUbicacionesTrabajadores() {
+    const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/ubicaciones.json?ref=main');
+    const data = await response.json();
+    const ubicaciones = JSON.parse(atob(data.content));
+
+    const asignacionesResponse = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/asignaciones.json?ref=main');
+    const asignacionesData = await asignacionesResponse.json();
+    const asignaciones = JSON.parse(atob(asignacionesData.content));
+
+    const sedesResponse = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/sedes.json?ref=main');
+    const sedesData = await sedesResponse.json();
+    const sedes = JSON.parse(atob(sedesData.content));
+
+    Object.keys(ubicaciones).forEach(trabajador => {
+        const ubicacion = ubicaciones[trabajador];
+        const sedeAsignada = sedes.find(s => s.Nombre === asignaciones[trabajador]);
+
+        if (trabajadoresMarkers[trabajador]) {
+            trabajadoresMarkers[trabajador].setLatLng([ubicacion.lat, ubicacion.lng]);
+        } else {
+            const marker = L.marker([ubicacion.lat, ubicacion.lng], {
+                icon: L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                    iconSize: [25, 41]
+                })
+            }).addTo(map);
+
+            let popupContent = `<b>${trabajador}</b><br>Última actualización: ${new Date(ubicacion.timestamp).toLocaleTimeString()}`;
+
+            if (sedeAsignada) {
+                popupContent += `<br>Sede asignada: ${sedeAsignada.Nombre}`;
+                L.polyline([[ubicacion.lat, ubicacion.lng], [sedeAsignada.Latitud, sedeAsignada.Longitud]], {
+                    color: 'gray',
+                    dashArray: '5'
+                }).addTo(map);
+            }
+
+            marker.bindPopup(popupContent);
+            trabajadoresMarkers[trabajador] = marker;
+        }
+    });
+}
+
+async function procesarTrabajadores() {
+    const file = document.getElementById('excelTrabajadores').files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+            // Validar columnas requeridas
+            if (!jsonData[0]?.['Número de Documento'] || !jsonData[0]?.Nombre || !jsonData[0]?.['Número de Celular']) {
+                throw new Error("Formato incorrecto. Columnas requeridas: Número de Documento, Nombre, Número de Celular");
+            }
+
+            const trabajadores = jsonData.reduce((acc, t) => {
+                const documento = t['Número de Documento'];
+                acc[documento] = {
+                    password: documento,
+                    role: 'worker',
+                    documento: documento,
+                    nombre: t['Nombre'],
+                    celular: t['Número de Celular'],
+                    nomina: []
+                };
+                return acc;
+            }, {});
+
+            await guardarEnRepositorio('trabajadores.json', JSON.stringify(trabajadores, null, 2));
+            actualizarListaTrabajadores();
+            alert("Trabajadores importados y guardados exitosamente!");
+        } catch (error) {
+            alert(error.message);
+        }
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+async function actualizarListaTrabajadores() {
+    const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/trabajadores.json?ref=main');
+    const data = await response.json();
+    const trabajadores = JSON.parse(atob(data.content));
+
+    const sedesResponse = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/sedes.json?ref=main');
+    const sedesData = await sedesResponse.json();
+    const sedes = JSON.parse(atob(sedesData.content));
+
+    // Actualizar selects
+    const selectTrabajador = document.getElementById('selectTrabajador');
+    const selectSede = document.getElementById('selectSede');
+
+    selectTrabajador.innerHTML = '<option value="">Seleccionar Trabajador</option>';
+    selectSede.innerHTML = '<option value="">Seleccionar Sede</option>';
+
+    Object.keys(trabajadores).forEach(t => {
+        selectTrabajador.innerHTML += `<option value="${t}">${trabajadores[t].nombre}</option>`;
+    });
+
+    sedes.forEach(s => {
+        selectSede.innerHTML += `<option value="${s.Nombre}">${s.Nombre}</option>`;
+    });
+}
+
+async function asignarSede() {
+    const trabajador = document.getElementById('selectTrabajador').value;
+    const sede = document.getElementById('selectSede').value;
+
+    if (!trabajador || !sede) {
+        alert("Seleccione un trabajador y una sede");
+        return;
+    }
+
+    const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/asignaciones.json?ref=main');
+    const data = await response.json();
+    const asignaciones = JSON.parse(atob(data.content));
+
+    asignaciones[trabajador] = sede;
+    await guardarEnRepositorio('asignaciones.json', JSON.stringify(asignaciones, null, 2));
+    alert("Sede asignada exitosamente!");
+}
+
+async function iniciarTrackingTrabajador() {
+    if (navigator.geolocation) {
+        navigator.geolocation.watchPosition(async position => {
+            const ubicacion = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+                timestamp: new Date().toISOString()
+            };
+
+            const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/ubicaciones.json?ref=main');
             const data = await response.json();
             const ubicaciones = JSON.parse(atob(data.content));
 
-            const asignacionesResponse = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/asignaciones.json?ref=main', {
-                headers: {
-                    'Authorization': `token TU_TOKEN_DE_ACCESO_PERSONAL`,
-                    'Accept': 'application/vnd.github.v3+json'
-                }
-            });
-            const asignacionesData = await asignacionesResponse.json();
-            const asignaciones = JSON.parse(atob(asignacionesData.content));
-
-            const sedesResponse = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/sedes.json?ref=main', {
-                headers: {
-                    'Authorization': `token TU_TOKEN_DE_ACCESO_PERSONAL`,
-                    'Accept': 'application/vnd.github.v3+json'
-                }
-            });
-            const sedesData = await sedesResponse.json();
-            const sedes = JSON.parse(atob(sedesData.content));
-
-            Object.keys(ubicaciones).forEach(trabajador => {
-                const ubicacion = ubicaciones[trabajador];
-                const sedeAsignada = sedes.find(s => s.Nombre === asignaciones[trabajador]);
-
-                if(trabajadoresMarkers[trabajador]) {
-                    trabajadoresMarkers[trabajador].setLatLng([ubicacion.lat, ubicacion.lng]);
-                } else {
-                    const marker = L.marker([ubicacion.lat, ubicacion.lng], {
-                        icon: L.icon({
-                            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-                            iconSize: [25, 41]
-                        })
-                    }).addTo(map);
-
-                    let popupContent = `<b>${trabajador}</b><br>Última actualización: ${new Date(ubicacion.timestamp).toLocaleTimeString()}`;
-
-                    if(sedeAsignada) {
-                        popupContent += `<br>Sede asignada: ${sedeAsignada.Nombre}`;
-                        L.polyline([[ubicacion.lat, ubicacion.lng], [sedeAsignada.Latitud, sedeAsignada.Longitud]], {
-                            color: 'gray',
-                            dashArray: '5'
-                        }).addTo(map);
-                    }
-
-                    marker.bindPopup(popupContent);
-                    trabajadoresMarkers[trabajador] = marker;
-                }
-            });
-        }
-
-        // Función para procesar archivo de trabajadores y guardar en el repositorio
-        async function procesarTrabajadores() {
-            const file = document.getElementById('excelTrabajadores').files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, {type: 'array'});
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(sheet);
-
-                    // Validar columnas requeridas
-                    if(!jsonData[0]?.['Número de Documento'] || !jsonData[0]?.Nombre || !jsonData[0]?.['Número de Celular']) {
-                        throw new Error("Formato incorrecto. Columnas requeridas: Número de Documento, Nombre, Número de Celular");
-                    }
-
-                    const trabajadores = jsonData.reduce((acc, t) => {
-                        const documento = t['Número de Documento'];
-                        acc[documento] = {
-                            password: documento,
-                            role: 'worker',
-                            documento: documento,
-                            nombre: t['Nombre'],
-                            celular: t['Número de Celular'],
-                            nomina: []
-                        };
-                        return acc;
-                    }, {});
-
-                    await guardarEnRepositorio('trabajadores.json', JSON.stringify(trabajadores, null, 2));
-                    actualizarListaTrabajadores();
-                    alert("Trabajadores importados y guardados exitosamente!");
-                } catch (error) {
-                    alert(error.message);
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        // Función para actualizar lista de trabajadores
-        async function actualizarListaTrabajadores() {
-            const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/trabajadores.json?ref=main', {
-                headers: {
-                    'Authorization': `token TU_TOKEN_DE_ACCESO_PERSONAL`,
-                    'Accept': 'application/vnd.github.v3+json'
-                }
-            });
-            const data = await response.json();
-            const trabajadores = JSON.parse(atob(data.content));
-
-            const sedesResponse = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/sedes.json?ref=main', {
-                headers: {
-                    'Authorization': `token TU_TOKEN_DE_ACCESO_PERSONAL`,
-                    'Accept': 'application/vnd.github.v3+json'
-                }
-            });
-            const sedesData = await sedesResponse.json();
-            const sedes = JSON.parse(atob(sedesData.content));
-
-            // Actualizar selects
-            const selectTrabajador = document.getElementById('selectTrabajador');
-            const selectSede = document.getElementById('selectSede');
-
-            selectTrabajador.innerHTML = '<option value="">Seleccionar Trabajador</option>';
-            selectSede.innerHTML = '<option value="">Seleccionar Sede</option>';
-
-            Object.keys(trabajadores).forEach(t => {
-                selectTrabajador.innerHTML += `<option value="${t}">${trabajadores[t].nombre}</option>`;
-            });
-
-            sedes.forEach(s => {
-                selectSede.innerHTML += `<option value="${s.Nombre}">${s.Nombre}</option>`;
-            });
-        }
-
-        // Función para asignar sedes
-        async function asignarSede() {
-            const trabajador = document.getElementById('selectTrabajador').value;
-            const sede = document.getElementById('selectSede').value;
-
-            if(!trabajador || !sede) {
-                alert("Seleccione un trabajador y una sede");
-                return;
-            }
-
-            const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/asignaciones.json?ref=main', {
-                headers: {
-                    'Authorization': `token TU_TOKEN_DE_ACCESO_PERSONAL`,
-                    'Accept': 'application/vnd.github.v3+json'
-                }
-            });
-            const data = await response.json();
-            const asignaciones = JSON.parse(atob(data.content));
-
-            asignaciones[trabajador] = sede;
-            await guardarEnRepositorio('asignaciones.json', JSON.stringify(asignaciones, null, 2));
-            alert("Sede asignada exitosamente!");
-        }
-
-        // Función para tracking en tiempo real de trabajadores
-        async function iniciarTrackingTrabajador() {
-            if(navigator.geolocation) {
-                navigator.geolocation.watchPosition(async position => {
-                    const ubicacion = {
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude,
-                        timestamp: new Date().toISOString()
-                    };
-
-                    const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/ubicaciones.json?ref=main', {
-                        headers: {
-                            'Authorization': `token TU_TOKEN_DE_ACCESO_PERSONAL`,
-                            'Accept': 'application/vnd.github.v3+json'
-                        }
-                    });
-                    const data = await response.json();
-                    const ubicaciones = JSON.parse(atob(data.content));
-
-                    ubicaciones[usuarioActual.username] = ubicacion;
-                    await guardarEnRepositorio('ubicaciones.json', JSON.stringify(ubicaciones, null, 2));
-                });
-            }
-        }
+            ubicaciones[usuarioActual.username] = ubicacion;
+            await guardarEnRepositorio('ubicaciones.json', JSON.stringify(ubicaciones, null, 2));
+        });
+    }
+}
 
         function actualizarUI() {
             if(usuarioActual.role === 'admin') {
@@ -772,52 +731,46 @@ async function guardarEnRepositorio(rutaArchivo, contenido) {
             }
         };
 
-        // Función para procesar archivo de programación y guardar en el repositorio
-        async function procesarProgramacion() {
-            const file = document.getElementById('excelProgramacion').files[0];
-            if (!file) return;
+async function procesarProgramacion() {
+    const file = document.getElementById('excelProgramacion').files[0];
+    if (!file) return;
 
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(sheet);
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(sheet);
 
-                    // Validar columnas requeridas (incluyendo Sede)
-                    if (!jsonData[0]?.Sede || !jsonData[0]?.Fecha || !jsonData[0]?.Turno || !jsonData[0]?.Nombre) {
-                        throw new Error("Formato incorrecto. Columnas requeridas: Sede, Fecha, Turno, Nombre");
-                    }
+            // Validar columnas requeridas (incluyendo Sede)
+            if (!jsonData[0]?.Sede || !jsonData[0]?.Fecha || !jsonData[0]?.Turno || !jsonData[0]?.Nombre) {
+                throw new Error("Formato incorrecto. Columnas requeridas: Sede, Fecha, Turno, Nombre");
+            }
 
-                    // Validar que la sede exista
-                    const sedesResponse = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/sedes.json?ref=main', {
-                        headers: {
-                            'Authorization': `token TU_TOKEN_DE_ACCESO_PERSONAL`,
-                            'Accept': 'application/vnd.github.v3+json'
-                        }
-                    });
-                    const sedesData = await sedesResponse.json();
-                    const sedesCargadas = JSON.parse(atob(sedesData.content));
+            // Validar que la sede exista
+            const sedesResponse = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/sedes.json?ref=main');
+            const sedesData = await sedesResponse.json();
+            const sedesCargadas = JSON.parse(atob(sedesData.content));
 
-                    const sedesInvalidas = jsonData.filter(t => 
-                        !sedesCargadas.some(s => s.Nombre === t.Sede)
-                    );
-                    
-                    if (sedesInvalidas.length > 0) {
-                        throw new Error(`Sedes no encontradas: ${sedesInvalidas.map(t => t.Sede).join(', ')}`);
-                    }
+            const sedesInvalidas = jsonData.filter(t => 
+                !sedesCargadas.some(s => s.Nombre === t.Sede)
+            );
 
-                    await guardarEnRepositorio('programacion.json', JSON.stringify(jsonData, null, 2));
-                    mostrarProgramacionAdmin(jsonData);
-                    alert("Programación cargada exitosamente!");
-                } catch (error) {
-                    alert(error.message);
-                    console.error(error);
-                }
-            };
-            reader.readAsArrayBuffer(file);
+            if (sedesInvalidas.length > 0) {
+                throw new Error(`Sedes no encontradas: ${sedesInvalidas.map(t => t.Sede).join(', ')}`);
+            }
+
+            await guardarEnRepositorio('programacion.json', JSON.stringify(jsonData, null, 2));
+            mostrarProgramacionAdmin(jsonData);
+            alert("Programación cargada exitosamente!");
+        } catch (error) {
+            alert(error.message);
+            console.error(error);
         }
+    };
+    reader.readAsArrayBuffer(file);
+}
 
         function mostrarProgramacionAdmin(data) {
             const contenedor = document.getElementById('programacionData');
@@ -847,50 +800,39 @@ async function guardarEnRepositorio(rutaArchivo, contenido) {
             contenedor.style.display = 'block';
         }
 
-        // Función para cargar la programación del trabajador
-        async function cargarProgramacionTrabajador() {
-            const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/programacion.json?ref=main', {
-                headers: {
-                    'Authorization': `token TU_TOKEN_DE_ACCESO_PERSONAL`,
-                    'Accept': 'application/vnd.github.v3+json'
-                }
-            });
-            const data = await response.json();
-            const programacion = JSON.parse(atob(data.content));
+async function cargarProgramacionTrabajador() {
+    const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/programacion.json?ref=main');
+    const data = await response.json();
+    const programacion = JSON.parse(atob(data.content));
 
-            const turnosUsuario = programacion.filter(t => t.Nombre === usuarioActual.username);
-            const tbody = document.querySelector('#turnosTrabajador tbody');
-            
-            tbody.innerHTML = turnosUsuario.map(turno => `
-                <tr>
-                    <td>${turno.Fecha}</td>
-                    <td>${turno.Turno}</td>
-                    <td>${turno.estado === 'confirmado' ? '✅ Confirmado' : 
-                        turno.estado === 'rechazado' ? '❌ Rechazado' : '⏳ Pendiente'}</td>
-                    <td>
-                        ${turno.estado !== 'confirmado' ? `
-                        <button class="confirmar-btn" 
-                            onclick="confirmarTurno('${turno.Fecha}')">
-                            Confirmar
-                        </button>
-                        <button class="rechazar-btn" 
-                            onclick="rechazarTurno('${turno.Fecha}')">
-                            Rechazar
-                        </button>` : 'Sin acciones'}
-                    </td>
-                </tr>
-            `).join('');
-        }
+    const turnosUsuario = programacion.filter(t => t.Nombre === usuarioActual.username);
+    const tbody = document.querySelector('#turnosTrabajador tbody');
 
-        // Función para rechazar turno
+    tbody.innerHTML = turnosUsuario.map(turno => `
+        <tr>
+            <td>${turno.Fecha}</td>
+            <td>${turno.Turno}</td>
+            <td>${turno.estado === 'confirmado' ? '✅ Confirmado' : 
+                turno.estado === 'rechazado' ? '❌ Rechazado' : '⏳ Pendiente'}</td>
+            <td>
+                ${turno.estado !== 'confirmado' ? `
+                <button class="confirmar-btn" 
+                    onclick="confirmarTurno('${turno.Fecha}')">
+                    Confirmar
+                </button>
+                <button class="rechazar-btn" 
+                    onclick="rechazarTurno('${turno.Fecha}')">
+                    Rechazar
+                </button>` : 'Sin acciones'}
+            </td>
+        </tr>
+    `).join('');
+}
+
+
 async function rechazarTurno(fecha) {
     if (confirm("¿Estás seguro de rechazar este turno?")) {
-        const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/programacion.json?ref=main', {
-            headers: {
-                'Authorization': `token TU_TOKEN_DE_ACCESO_PERSONAL`,
-                'Accept': 'application/vnd.github.v3+json'
-            }
-        });
+        const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/programacion.json?ref=main');
         const data = await response.json();
         let programacion = JSON.parse(atob(data.content));
 
@@ -903,12 +845,7 @@ async function rechazarTurno(fecha) {
                 };
 
                 // Agregar notificación
-                const notificacionesResponse = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/notificaciones.json?ref=main', {
-                    headers: {
-                        'Authorization': `token TU_TOKEN_DE_ACCESO_PERSONAL`,
-                        'Accept': 'application/vnd.github.v3+json'
-                    }
-                });
+                const notificacionesResponse = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/notificaciones.json?ref=main');
                 const notificacionesData = await notificacionesResponse.json();
                 const notificaciones = JSON.parse(atob(notificacionesData.content));
 
@@ -931,88 +868,75 @@ async function rechazarTurno(fecha) {
     }
 }
 
-        // Función para cargar notificaciones
-        async function cargarNotificaciones() {
-                        const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/notificaciones.json?ref=main', {
-                headers: {
-                    'Authorization': `token TU_TOKEN_DE_ACCESO_PERSONAL`,
-                    'Accept': 'application/vnd.github.v3+json'
-                }
-            });
-            const data = await response.json();
-            const notificaciones = JSON.parse(atob(data.content));
+async function cargarNotificaciones() {
+    const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/notificaciones.json?ref=main');
+    const data = await response.json();
+    const notificaciones = JSON.parse(atob(data.content));
 
-            const contenedor = document.getElementById('listaNotificaciones');
-            
-            contenedor.innerHTML = notificaciones.map((notif, index) => `
-                <div class="notificacion-item">
-                    <div>
-                        <strong>${notif.trabajador}</strong> rechazó el turno 
-                        del ${notif.fecha} (${notif.turno})
-                        <br><small>${new Date(notif.timestamp).toLocaleString()}</small>
-                    </div>
-                    <button onclick="marcarComoResuelto(${index})">🗑️</button>
-                </div>
-            `).join('');
-        }
+    const contenedor = document.getElementById('listaNotificaciones');
 
-        // Función para marcar notificación como resuelta
-        async function marcarComoResuelto(index) {
-            const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/notificaciones.json?ref=main', {
-                headers: {
-                    'Authorization': `token TU_TOKEN_DE_ACCESO_PERSONAL`,
-                    'Accept': 'application/vnd.github.v3+json'
-                }
-            });
-            const data = await response.json();
-            const notificaciones = JSON.parse(atob(data.content));
+    contenedor.innerHTML = notificaciones.map((notif, index) => `
+        <div class="notificacion-item">
+            <div>
+                <strong>${notif.trabajador}</strong> rechazó el turno 
+                del ${notif.fecha} (${notif.turno})
+                <br><small>${new Date(notif.timestamp).toLocaleString()}</small>
+            </div>
+            <button onclick="marcarComoResuelto(${index})">🗑️</button>
+        </div>
+    `).join('');
+}
 
-            notificaciones.splice(index, 1);
-            await guardarEnRepositorio('notificaciones.json', JSON.stringify(notificaciones, null, 2));
-            cargarNotificaciones();
-        }
 
-        function openTab(tabName, event) {
-            if (usuarioActual.role !== 'admin') return;
+async function marcarComoResuelto(index) {
+    const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/notificaciones.json?ref=main');
+    const data = await response.json();
+    const notificaciones = JSON.parse(atob(data.content));
 
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    notificaciones.splice(index, 1);
+    await guardarEnRepositorio('notificaciones.json', JSON.stringify(notificaciones, null, 2));
+    cargarNotificaciones();
+}
 
-            document.getElementById(tabName).classList.add('active');
-            event.currentTarget.classList.add('active');
+function openTab(tabName, event) {
+    if (usuarioActual.role !== 'admin') return;
 
-            if (tabName === 'mapa' && !map) {
-                inicializarMapa();
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+
+    document.getElementById(tabName).classList.add('active');
+    event.currentTarget.classList.add('active');
+
+    if (tabName === 'mapa' && !map) {
+        inicializarMapa();
+    }
+}
+
+async function procesarSedes() {
+    const file = document.getElementById('excelSedes').files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+            // Validar columnas requeridas
+            if (!jsonData[0]?.['Nombre'] || !jsonData[0]?.['Latitud'] || !jsonData[0]?.['Longitud']) {
+                throw new Error("Formato incorrecto. Columnas requeridas: Nombre, Latitud, Longitud");
             }
+
+            await guardarEnRepositorio('sedes.json', JSON.stringify(jsonData, null, 2));
+            alert("Sedes importadas y guardadas exitosamente!");
+        } catch (error) {
+            alert(error.message);
         }
-
-        async function procesarSedes() {
-            const file = document.getElementById('excelSedes').files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(sheet);
-
-                    if (!jsonData[0]?.Nombre || !jsonData[0]?.Latitud || !jsonData[0]?.Longitud) {
-                        throw new Error("Formato incorrecto. Se requieren columnas: Nombre, Latitud, Longitud");
-                    }
-
-                    sedes = jsonData;
-                    await guardarEnRepositorio('sedes.json', JSON.stringify(sedes, null, 2));
-                    actualizarSedesEnMapa();
-                    mostrarListaSedes();
-                    alert("Sedes cargadas exitosamente!");
-                } catch (error) {
-                    alert(error.message);
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
+    };
+    reader.readAsArrayBuffer(file);
+}
 
         async function actualizarSedesEnMapa() {
             if (!map) return;
