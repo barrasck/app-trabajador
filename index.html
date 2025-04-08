@@ -505,7 +505,7 @@
         function iniciarGeolocalizacion() {
             if (navigator.geolocation) {
                 navigator.geolocation.watchPosition(
-                    manejarPosicion,
+                                        manejarPosicion,
                     (error) => {
                         console.error(`Error de geolocalización (${error.code}): ${error.message}`);
                         document.getElementById('status').innerHTML = "❌ Error al obtener ubicación";
@@ -810,3 +810,4 @@
         crossorigin=""></script>
 </body>
 </html>
+                       
