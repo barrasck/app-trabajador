@@ -282,12 +282,6 @@
     <script type="module">
         import * as XLSX from 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js';
 
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js')
-                .then(() => console.log('App funciona offline'))
-                .catch(err => console.log('Error:', err));
-        }
-
         // Variables globales
         let map;
         let sedes = [];
@@ -492,7 +486,7 @@
                         cargarProgramacionTrabajador();
                         document.querySelector('.tabs').style.display = 'none';
                         document.querySelector('.nomina-panel').style.display = 'block';
-                    }
+                                            }
                 } else {
                     throw new Error("🔑 Usuario o contraseña incorrectos");
                 }
@@ -1030,9 +1024,16 @@
                 cargarProgramacionTrabajador();
             }
         }
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(() => console.log('App funciona offline'))
+                .catch(err => console.log('Error:', err));
+        }
     </script>
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" 
         integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" 
         crossorigin=""></script>
 </body>
 </html>
+                   
