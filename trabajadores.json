@@ -6,15 +6,6 @@
         "nombre": "Ejemplo Trabajador",
         "celular": "3001234567",
         "nomina": []
-    }
-    {
-    "1001": {
-        "password": "1001",
-        "role": "worker",
-        "documento": "1001",
-        "nombre": "Ejemplo Trabajador",
-        "celular": "3001234567",
-        "nomina": []
     },
     "1000725870": {
         "password": "1000725870",
@@ -88,5 +79,4 @@
         "celular": "",
         "nomina": []
     }
-}
 }
