@@ -883,8 +883,8 @@ async function guardarEnRepositorio(rutaArchivo, contenido) {
         }
 
         // Función para rechazar turno
-        async function rechazarTurno(fecha) {
-    if(confirm("¿Estás seguro de rechazar este turno?")) {
+async function rechazarTurno(fecha) {
+    if (confirm("¿Estás seguro de rechazar este turno?")) {
         const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/programacion.json?ref=main', {
             headers: {
                 'Authorization': `token TU_TOKEN_DE_ACCESO_PERSONAL`,
@@ -894,8 +894,8 @@ async function guardarEnRepositorio(rutaArchivo, contenido) {
         const data = await response.json();
         let programacion = JSON.parse(atob(data.content));
 
-        programacion = programacion.map(t => {
-            if(t.Nombre === usuarioActual.username && t.Fecha === fecha) {
+        programacion = await Promise.all(programacion.map(async (t) => {
+            if (t.Nombre === usuarioActual.username && t.Fecha === fecha) {
                 const turnoRechazado = {
                     ...t,
                     estado: 'rechazado',
@@ -923,11 +923,11 @@ async function guardarEnRepositorio(rutaArchivo, contenido) {
                 return turnoRechazado;
             }
             return t;
-        });
+        }));
 
         await guardarEnRepositorio('programacion.json', JSON.stringify(programacion, null, 2));
         cargarProgramacionTrabajador();
-        if(usuarioActual.role === 'admin') cargarNotificaciones();
+        if (usuarioActual.role === 'admin') cargarNotificaciones();
     }
 }
 
