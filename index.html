@@ -440,374 +440,374 @@
         }
 
         // Función para tracking en tiempo real de trabajadores
-async function iniciarTrackingTrabajador() {
-    if (navigator.geolocation) {
-        navigator.geolocation.watchPosition(async position => {
-            const ubicacion = {
+        async function iniciarTrackingTrabajador() {
+            if(navigator.geolocation) {
+                navigator.geolocation.watchPosition(async position => {
+                    const ubicacion = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                        timestamp: new Date().toISOString()
+                    };
+
+                    const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/ubicaciones.json?ref=main', {
+                        headers: {
+                            'Accept': 'application/vnd.github.v3+json'
+                        }
+                    });
+                    const data = await response.json();
+                    const ubicaciones = JSON.parse(atob(data.content));
+
+                    ubicaciones[usuarioActual.username] = ubicacion;
+                    await guardarEnRepositorio('ubicaciones.json', JSON.stringify(ubicaciones, null, 2));
+                });
+            }
+        }
+
+        function actualizarUI() {
+            if(usuarioActual.role === 'admin') {
+                document.querySelector('.tabs').style.display = 'flex';
+                document.querySelector('.content-wrapper').style.display = 'block';
+                document.querySelector('.nomina-panel').style.display = 'none';
+                const mockEvent = {
+                    currentTarget: document.querySelector('.tab-btn.active'),
+                    preventDefault: () => {}
+                };
+                openTab('programacion', mockEvent);
+            } else {
+                document.querySelector('.tabs').style.display = 'none';
+                document.querySelector('.nomina-panel').style.display = 'block';
+                document.getElementById('mapa').style.display = 'none';
+                document.getElementById('sedes').style.display = 'none';
+            }
+        }
+
+        function mostrarNomina() {
+            const trabajador = usuarioActual.datos;
+            const tbody = document.getElementById('registro-nomina');
+            let total = 0;
+            document.getElementById('nombre-trabajador').textContent = trabajador.username;
+            tbody.innerHTML = '';
+            trabajador.nomina.forEach(dia => {
+                const totalDia = dia.horas * dia.valorHora;
+                total += totalDia;
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${dia.fecha}</td>
+                        <td>${dia.horas}</td>
+                        <td>$${dia.valorHora.toLocaleString()}</td>
+                        <td>$${totalDia.toLocaleString()}</td>
+                    </tr>
+                `;
+            });
+            document.getElementById('total-pagar').textContent = total.toLocaleString();
+        }
+
+        function iniciarGeolocalizacion() {
+            if (navigator.geolocation) {
+                navigator.geolocation.watchPosition(
+                    manejarPosicion,
+                    (error) => {
+                        console.error(`Error de geolocalización (${error.code}): ${error.message}`);
+                        document.getElementById('status').innerHTML = "❌ Error al obtener ubicación";
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        maximumAge: 10000,
+                        timeout: 15000
+                    }
+                );
+            } else {
+                document.getElementById('status').innerHTML = "❌ Tu navegador no soporta geolocalización";
+            }
+        }
+
+        function manejarPosicion(position) {
+            if (!map) {
+                console.error("El mapa no está inicializado.");
+                return;
+            }
+
+            const userCoords = {
                 lat: position.coords.latitude,
                 lng: position.coords.longitude,
-                timestamp: new Date().toISOString()
+                accuracy: position.coords.accuracy
             };
+            document.getElementById('coordinates').textContent = `📌 Tus coordenadas: ${userCoords.lat.toFixed(5)}, ${userCoords.lng.toFixed(5)}`;
 
-            const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/ubicaciones.json?ref=main', {
+            if (userMarker) {
+                userMarker.setLatLng([userCoords.lat, userCoords.lng]);
+            } else {
+                userMarker = L.marker([userCoords.lat, userCoords.lng]).addTo(map);
+            }
+            if (accuracyCircle) {
+                accuracyCircle.setLatLng([userCoords.lat, userCoords.lng])
+                    .setRadius(userCoords.accuracy * CONFIG.estilos.precision.escala);
+            } else {
+                accuracyCircle = L.circle([userCoords.lat, userCoords.lng], {
+                    radius: userCoords.accuracy * CONFIG.estilos.precision.escala,
+                    color: CONFIG.estilos.precision.color,
+                    fillColor: CONFIG.estilos.precision.color,
+                    fillOpacity: CONFIG.estilos.precision.relleno,
+                }).addTo(map);
+            }
+        }
+
+        window.onload = async function() {
+            try {
+                const session = sessionStorage.getItem('session');
+                document.getElementById('logoutBtn').style.display = session ? 'block' : 'none';
+
+                if (!session) {
+                    document.getElementById('loginModal').style.display = 'flex';
+                } else {
+                    document.querySelector('.content-wrapper').style.display = 'block';
+                    usuarioActual = JSON.parse(session);
+                    actualizarUI();
+
+                    if (usuarioActual.role === 'admin') {
+                        inicializarMapa();
+                        iniciarGeolocalizacion();
+                    } else {
+                        mostrarNomina();
+                    }
+                }
+            } catch (error) {
+                console.error('Error during initialization:', error);
+                alert('An error occurred during initialization. Check the console for details.');
+            }
+        };
+
+        // Función para procesar archivo de programación y guardar en el repositorio
+        async function procesarProgramacion() {
+            const file = document.getElementById('excelProgramacion').files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+                    // Validar columnas requeridas (incluyendo Sede)
+                    if (!jsonData[0]?.Sede || !jsonData[0]?.Fecha || !jsonData[0]?.Turno || !jsonData[0]?.Nombre) {
+                        throw new Error("Formato incorrecto. Columnas requeridas: Sede, Fecha, Turno, Nombre");
+                    }
+
+                    // Validar que la sede exista
+                    const sedesResponse = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/sedes.json?ref=main', {
+                        headers: {
+                            'Accept': 'application/vnd.github.v3+json'
+                        }
+                    });
+                    const sedesData = await sedesResponse.json();
+                    const sedesCargadas = JSON.parse(atob(sedesData.content));
+
+                    const sedesInvalidas = jsonData.filter(t =>
+                        !sedesCargadas.some(s => s.Nombre === t.Sede)
+                    );
+
+                    if (sedesInvalidas.length > 0) {
+                        throw new Error(`Sedes no encontradas: ${sedesInvalidas.map(t => t.Sede).join(', ')}`);
+                    }
+
+                    await guardarEnRepositorio('programacion.json', JSON.stringify(jsonData, null, 2));
+                    mostrarProgramacionAdmin(jsonData);
+                    alert("Programación cargada exitosamente!");
+                } catch (error) {
+                    alert(error.message);
+                    console.error(error);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function mostrarProgramacionAdmin(data) {
+            const contenedor = document.getElementById('programacionData');
+            contenedor.innerHTML = `
+                <h4>📋 Programación Cargada</h4>
+                <table class="programacion-table">
+                    <thead>
+                        <tr>
+                            <th>Sede</th>
+                            <th>Nombre</th>
+                            <th>Fecha</th>
+                            <th>Turno</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(row => `
+                            <tr>
+                                <td>${row.Sede}</td>
+                                <td>${row.Nombre}</td>
+                                <td>${row.Fecha}</td>
+                                <td>${row.Turno}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            contenedor.style.display = 'block';
+        }
+
+        // Función para cargar la programación del trabajador
+        async function cargarProgramacionTrabajador() {
+            const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/programacion.json?ref=main', {
                 headers: {
                     'Accept': 'application/vnd.github.v3+json'
                 }
             });
             const data = await response.json();
-            const ubicaciones = JSON.parse(atob(data.content));
+            const programacion = JSON.parse(atob(data.content));
 
-            ubicaciones[usuarioActual.username] = ubicacion;
-            await guardarEnRepositorio('ubicaciones.json', JSON.stringify(ubicaciones, null, 2));
-        });
-    }
-}
+            const turnosUsuario = programacion.filter(t => t.Nombre === usuarioActual.username);
+            const tbody = document.querySelector('#turnosTrabajador tbody');
 
-function actualizarUI() {
-    if (usuarioActual.role === 'admin') {
-        document.querySelector('.tabs').style.display = 'flex';
-        document.querySelector('.content-wrapper').style.display = 'block';
-        document.querySelector('.nomina-panel').style.display = 'none';
-        const mockEvent = {
-            currentTarget: document.querySelector('.tab-btn.active'),
-            preventDefault: () => {}
-        };
-        openTab('programacion', mockEvent);
-    } else {
-        document.querySelector('.tabs').style.display = 'none';
-        document.querySelector('.nomina-panel').style.display = 'block';
-        document.getElementById('mapa').style.display = 'none';
-        document.getElementById('sedes').style.display = 'none';
-    }
-}
-
-function mostrarNomina() {
-    const trabajador = usuarioActual.datos;
-    const tbody = document.getElementById('registro-nomina');
-    let total = 0;
-    document.getElementById('nombre-trabajador').textContent = trabajador.username;
-    tbody.innerHTML = '';
-    trabajador.nomina.forEach(dia => {
-        const totalDia = dia.horas * dia.valorHora;
-        total += totalDia;
-        tbody.innerHTML += `
-            <tr>
-                <td>${dia.fecha}</td>
-                <td>${dia.horas}</td>
-                <td>$${dia.valorHora.toLocaleString()}</td>
-                <td>$${totalDia.toLocaleString()}</td>
-            </tr>
-        `;
-    });
-    document.getElementById('total-pagar').textContent = total.toLocaleString();
-}
-
-function iniciarGeolocalizacion() {
-    if (navigator.geolocation) {
-        navigator.geolocation.watchPosition(
-            manejarPosicion,
-            (error) => {
-                console.error(`Error de geolocalización (${error.code}): ${error.message}`);
-                document.getElementById('status').innerHTML = "❌ Error al obtener ubicación";
-            },
-            {
-                enableHighAccuracy: true,
-                maximumAge: 10000,
-                timeout: 15000
-            }
-        );
-    } else {
-        document.getElementById('status').innerHTML = "❌ Tu navegador no soporta geolocalización";
-    }
-}
-
-function manejarPosicion(position) {
-    if (!map) {
-        console.error("El mapa no está inicializado.");
-        return;
-    }
-
-    const userCoords = {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude,
-        accuracy: position.coords.accuracy
-    };
-    document.getElementById('coordinates').textContent = `📌 Tus coordenadas: ${userCoords.lat.toFixed(5)}, ${userCoords.lng.toFixed(5)}`;
-
-    if (userMarker) {
-        userMarker.setLatLng([userCoords.lat, userCoords.lng]);
-    } else {
-        userMarker = L.marker([userCoords.lat, userCoords.lng]).addTo(map);
-    }
-    if (accuracyCircle) {
-        accuracyCircle.setLatLng([userCoords.lat, userCoords.lng])
-            .setRadius(userCoords.accuracy * CONFIG.estilos.precision.escala);
-    } else {
-        accuracyCircle = L.circle([userCoords.lat, userCoords.lng], {
-            radius: userCoords.accuracy * CONFIG.estilos.precision.escala,
-            color: CONFIG.estilos.precision.color,
-            fillColor: CONFIG.estilos.precision.color,
-            fillOpacity: CONFIG.estilos.precision.relleno,
-        }).addTo(map);
-    }
-}
-
-window.onload = async function() {
-    try {
-        const session = sessionStorage.getItem('session');
-        document.getElementById('logoutBtn').style.display = session ? 'block' : 'none';
-
-        if (!session) {
-            document.getElementById('loginModal').style.display = 'flex';
-        } else {
-            document.querySelector('.content-wrapper').style.display = 'block';
-            usuarioActual = JSON.parse(session);
-            actualizarUI();
-
-            if (usuarioActual.role === 'admin') {
-                inicializarMapa();
-                iniciarGeolocalizacion();
-            } else {
-                mostrarNomina();
-            }
-        }
-    } catch (error) {
-        console.error('Error during initialization:', error);
-        alert('An error occurred during initialization. Check the console for details.');
-    }
-};
-
-// Función para procesar archivo de programación y guardar en el repositorio
-async function procesarProgramacion() {
-    const file = document.getElementById('excelProgramacion').files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = async function(e) {
-        try {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            const jsonData = XLSX.utils.sheet_to_json(sheet);
-
-            // Validar columnas requeridas (incluyendo Sede)
-            if (!jsonData[0]?.Sede || !jsonData[0]?.Fecha || !jsonData[0]?.Turno || !jsonData[0]?.Nombre) {
-                throw new Error("Formato incorrecto. Columnas requeridas: Sede, Fecha, Turno, Nombre");
-            }
-
-            // Validar que la sede exista
-            const sedesResponse = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/sedes.json?ref=main', {
-                headers: {
-                    'Accept': 'application/vnd.github.v3+json'
-                }
-            });
-            const sedesData = await sedesResponse.json();
-            const sedesCargadas = JSON.parse(atob(sedesData.content));
-
-            const sedesInvalidas = jsonData.filter(t =>
-                !sedesCargadas.some(s => s.Nombre === t.Sede)
-            );
-
-            if (sedesInvalidas.length > 0) {
-                throw new Error(`Sedes no encontradas: ${sedesInvalidas.map(t => t.Sede).join(', ')}`);
-            }
-
-            await guardarEnRepositorio('programacion.json', JSON.stringify(jsonData, null, 2));
-            mostrarProgramacionAdmin(jsonData);
-            alert("Programación cargada exitosamente!");
-        } catch (error) {
-            alert(error.message);
-            console.error(error);
-        }
-    };
-    reader.readAsArrayBuffer(file);
-}
-
-function mostrarProgramacionAdmin(data) {
-    const contenedor = document.getElementById('programacionData');
-    contenedor.innerHTML = `
-        <h4>📋 Programación Cargada</h4>
-        <table class="programacion-table">
-            <thead>
+            tbody.innerHTML = turnosUsuario.map(turno => `
                 <tr>
-                    <th>Sede</th>
-                    <th>Nombre</th>
-                    <th>Fecha</th>
-                    <th>Turno</th>
+                    <td>${turno.Fecha}</td>
+                    <td>${turno.Turno}</td>
+                    <td>${turno.estado === 'confirmado' ? '✅ Confirmado' :
+                        turno.estado === 'rechazado' ? '❌ Rechazado' : '⏳ Pendiente'}</td>
+                    <td>
+                        ${turno.estado !== 'confirmado' ? `
+                        <button class="confirmar-btn" 
+                            onclick="confirmarTurno('${turno.Fecha}')">
+                            Confirmar
+                        </button>
+                        <button class="rechazar-btn" 
+                            onclick="rechazarTurno('${turno.Fecha}')">
+                            Rechazar
+                        </button>` : 'Sin acciones'}
+                    </td>
                 </tr>
-            </thead>
-            <tbody>
-                ${data.map(row => `
-                    <tr>
-                        <td>${row.Sede}</td>
-                        <td>${row.Nombre}</td>
-                        <td>${row.Fecha}</td>
-                        <td>${row.Turno}</td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>
-    `;
-    contenedor.style.display = 'block';
-}
-
-// Función para cargar la programación del trabajador
-async function cargarProgramacionTrabajador() {
-    const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/programacion.json?ref=main', {
-        headers: {
-            'Accept': 'application/vnd.github.v3+json'
+            `).join('');
         }
-    });
-    const data = await response.json();
-    const programacion = JSON.parse(atob(data.content));
 
-    const turnosUsuario = programacion.filter(t => t.Nombre === usuarioActual.username);
-    const tbody = document.querySelector('#turnosTrabajador tbody');
-
-    tbody.innerHTML = turnosUsuario.map(turno => `
-        <tr>
-            <td>${turno.Fecha}</td>
-            <td>${turno.Turno}</td>
-            <td>${turno.estado === 'confirmado' ? '✅ Confirmado' :
-                turno.estado === 'rechazado' ? '❌ Rechazado' : '⏳ Pendiente'}</td>
-            <td>
-                ${turno.estado !== 'confirmado' ? `
-                <button class="confirmar-btn" 
-                    onclick="confirmarTurno('${turno.Fecha}')">
-                    Confirmar
-                </button>
-                <button class="rechazar-btn" 
-                    onclick="rechazarTurno('${turno.Fecha}')">
-                    Rechazar
-                </button>` : 'Sin acciones'}
-            </td>
-        </tr>
-    `).join('');
-}
-
-// Función para rechazar turno
-async function rechazarTurno(fecha) {
-    if (confirm("¿Estás seguro de rechazar este turno?")) {
-        const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/programacion.json?ref=main', {
-            headers: {
-                'Accept': 'application/vnd.github.v3+json'
-            }
-        });
-        const data = await response.json();
-        let programacion = JSON.parse(atob(data.content));
-
-        // Usar Promise.all y map asíncrono
-        programacion = await Promise.all(programacion.map(async t => {
-            if (t.Nombre === usuarioActual.username && t.Fecha === fecha) {
-                const turnoRechazado = {
-                    ...t,
-                    estado: 'rechazado',
-                    fechaRechazo: new Date().toISOString()
-                };
-
-                // Agregar notificación (movido fuera del map si es posible)
-                const notificacionesResponse = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/notificaciones.json?ref=main', {
+        // Función para rechazar turno
+        async function rechazarTurno(fecha) {
+            if (confirm("¿Estás seguro de rechazar este turno?")) {
+                const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/programacion.json?ref=main', {
                     headers: {
                         'Accept': 'application/vnd.github.v3+json'
                     }
                 });
-                const notificacionesData = await notificacionesResponse.json();
-                const notificaciones = JSON.parse(atob(notificacionesData.content));
+                const data = await response.json();
+                let programacion = JSON.parse(atob(data.content));
 
-                notificaciones.push({
-                    trabajador: usuarioActual.username,
-                    fecha: fecha,
-                    turno: t.Turno,
-                    timestamp: new Date().toISOString()
+                // Usar Promise.all y map asíncrono
+                programacion = await Promise.all(programacion.map(async t => {
+                    if (t.Nombre === usuarioActual.username && t.Fecha === fecha) {
+                        const turnoRechazado = {
+                            ...t,
+                            estado: 'rechazado',
+                            fechaRechazo: new Date().toISOString()
+                        };
+
+                        // Agregar notificación (movido fuera del map si es posible)
+                        const notificacionesResponse = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/notificaciones.json?ref=main', {
+                            headers: {
+                                'Accept': 'application/vnd.github.v3+json'
+                            }
+                        });
+                        const notificacionesData = await notificacionesResponse.json();
+                        const notificaciones = JSON.parse(atob(notificacionesData.content));
+
+                        notificaciones.push({
+                            trabajador: usuarioActual.username,
+                            fecha: fecha,
+                            turno: t.Turno,
+                            timestamp: new Date().toISOString()
+                        });
+                        await guardarEnRepositorio('notificaciones.json', JSON.stringify(notificaciones, null, 2));
+
+                        return turnoRechazado;
+                    }
+                    return t;
+                }));
+
+                await guardarEnRepositorio('programacion.json', JSON.stringify(programacion, null, 2));
+                cargarProgramacionTrabajador();
+                if (usuarioActual.role === 'admin') cargarNotificaciones();
+            }
+        }
+
+        // Función para cargar notificaciones
+        async function cargarNotificaciones() {
+            const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/notificaciones.json?ref=main', {
+                headers: {
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+            const data = await response.json();
+            const notificaciones = JSON.parse(atob(data.content));
+
+            const contenedor = document.getElementById('listaNotificaciones');
+
+            contenedor.innerHTML = notificaciones.map((notif, index) => `
+                <div class="notificacion-item">
+                    <div>
+                        <strong>${notif.trabajador}</strong> rechazó el turno 
+                        del ${notif.fecha} (${notif.turno})
+                        <br><small>${new Date(notif.timestamp).toLocaleString()}</small>
+                    </div>
+                    <button onclick="marcarComoResuelto(${index})">🗑️</button>
+                </div>
+            `).join('');
+        }
+
+        // Función para marcar notificación como resuelta
+        async function marcarComoResuelto(index) {
+            const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/notificaciones.json?ref=main', {
+                headers: {
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+            const data = await response.json();
+            const notificaciones = JSON.parse(atob(data.content));
+
+            notificaciones.splice(index, 1);
+            await guardarEnRepositorio('notificaciones.json', JSON.stringify(notificaciones, null, 2));
+            cargarNotificaciones();
+        }
+
+        // Función para confirmar turno
+        async function confirmarTurno(fecha) {
+            if (confirm("¿Estás seguro de confirmar este turno?")) {
+                const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/programacion.json?ref=main', {
+                    headers: {
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
                 });
-                await guardarEnRepositorio('notificaciones.json', JSON.stringify(notificaciones, null, 2));
+                const data = await response.json();
+                let programacion = JSON.parse(atob(data.content));
 
-                return turnoRechazado;
+                programacion = programacion.map(t => {
+                    if (t.Nombre === usuarioActual.username && t.Fecha === fecha) {
+                        return {
+                            ...t,
+                            estado: 'confirmado',
+                            fechaConfirmacion: new Date().toISOString()
+                        };
+                    }
+                    return t;
+                });
+
+                await guardarEnRepositorio('programacion.json', JSON.stringify(programacion, null, 2));
+                cargarProgramacionTrabajador();
             }
-            return t;
-        }));
-
-        await guardarEnRepositorio('programacion.json', JSON.stringify(programacion, null, 2));
-        cargarProgramacionTrabajador();
-        if (usuarioActual.role === 'admin') cargarNotificaciones();
-    }
-}
-
-// Función para cargar notificaciones
-async function cargarNotificaciones() {
-    const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/notificaciones.json?ref=main', {
-        headers: {
-            'Accept': 'application/vnd.github.v3+json'
         }
-    });
-    const data = await response.json();
-    const notificaciones = JSON.parse(atob(data.content));
 
-    const contenedor = document.getElementById('listaNotificaciones');
-
-    contenedor.innerHTML = notificaciones.map((notif, index) => `
-        <div class="notificacion-item">
-            <div>
-                <strong>${notif.trabajador}</strong> rechazó el turno 
-                del ${notif.fecha} (${notif.turno})
-                <br><small>${new Date(notif.timestamp).toLocaleString()}</small>
-            </div>
-            <button onclick="marcarComoResuelto(${index})">🗑️</button>
-        </div>
-    `).join('');
-}
-
-// Función para marcar notificación como resuelta
-async function marcarComoResuelto(index) {
-    const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/notificaciones.json?ref=main', {
-        headers: {
-            'Accept': 'application/vnd.github.v3+json'
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(() => console.log('App funciona offline'))
+                .catch(err => console.log('Error:', err));
         }
-    });
-    const data = await response.json();
-    const notificaciones = JSON.parse(atob(data.content));
-
-    notificaciones.splice(index, 1);
-    await guardarEnRepositorio('notificaciones.json', JSON.stringify(notificaciones, null, 2));
-    cargarNotificaciones();
-}
-
-// Función para confirmar turno
-async function confirmarTurno(fecha) {
-    if (confirm("¿Estás seguro de confirmar este turno?")) {
-        const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/programacion.json?ref=main', {
-            headers: {
-                'Accept': 'application/vnd.github.v3+json'
-            }
-        });
-        const data = await response.json();
-        let programacion = JSON.parse(atob(data.content));
-
-        programacion = programacion.map(t => {
-            if (t.Nombre === usuarioActual.username && t.Fecha === fecha) {
-                return {
-                    ...t,
-                    estado: 'confirmado',
-                    fechaConfirmacion: new Date().toISOString()
-                };
-            }
-            return t;
-        });
-
-        await guardarEnRepositorio('programacion.json', JSON.stringify(programacion, null, 2));
-        cargarProgramacionTrabajador();
-    }
-}
-
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js')
-        .then(() => console.log('App funciona offline'))
-        .catch(err => console.log('Error:', err));
-}
-</script>
-<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
-    integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM="
-    crossorigin=""></script>
+    </script>
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+        integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM="
+        crossorigin=""></script>
 </body>
 </html>
-                           
+            document.getElementById('nombre-tr
