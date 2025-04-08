@@ -141,13 +141,13 @@
             color: white;
             border: none;
             border-radius: 4px;
-            cursor: pointer.
+            cursor: pointer;
         }
         .confirmado {
             background: #34d399;
         }
         .programacion-panel {
-            display: none.
+            display: none;
         }
         .rechazar-btn {
             padding: 5px 10px;
@@ -171,10 +171,10 @@
             border-radius: 4px;
             display: flex;
             justify-content: space-between;
-            align-items: center.
+            align-items: center;
         }
         .content-wrapper {
-            display: none.
+            display: none;
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
@@ -667,7 +667,11 @@
                 document.querySelector('.tabs').style.display = 'flex';
                 document.querySelector('.content-wrapper').style.display = 'block';
                 document.querySelector('.nomina-panel').style.display = 'none';
-                openTab('programacion', { currentTarget: document.querySelector('.tab-btn.active') }); // Pass a mock event
+                const mockEvent = {
+    currentTarget: document.querySelector('.tab-btn.active'),
+    preventDefault: () => {}
+};
+openTab('programacion', mockEvent);
             } else {
                 document.querySelector('.tabs').style.display = 'none';
                 document.querySelector('.nomina-panel').style.display = 'block';
