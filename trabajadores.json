@@ -7,4 +7,86 @@
         "celular": "3001234567",
         "nomina": []
     }
+    {
+    "1001": {
+        "password": "1001",
+        "role": "worker",
+        "documento": "1001",
+        "nombre": "Ejemplo Trabajador",
+        "celular": "3001234567",
+        "nomina": []
+    },
+    "1000725870": {
+        "password": "1000725870",
+        "role": "worker",
+        "documento": "1000725870",
+        "nombre": "Español Quitian Michael Andrey",
+        "celular": "",
+        "nomina": []
+    },
+    "1024522233": {
+        "password": "1024522233",
+        "role": "worker",
+        "documento": "1024522233",
+        "nombre": "Baron Heidy Vanessa",
+        "celular": "",
+        "nomina": []
+    },
+    "1002599718": {
+        "password": "1002599718",
+        "role": "worker",
+        "documento": "1002599718",
+        "nombre": "Saenz Romero Carlos Arturo",
+        "celular": "",
+        "nomina": []
+    },
+    "1000462609": {
+        "password": "1000462609",
+        "role": "worker",
+        "documento": "1000462609",
+        "nombre": "SOLANO MANUEL CAMILO",
+        "celular": "",
+        "nomina": []
+    },
+    "5422430": {
+        "password": "5422430",
+        "role": "worker",
+        "documento": "5422430",
+        "nombre": "Arcaya Hernández Mairreilys Ariyulys",
+        "celular": "",
+        "nomina": []
+    },
+    "1039087204": {
+        "password": "1039087204",
+        "role": "worker",
+        "documento": "1039087204",
+        "nombre": "Cabadia Chiquillo Yan Carlos",
+        "celular": "",
+        "nomina": []
+    },
+    "1044934135": {
+        "password": "1044934135",
+        "role": "worker",
+        "documento": "1044934135",
+        "nombre": "Rivera Jinete María Jose",
+        "celular": "",
+        "nomina": []
+    },
+    "4754087": {
+        "password": "4754087",
+        "role": "worker",
+        "documento": "4754087",
+        "nombre": "VASQUEZ CABELLO NAIROVY",
+        "celular": "",
+        "nomina": []
+    },
+    "1005679071": {
+        "password": "1005679071",
+        "role": "worker",
+        "documento": "1005679071",
+        "nombre": "Zabaleta Peñaloza yesmi adriana",
+        "celular": "",
+        "nomina": []
+    }
+}
 }
