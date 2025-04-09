@@ -493,7 +493,7 @@ async function cargarUbicacionesTrabajadores() {
         const data = await response.json();
         const ubicaciones = JSON.parse(atob(data.content));
 
-        // Obtener la lista de trabajadores para filtrar por rol "worker"
+        // Obtener la lista de trabajadores para mostrar información
         const trabajadoresResponse = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/trabajadores.json?ref=main');
         if (!trabajadoresResponse.ok) {
             throw new Error(`Error: ${trabajadoresResponse.status} ${trabajadoresResponse.statusText}`);
@@ -505,9 +505,17 @@ async function cargarUbicacionesTrabajadores() {
         Object.keys(ubicaciones).forEach(trabajador => {
             if (trabajadores[trabajador]?.role === "worker") {
                 const ubicacion = ubicaciones[trabajador];
+                const trabajadorInfo = trabajadores[trabajador];
+                const popupContent = `
+                    <b>${trabajadorInfo.nombre}</b><br>
+                    Documento: ${trabajadorInfo.documento}<br>
+                    Celular: ${trabajadorInfo.celular || "No disponible"}<br>
+                    Última ubicación: ${new Date(ubicacion.timestamp).toLocaleString()}
+                `;
 
                 if (trabajadoresMarkers[trabajador]) {
                     trabajadoresMarkers[trabajador].setLatLng([ubicacion.lat, ubicacion.lng]);
+                    trabajadoresMarkers[trabajador].bindPopup(popupContent); // Actualiza el popup si ya existe
                 } else {
                     const marker = L.marker([ubicacion.lat, ubicacion.lng], {
                         icon: L.icon({
@@ -516,8 +524,16 @@ async function cargarUbicacionesTrabajadores() {
                         })
                     }).addTo(map);
 
-                    marker.bindPopup(`<b>${trabajador}</b><br>Última actualización: ${new Date(ubicacion.timestamp).toLocaleTimeString()}`);
+                    marker.bindPopup(popupContent); // Asociar el popup con el marcador
                     trabajadoresMarkers[trabajador] = marker;
+
+                    // Evento: Mostrar el popup al posicionar el cursor o al hacer clic
+                    marker.on('mouseover', function () {
+                        this.openPopup();
+                    });
+                    marker.on('click', function () {
+                        this.openPopup();
+                    });
                 }
             }
         });
