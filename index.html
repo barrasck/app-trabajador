@@ -536,7 +536,7 @@ async function cargarUbicacionesTrabajadores() {
 
 async function cargarTrabajadoresDesdeRepositorio() {
     const repo = 'barrasck/app-trabajador'; // Repositorio correcto
-    const path = 'trabajadores.json'; // Ruta correcta del archivo
+    const path = 'trabajadores.json'; // Archivo correcto
     const branch = 'main'; // Rama principal
 
     try {
@@ -549,11 +549,11 @@ async function cargarTrabajadoresDesdeRepositorio() {
         }
 
         const data = await response.json();
-        trabajadores = JSON.parse(atob(data.content));
-        actualizarListaTrabajadores();
+        const trabajadores = JSON.parse(atob(data.content)); // Decodificar contenido Base64 y convertir a JSON
+        actualizarListaTrabajadores(trabajadores);
     } catch (error) {
         console.error('Error al cargar los trabajadores:', error);
-        alert('No se pudo cargar los trabajadores. Verifica si el archivo trabajadores.json existe y tiene el formato correcto.');
+        alert('No se pudieron cargar los trabajadores. Verifica si el archivo trabajadores.json existe y tiene el formato correcto.');
     }
 }
 
@@ -1009,22 +1009,26 @@ async function rechazarTurno(fecha) {
 }
 
 async function cargarNotificaciones() {
-    const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/notificaciones.json?ref=main');
-    const data = await response.json();
-    const notificaciones = JSON.parse(atob(data.content));
+    const repo = 'barrasck/app-trabajador'; // Repositorio correcto
+    const path = 'notificaciones.json'; // Archivo correcto
+    const branch = 'main'; // Rama principal
 
-    const contenedor = document.getElementById('listaNotificaciones');
+    try {
+        const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=${branch}`);
+        if (!response.ok) {
+            if (response.status === 404) {
+                throw new Error('El archivo notificaciones.json no existe en el repositorio.');
+            }
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
 
-    contenedor.innerHTML = notificaciones.map((notif, index) => `
-        <div class="notificacion-item">
-            <div>
-                <strong>${notif.trabajador}</strong> rechazó el turno 
-                del ${notif.fecha} (${notif.turno})
-                <br><small>${new Date(notif.timestamp).toLocaleString()}</small>
-            </div>
-            <button onclick="marcarComoResuelto(${index})">🗑️</button>
-        </div>
-    `).join('');
+        const data = await response.json();
+        const notificaciones = JSON.parse(atob(data.content)); // Decodificar contenido Base64 y convertir a JSON
+        actualizarUIConNotificaciones(notificaciones);
+    } catch (error) {
+        console.error('Error al cargar las notificaciones:', error);
+        alert('No se pudieron cargar las notificaciones. Verifica si el archivo notificaciones.json existe y tiene el formato correcto.');
+    }
 }
 
 
