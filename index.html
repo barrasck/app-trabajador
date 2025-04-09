@@ -350,8 +350,8 @@
         };
 
 async function guardarEnRepositorio(rutaArchivo, contenido) {
-    const repo = 'barrasck/ubicacion';  // Reemplaza con el nombre de tu repositorio
-    const branch = 'main';  // Reemplaza con el nombre de tu rama
+    const repo = 'barrasck/app-trabajador'; // Nombre del repositorio
+    const branch = 'main'; // Nombre de la rama
 
     // Obtener el SHA del archivo si existe
     let sha;
@@ -359,7 +359,7 @@ async function guardarEnRepositorio(rutaArchivo, contenido) {
         const response = await fetch(`https://api.github.com/repos/${repo}/contents/${rutaArchivo}?ref=${branch}`);
         if (response.ok) {
             const data = await response.json();
-            sha = data.sha;
+            sha = data.sha; // Obtener el SHA si el archivo ya existe
         }
     } catch (error) {
         console.error('Error al obtener el SHA del archivo:', error);
@@ -370,13 +370,14 @@ async function guardarEnRepositorio(rutaArchivo, contenido) {
         const response = await fetch(`https://api.github.com/repos/${repo}/contents/${rutaArchivo}`, {
             method: 'PUT',
             headers: {
-                'Accept': 'application/vnd.github.v3+json'
+                'Authorization': `Bearer <TU_TOKEN_DE_ACCESO>`, // Asegúrate de usar un token de acceso válido
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 message: `Actualización de ${rutaArchivo}`,
-                content: btoa(contenido),
+                content: btoa(contenido), // Codificar el contenido en Base64
                 branch: branch,
-                sha: sha
+                sha: sha // Incluir el SHA si el archivo ya existe
             })
         });
 
@@ -533,24 +534,29 @@ async function cargarUbicacionesTrabajadores() {
     }
 }
 
-  async function cargarTrabajadoresDesdeRepositorio() {
+async function cargarTrabajadoresDesdeRepositorio() {
     const repo = 'barrasck/app-trabajador';
     const path = 'trabajadores.json';
     const branch = 'main';
 
     try {
+        // Realizar la solicitud a la API de GitHub
         const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=${branch}`);
         if (!response.ok) {
-            throw new Error('No se pudo cargar el archivo trabajadores.json');
+            throw new Error(`Error ${response.status}: No se pudo cargar el archivo trabajadores.json`);
         }
 
+        // Decodificar el contenido del archivo
         const data = await response.json();
         trabajadores = JSON.parse(atob(data.content));
+
+        // Actualizar la lista de trabajadores en la interfaz
         actualizarListaTrabajadores();
     } catch (error) {
         console.error('Error al cargar los trabajadores:', error);
+        alert('Error al cargar los trabajadores. Verifica que el archivo trabajadores.json exista en el repositorio, tenga el formato correcto y sea accesible.');
     }
-}       
+}
 
 async function procesarTrabajadores() {
     const file = document.getElementById('excelTrabajadores').files[0];
