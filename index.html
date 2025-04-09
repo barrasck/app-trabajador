@@ -730,6 +730,7 @@ async function asignarSede() {
 
 async function iniciarTrackingTrabajador() {
     if (navigator.geolocation && usuarioActual.role === 'worker') {
+        console.log('Iniciando seguimiento de ubicación para:', usuarioActual.username);
         navigator.geolocation.watchPosition(async position => {
             const ubicacion = {
                 lat: position.coords.latitude,
@@ -738,19 +739,29 @@ async function iniciarTrackingTrabajador() {
             };
 
             try {
-                const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/ubicaciones.json?ref=main');
+                // URL actualizada al repositorio correcto
+                const response = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/ubicaciones.json?ref=main');
                 if (!response.ok) {
                     throw new Error(`Error: ${response.status} ${response.statusText}`);
                 }
+
                 const data = await response.json();
                 const ubicaciones = JSON.parse(atob(data.content));
 
+                // Actualiza la ubicación del trabajador actual
                 ubicaciones[usuarioActual.username] = ubicacion;
+
+                // Guarda las ubicaciones actualizadas en el repositorio
                 await guardarEnRepositorio('ubicaciones.json', JSON.stringify(ubicaciones, null, 2));
+                console.log('Ubicación actualizada para:', usuarioActual.username);
             } catch (error) {
                 console.error('Error al actualizar la ubicación del trabajador:', error);
             }
+        }, error => {
+            console.error('Error de geolocalización:', error.message);
         });
+    } else {
+        console.log('Geolocalización no soportada o el usuario no es un trabajador.');
     }
 }
 
