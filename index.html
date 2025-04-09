@@ -789,24 +789,28 @@ async function iniciarTrackingTrabajador() {
             document.getElementById('total-pagar').textContent = total.toLocaleString();
         }
 
-        function iniciarGeolocalizacion() {
-            if (navigator.geolocation) {
-                navigator.geolocation.watchPosition(
-                    manejarPosicion,
-                    (error) => {
-                        console.error(`Error de geolocalización (${error.code}): ${error.message}`);
-                        document.getElementById('status').innerHTML = "❌ Error al obtener ubicación";
-                    },
-                    {
-                        enableHighAccuracy: true,
-                        maximumAge: 10000,
-                        timeout: 30000
-                    }
-                );
-            } else {
-                document.getElementById('status').innerHTML = "❌ Tu navegador no soporta geolocalización";
-            }
+function iniciarGeolocalizacion() {
+    if (usuarioActual.role === 'worker') { // Verifica si el usuario es un trabajador
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition(
+                manejarPosicion,
+                (error) => {
+                    console.error(`Error de geolocalización (${error.code}): ${error.message}`);
+                    document.getElementById('status').innerHTML = "❌ Error al obtener ubicación";
+                },
+                {
+                    enableHighAccuracy: true,
+                    maximumAge: 10000,
+                    timeout: 30000
+                }
+            );
+        } else {
+            document.getElementById('status').innerHTML = "❌ Tu navegador no soporta geolocalización";
         }
+    } else {
+        console.log("La geolocalización solo está habilitada para trabajadores.");
+    }
+}
 
 function manejarPosicion(position) {
     if (!map) {
