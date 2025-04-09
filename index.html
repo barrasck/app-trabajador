@@ -500,19 +500,14 @@ async function cargarUbicacionesTrabajadores() {
         const trabajadores = JSON.parse(atob(trabajadoresData.content));
         console.log('Trabajadores:', trabajadores); // Depuración
 
-        // **Agrega este fragmento aquí**
-        Object.keys(ubicaciones).forEach(trabajadorKey => {
-            const trabajador = trabajadores[trabajadorKey];
-            console.log(`Procesando trabajador: ${trabajadorKey}`, trabajador); // Depuración
-        });
-
-        // Agregar marcadores al mapa, excluyendo a los administrativos
+        // Agregar marcadores al mapa
         Object.keys(ubicaciones).forEach(trabajadorKey => {
             const trabajador = trabajadores[trabajadorKey];
             const ubicacion = ubicaciones[trabajadorKey];
 
-            // Verificar si el trabajador existe y no es un administrativo
+            // Verificar si el trabajador existe y tiene un nombre
             if (trabajador && trabajador.role === "worker") {
+                console.log(`Procesando trabajador: ${trabajadorKey}`, trabajador); // Depuración
                 const popupContent = `
                     <b>Nombre:</b> ${trabajador.nombre || "No disponible"}<br>
                     <b>Documento:</b> ${trabajador.documento || "No disponible"}<br>
@@ -1041,8 +1036,12 @@ function openTab(tabName, event) {
     document.getElementById(tabName).classList.add('active');
     event.currentTarget.classList.add('active');
 
-    if (tabName === 'mapa' && !map) {
-        inicializarMapa();
+    if (tabName === 'mapa') {
+        if (!map) {
+            inicializarMapa();
+        } else {
+            map.invalidateSize(); // Recalcula el tamaño del mapa
+        }
     }
 }
 
