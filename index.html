@@ -965,11 +965,9 @@ window.onload = async function() {
         if (usuarioActual && usuarioActual.role === 'admin') {
             console.log("Modo administrador activado. No se solicita ubicación para el administrador.");
             inicializarMapa();
-        } else if (usuarioActual) {
+        } else {
             console.log("Solicitando ubicación para los trabajadores...");
             await solicitarUbicacionTrabajadores();
-        } else {
-            console.log("Usuario no autenticado.");
         }
     } catch (error) {
         console.error("Error al inicializar:", error);
