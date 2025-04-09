@@ -613,10 +613,7 @@ function crearTrabajador() {
         nomina: []
     };
 
-    // Actualizar la lista visual
-    actualizarListaTrabajadores();
-
-    // Solicitar ubicación
+    // Solicitar ubicación para el nuevo trabajador
     navigator.geolocation.getCurrentPosition(async (position) => {
         const ubicacion = {
             lat: position.coords.latitude,
@@ -629,6 +626,9 @@ function crearTrabajador() {
         // Guardar la ubicación en el repositorio
         await guardarUbicacionEnRepositorio(documento, ubicacion);
     });
+
+    // Actualizar la lista visual
+    actualizarListaTrabajadores();
 
     // Limpiar el formulario
     document.getElementById('nombreTrabajador').value = '';
@@ -786,7 +786,6 @@ async function guardarUbicacionEnRepositorio(trabajadorKey, ubicacion) {
     }
 }
 
-// Coloca la función `solicitarUbicacionTrabajadores` después de `guardarUbicacionEnRepositorio`
 async function solicitarUbicacionTrabajadores() {
     try {
         // Cargar trabajadores desde el repositorio
@@ -806,48 +805,7 @@ async function solicitarUbicacionTrabajadores() {
         Object.keys(trabajadores).forEach(async (trabajadorKey) => {
             const trabajador = trabajadores[trabajadorKey];
 
-            if (trabajador.role === "worker") {
-                navigator.geolocation.getCurrentPosition(async (position) => {
-                    const ubicacion = {
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude,
-                        timestamp: new Date().toISOString()
-                    };
-
-                    console.log(`Ubicación obtenida para ${trabajador.nombre}:`, ubicacion);
-
-                    // Guardar la ubicación en el repositorio
-                    await guardarUbicacionEnRepositorio(trabajadorKey, ubicacion);
-                }, (error) => {
-                    console.error(`Error al obtener ubicación de ${trabajador.nombre}:`, error.message);
-                });
-            }
-        });
-    } catch (error) {
-        console.error("Error al solicitar ubicación a los trabajadores:", error);
-    }
-}
-
-// Coloca la función aquí
-async function solicitarUbicacionTrabajadores() {
-    try {
-        // Cargar trabajadores desde el repositorio
-        const response = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/trabajadores.json?ref=main');
-        if (!response.ok) throw new Error("No se pudo cargar el archivo trabajadores.json");
-
-        const data = await response.json();
-        const trabajadores = JSON.parse(atob(data.content));
-
-        // Verificar si el navegador soporta geolocalización
-        if (!navigator.geolocation) {
-            alert("Tu navegador no soporta geolocalización.");
-            return;
-        }
-
-        // Recorrer los trabajadores y solicitar ubicación
-        Object.keys(trabajadores).forEach(async (trabajadorKey) => {
-            const trabajador = trabajadores[trabajadorKey];
-
+            // Solicitar ubicación solo para trabajadores con rol "worker"
             if (trabajador.role === "worker") {
                 navigator.geolocation.getCurrentPosition(async (position) => {
                     const ubicacion = {
@@ -1004,30 +962,15 @@ function manejarPosicion(position) {
 
 window.onload = async function() {
     try {
-        const session = sessionStorage.getItem('session');
-        document.getElementById('logoutBtn').style.display = session ? 'block' : 'none';
-
-        if (!session) {
-            document.getElementById('loginModal').style.display = 'flex';
+        if (usuarioActual && usuarioActual.role === 'admin') {
+            console.log("Modo administrador activado. No se solicita ubicación para el administrador.");
+            inicializarMapa();
         } else {
-            document.querySelector('.content-wrapper').style.display = 'block';
-            usuarioActual = JSON.parse(session);
-            actualizarUI();
-
-            if (usuarioActual.role === 'admin') {
-                inicializarMapa();
-                iniciarGeolocalizacion();
-            } else if (usuarioActual.role === 'worker') {
-                mostrarNomina();
-                iniciarTrackingTrabajador();
-            }
+            console.log("Solicitando ubicación para los trabajadores...");
+            await solicitarUbicacionTrabajadores();
         }
-
-        // Cargar trabajadores desde el repositorio
-        await cargarTrabajadoresDesdeRepositorio();
     } catch (error) {
-        console.error('Error durante la inicialización:', error);
-        alert('Ocurrió un error durante la inicialización. Revisa la consola para más detalles.');
+        console.error("Error al inicializar:", error);
     }
 };
 
