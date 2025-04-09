@@ -641,7 +641,7 @@ function actualizarListaTrabajadores() {
 }
 
 async function actualizarListaTrabajadores() {
-    const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/trabajadores.json?ref=main');
+    const response = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/trabajadores.json?ref=main');
     const data = await response.json();
     const trabajadores = JSON.parse(atob(data.content));
 
@@ -1033,7 +1033,7 @@ async function cargarNotificaciones() {
 
 
 async function marcarComoResuelto(index) {
-    const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/notificaciones.json?ref=main');
+    const response = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/notificaciones.json?ref=main');
     const data = await response.json();
     const notificaciones = JSON.parse(atob(data.content));
 
