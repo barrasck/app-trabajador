@@ -405,23 +405,6 @@ async function guardarEnRepositorio(rutaArchivo, contenido) {
             document.getElementById('password').value = '';
         }
 
-function inicializarMapa() {
-    if (!map) {
-        map = L.map('map', {
-            maxZoom: CONFIG.opcionesMapa.maxZoom
-        }).setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        }).addTo(map);
-
-        // Cargar ubicaciones de trabajadores y sedes
-        cargarUbicacionesTrabajadores();
-        actualizarSedesEnMapa();
-    }
-}
-
-
          
 async function login(event) {
     event.preventDefault();
@@ -482,6 +465,23 @@ async function login(event) {
         alert('Ocurrió un error durante el inicio de sesión. Revisa la consola para más detalles.');
     }
 }
+         
+function inicializarMapa() {
+    if (!map) {
+        map = L.map('map', {
+            maxZoom: CONFIG.opcionesMapa.maxZoom
+        }).setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        // Cargar ubicaciones de trabajadores y sedes
+        cargarUbicacionesTrabajadores();
+        actualizarSedesEnMapa();
+    }
+}
+
 
 function actualizarMapaTrabajadores(ubicaciones) {
     if (!map) {
