@@ -405,21 +405,8 @@ function inicializarMapa() {
             attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }).addTo(map);
 
-        const destinoIcon = L.icon({
-            iconUrl: './marker-icon-2x-red.png',
-            iconSize: [25, 41],
-            iconAnchor: [12, 41]
-        });
-
-        L.marker([CONFIG.destino.lat, CONFIG.destino.lng], { icon: destinoIcon })
-            .addTo(map)
-            .bindPopup('<b>Punto de Destino</b><br>Bogotá D.C.')
-            .openPopup();
-
-        // Cargar ubicaciones de los trabajadores automáticamente
-        if (usuarioActual.role === 'admin') {
-            cargarUbicacionesTrabajadores();
-        }
+        // Cargar las ubicaciones de los trabajadores
+        cargarUbicacionesTrabajadores();
     }
 }
 
@@ -485,7 +472,7 @@ async function login(event) {
         
 async function cargarUbicacionesTrabajadores() {
     try {
-        // Obtener las ubicaciones de los trabajadores
+        // Obtén las ubicaciones de los trabajadores desde el archivo `ubicaciones.json`
         const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/ubicaciones.json?ref=main');
         if (!response.ok) {
             throw new Error(`Error: ${response.status} ${response.statusText}`);
@@ -493,7 +480,7 @@ async function cargarUbicacionesTrabajadores() {
         const data = await response.json();
         const ubicaciones = JSON.parse(atob(data.content));
 
-        // Obtener la lista de trabajadores para mostrar información
+        // Obtén la información de los trabajadores desde el archivo `trabajadores.json`
         const trabajadoresResponse = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/trabajadores.json?ref=main');
         if (!trabajadoresResponse.ok) {
             throw new Error(`Error: ${trabajadoresResponse.status} ${trabajadoresResponse.statusText}`);
@@ -501,40 +488,42 @@ async function cargarUbicacionesTrabajadores() {
         const trabajadoresData = await trabajadoresResponse.json();
         const trabajadores = JSON.parse(atob(trabajadoresData.content));
 
-        // Filtrar y mostrar únicamente las ubicaciones de los trabajadores
+        // Limpia los marcadores existentes en el mapa
+        Object.values(trabajadoresMarkers).forEach(marker => {
+            map.removeLayer(marker);
+        });
+        trabajadoresMarkers = {};
+
+        // Agrega marcadores para cada trabajador
         Object.keys(ubicaciones).forEach(trabajador => {
             if (trabajadores[trabajador]?.role === "worker") {
                 const ubicacion = ubicaciones[trabajador];
                 const trabajadorInfo = trabajadores[trabajador];
                 const popupContent = `
-                    <b>${trabajadorInfo.nombre}</b><br>
-                    Documento: ${trabajadorInfo.documento}<br>
-                    Celular: ${trabajadorInfo.celular || "No disponible"}<br>
-                    Última ubicación: ${new Date(ubicacion.timestamp).toLocaleString()}
+                    <b>Nombre:</b> ${trabajadorInfo.nombre}<br>
+                    <b>Documento:</b> ${trabajadorInfo.documento}<br>
+                    <b>Celular:</b> ${trabajadorInfo.celular || "No disponible"}<br>
+                    <b>Última actualización:</b> ${new Date(ubicacion.timestamp).toLocaleString()}
                 `;
 
-                if (trabajadoresMarkers[trabajador]) {
-                    trabajadoresMarkers[trabajador].setLatLng([ubicacion.lat, ubicacion.lng]);
-                    trabajadoresMarkers[trabajador].bindPopup(popupContent); // Actualiza el popup si ya existe
-                } else {
-                    const marker = L.marker([ubicacion.lat, ubicacion.lng], {
-                        icon: L.icon({
-                            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-                            iconSize: [25, 41]
-                        })
-                    }).addTo(map);
+                // Crear marcador
+                const marker = L.marker([ubicacion.lat, ubicacion.lng], {
+                    icon: L.icon({
+                        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                        iconSize: [25, 41]
+                    })
+                }).addTo(map);
 
-                    marker.bindPopup(popupContent); // Asociar el popup con el marcador
-                    trabajadoresMarkers[trabajador] = marker;
+                // Asocia el popup al marcador
+                marker.bindPopup(popupContent);
 
-                    // Evento: Mostrar el popup al posicionar el cursor o al hacer clic
-                    marker.on('mouseover', function () {
-                        this.openPopup();
-                    });
-                    marker.on('click', function () {
-                        this.openPopup();
-                    });
-                }
+                // Evento: Mostrar el popup al posicionar el cursor sobre el marcador
+                marker.on('mouseover', function () {
+                    this.openPopup(); // Abre el popup automáticamente
+                });
+
+                // Almacena el marcador para referencia futura
+                trabajadoresMarkers[trabajador] = marker;
             }
         });
     } catch (error) {
