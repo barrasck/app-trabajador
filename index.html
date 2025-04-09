@@ -227,10 +227,10 @@
             <div class="upload-section">
                  <div id="crearTrabajador" class="upload-section">
     <h3>🆕 Crear Trabajador</h3>
-<input type="text" id="nombreTrabajador" placeholder="Nombre del Trabajador">
-<input type="text" id="documentoTrabajador" placeholder="Número de Documento">
-<input type="text" id="celularTrabajador" placeholder="Número de Celular">
-<button onclick="crearTrabajador()">Agregar Trabajador</button>
+    <input type="text" id="nombreTrabajador" placeholder="Nombre del Trabajador">
+    <input type="text" id="documentoTrabajador" placeholder="Número de Documento">
+    <input type="text" id="celularTrabajador" placeholder="Número de Celular">
+    <button onclick="crearTrabajador()">Agregar Trabajador</button>
 </div>
 <div id="listaTrabajadores">
     <h3>👷 Lista de Trabajadores</h3>
@@ -484,7 +484,6 @@ async function login(event) {
         
 async function cargarUbicacionesTrabajadores() {
     try {
-        // Obtener ubicaciones desde el repositorio
         const response = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/ubicaciones.json?ref=main');
         if (!response.ok) throw new Error("Error al cargar ubicaciones");
 
@@ -492,7 +491,6 @@ async function cargarUbicacionesTrabajadores() {
         const ubicaciones = JSON.parse(atob(data.content));
         console.log('Ubicaciones:', ubicaciones); // Depuración
 
-        // Obtener información de trabajadores desde el repositorio
         const trabajadoresResponse = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/trabajadores.json?ref=main');
         if (!trabajadoresResponse.ok) throw new Error("Error al cargar trabajadores");
 
@@ -500,18 +498,14 @@ async function cargarUbicacionesTrabajadores() {
         const trabajadores = JSON.parse(atob(trabajadoresData.content));
         console.log('Trabajadores:', trabajadores); // Depuración
 
-        // Agregar marcadores al mapa
-        Object.keys(ubicaciones).forEach(trabajadorKey => {
-            const trabajador = trabajadores[trabajadorKey];
-            const ubicacion = ubicaciones[trabajadorKey];
-
-            // Verificar si el trabajador existe y tiene un nombre
-            if (trabajador && trabajador.role === "worker") {
-                console.log(`Procesando trabajador: ${trabajadorKey}`, trabajador); // Depuración
+        Object.keys(ubicaciones).forEach(trabajador => {
+            if (trabajadores[trabajador]?.role === "worker") {
+                const ubicacion = ubicaciones[trabajador];
+                const trabajadorInfo = trabajadores[trabajador];
                 const popupContent = `
-                    <b>Nombre:</b> ${trabajador.nombre || "No disponible"}<br>
-                    <b>Documento:</b> ${trabajador.documento || "No disponible"}<br>
-                    <b>Celular:</b> ${trabajador.celular || "No disponible"}<br>
+                    <b>Nombre:</b> ${trabajadorInfo.nombre}<br>
+                    <b>Documento:</b> ${trabajadorInfo.documento}<br>
+                    <b>Celular:</b> ${trabajadorInfo.celular || "No disponible"}<br>
                     <b>Última actualización:</b> ${new Date(ubicacion.timestamp).toLocaleString()}
                 `;
 
@@ -604,7 +598,7 @@ function crearTrabajador() {
         return;
     }
 
-    // Agregar trabajador al objeto global
+    // Agregar trabajador al objeto
     trabajadores[documento] = {
         nombre: nombre,
         documento: documento,
@@ -612,20 +606,6 @@ function crearTrabajador() {
         role: 'worker',
         nomina: []
     };
-
-    // Solicitar ubicación para el nuevo trabajador
-    navigator.geolocation.getCurrentPosition(async (position) => {
-        const ubicacion = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-            timestamp: new Date().toISOString()
-        };
-
-        console.log(`Ubicación del nuevo trabajador ${nombre}:`, ubicacion);
-
-        // Guardar la ubicación en el repositorio
-        await guardarUbicacionEnRepositorio(documento, ubicacion);
-    });
 
     // Actualizar la lista visual
     actualizarListaTrabajadores();
@@ -639,6 +619,7 @@ function crearTrabajador() {
 }
 
 function actualizarListaTrabajadores() {
+    console.log('Trabajadores actuales:', trabajadores); // Depuración
     const lista = document.getElementById('trabajadoresList');
     lista.innerHTML = ''; // Limpiar la lista existente
 
@@ -649,40 +630,57 @@ function actualizarListaTrabajadores() {
     });
 }
 
+async function actualizarListaTrabajadores() {
+    const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/trabajadores.json?ref=main');
+    const data = await response.json();
+    const trabajadores = JSON.parse(atob(data.content));
 
-async function guardarTrabajadoresEnRepositorio() {
+    const sedesResponse = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/sedes.json?ref=main');
+    const sedesData = await sedesResponse.json();
+    const sedes = JSON.parse(atob(sedesData.content));
+
+    // Actualizar selects
+    const selectTrabajador = document.getElementById('selectTrabajador');
+    const selectSede = document.getElementById('selectSede');
+
+    selectTrabajador.innerHTML = '<option value="">Seleccionar Trabajador</option>';
+    selectSede.innerHTML = '<option value="">Seleccionar Sede</option>';
+
+    Object.keys(trabajadores).forEach(t => {
+        selectTrabajador.innerHTML += `<option value="${t}">${trabajadores[t].nombre}</option>`;
+    });
+
+    sedes.forEach(s => {
+        selectSede.innerHTML += `<option value="${s.Nombre}">${s.Nombre}</option>`;
+    });
+}
+
+         async function guardarTrabajadoresEnRepositorio() {
     const contenido = btoa(JSON.stringify(trabajadores, null, 2)); // Codificar en Base64
     const repo = 'barrasck/app-trabajador';
     const path = 'trabajadores.json';
     const branch = 'main';
     const mensaje = 'Actualización de trabajadores';
 
-    let sha;
     try {
         // Obtener el SHA del archivo existente (si lo hay)
         const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=${branch}`);
-        if (response.ok) {
-            const data = await response.json();
-            sha = data.sha;
-        }
-    } catch (error) {
-        console.warn('El archivo no existe, se creará uno nuevo.');
-    }
+        const data = await response.json();
+        const sha = data.sha;
 
-    try {
         // Guardar el archivo actualizado
         const resultado = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
             method: 'PUT',
             headers: {
-                'Authorization': `Bearer <tu-token-de-acceso>`, // Reemplaza con un token válido
-                'Content-Type': 'application/json',
+                'Authorization': `Bearer <tu-token-de-acceso>`, // Asegúrate de usar un token de acceso válido
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 message: mensaje,
                 content: contenido,
                 branch: branch,
-                sha: sha, // Incluye el SHA si existe
-            }),
+                sha: sha
+            })
         });
 
         if (resultado.ok) {
@@ -692,139 +690,6 @@ async function guardarTrabajadoresEnRepositorio() {
         }
     } catch (error) {
         console.error('Error al guardar los trabajadores:', error);
-    }
-}
-
-         async function guardarUbicacionEnRepositorio(trabajadorKey, ubicacion) {
-    const repo = 'barrasck/app-trabajador';
-    const path = 'ubicaciones.json';
-    const branch = 'main';
-
-    try {
-        // Cargar el archivo existente
-        const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=${branch}`);
-        let ubicaciones = {};
-        let sha = null;
-
-        if (response.ok) {
-            const data = await response.json();
-            ubicaciones = JSON.parse(atob(data.content));
-            sha = data.sha;
-        }
-
-        // Actualizar o agregar la ubicación del trabajador
-        ubicaciones[trabajadorKey] = ubicacion;
-
-        // Guardar el archivo actualizado en el repositorio
-        const resultado = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer <tu-token-de-acceso>`, // Reemplazar con token válido
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                message: `Actualización de ubicación para ${trabajadorKey}`,
-                content: btoa(JSON.stringify(ubicaciones, null, 2)),
-                branch: branch,
-                sha: sha
-            })
-        });
-
-        if (!resultado.ok) {
-            throw new Error(`Error al guardar ubicación: ${resultado.statusText}`);
-        }
-
-        console.log(`Ubicación para ${trabajadorKey} guardada exitosamente.`);
-    } catch (error) {
-        console.error(`Error al guardar la ubicación de ${trabajadorKey}:`, error);
-    }
-}
-
-         // Coloca esta función primero, ya que será utilizada por otras funciones
-async function guardarUbicacionEnRepositorio(trabajadorKey, ubicacion) {
-    const repo = 'barrasck/app-trabajador';
-    const path = 'ubicaciones.json';
-    const branch = 'main';
-
-    try {
-        // Cargar el archivo existente
-        const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=${branch}`);
-        let ubicaciones = {};
-        let sha = null;
-
-        if (response.ok) {
-            const data = await response.json();
-            ubicaciones = JSON.parse(atob(data.content));
-            sha = data.sha;
-        }
-
-        // Actualizar o agregar la ubicación del trabajador
-        ubicaciones[trabajadorKey] = ubicacion;
-
-        // Guardar el archivo actualizado en el repositorio
-        const resultado = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer <tu-token-de-acceso>`, // Reemplazar con token válido
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                message: `Actualización de ubicación para ${trabajadorKey}`,
-                content: btoa(JSON.stringify(ubicaciones, null, 2)),
-                branch: branch,
-                sha: sha
-            })
-        });
-
-        if (!resultado.ok) {
-            throw new Error(`Error al guardar ubicación: ${resultado.statusText}`);
-        }
-
-        console.log(`Ubicación para ${trabajadorKey} guardada exitosamente.`);
-    } catch (error) {
-        console.error(`Error al guardar la ubicación de ${trabajadorKey}:`, error);
-    }
-}
-
-async function solicitarUbicacionTrabajadores() {
-    try {
-        // Cargar trabajadores desde el repositorio
-        const response = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/trabajadores.json?ref=main');
-        if (!response.ok) throw new Error("No se pudo cargar el archivo trabajadores.json");
-
-        const data = await response.json();
-        const trabajadores = JSON.parse(atob(data.content));
-
-        // Verificar si el navegador soporta geolocalización
-        if (!navigator.geolocation) {
-            alert("Tu navegador no soporta geolocalización.");
-            return;
-        }
-
-        // Recorrer los trabajadores y solicitar ubicación
-        Object.keys(trabajadores).forEach(async (trabajadorKey) => {
-            const trabajador = trabajadores[trabajadorKey];
-
-            // Solicitar ubicación solo para trabajadores con rol "worker"
-            if (trabajador.role === "worker") {
-                navigator.geolocation.getCurrentPosition(async (position) => {
-                    const ubicacion = {
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude,
-                        timestamp: new Date().toISOString()
-                    };
-
-                    console.log(`Ubicación obtenida para ${trabajador.nombre}:`, ubicacion);
-
-                    // Guardar la ubicación en el repositorio
-                    await guardarUbicacionEnRepositorio(trabajadorKey, ubicacion);
-                }, (error) => {
-                    console.error(`Error al obtener ubicación de ${trabajador.nombre}:`, error.message);
-                });
-            }
-        });
-    } catch (error) {
-        console.error("Error al solicitar ubicación a los trabajadores:", error);
     }
 }
 
@@ -962,15 +827,30 @@ function manejarPosicion(position) {
 
 window.onload = async function() {
     try {
-        if (usuarioActual && usuarioActual.role === 'admin') {
-            console.log("Modo administrador activado. No se solicita ubicación para el administrador.");
-            inicializarMapa();
+        const session = sessionStorage.getItem('session');
+        document.getElementById('logoutBtn').style.display = session ? 'block' : 'none';
+
+        if (!session) {
+            document.getElementById('loginModal').style.display = 'flex';
         } else {
-            console.log("Solicitando ubicación para los trabajadores...");
-            await solicitarUbicacionTrabajadores();
+            document.querySelector('.content-wrapper').style.display = 'block';
+            usuarioActual = JSON.parse(session);
+            actualizarUI();
+
+            if (usuarioActual.role === 'admin') {
+                inicializarMapa();
+                iniciarGeolocalizacion();
+            } else if (usuarioActual.role === 'worker') {
+                mostrarNomina();
+                iniciarTrackingTrabajador();
+            }
         }
+
+        // Cargar trabajadores desde el repositorio
+        await cargarTrabajadoresDesdeRepositorio();
     } catch (error) {
-        console.error("Error al inicializar:", error);
+        console.error('Error durante la inicialización:', error);
+        alert('Ocurrió un error durante la inicialización. Revisa la consola para más detalles.');
     }
 };
 
@@ -1150,12 +1030,8 @@ function openTab(tabName, event) {
     document.getElementById(tabName).classList.add('active');
     event.currentTarget.classList.add('active');
 
-    if (tabName === 'mapa') {
-        if (!map) {
-            inicializarMapa();
-        } else {
-            map.invalidateSize(); // Recalcula el tamaño del mapa
-        }
+    if (tabName === 'mapa' && !map) {
+        inicializarMapa();
     }
 }
 
