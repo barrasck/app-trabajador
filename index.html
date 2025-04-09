@@ -535,26 +535,25 @@ async function cargarUbicacionesTrabajadores() {
 }
 
 async function cargarTrabajadoresDesdeRepositorio() {
-    const repo = 'barrasck/app-trabajador';
-    const path = 'trabajadores.json';
-    const branch = 'main';
+    const repo = 'barrasck/app-trabajador'; // Repositorio correcto
+    const path = 'trabajadores.json'; // Ruta correcta del archivo
+    const branch = 'main'; // Rama principal
 
     try {
-        // Realizar la solicitud a la API de GitHub
         const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=${branch}`);
         if (!response.ok) {
-            throw new Error(`Error ${response.status}: No se pudo cargar el archivo trabajadores.json`);
+            if (response.status === 404) {
+                throw new Error('El archivo trabajadores.json no existe en el repositorio.');
+            }
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
         }
 
-        // Decodificar el contenido del archivo
         const data = await response.json();
         trabajadores = JSON.parse(atob(data.content));
-
-        // Actualizar la lista de trabajadores en la interfaz
         actualizarListaTrabajadores();
     } catch (error) {
         console.error('Error al cargar los trabajadores:', error);
-        alert('Error al cargar los trabajadores. Verifica que el archivo trabajadores.json exista en el repositorio, tenga el formato correcto y sea accesible.');
+        alert('No se pudo cargar los trabajadores. Verifica si el archivo trabajadores.json existe y tiene el formato correcto.');
     }
 }
 
