@@ -350,10 +350,9 @@
         };
 
 async function guardarEnRepositorio(rutaArchivo, contenido) {
-    const repo = 'barrasck/app-trabajador'; // Nombre del repositorio
-    const branch = 'main'; // Nombre de la rama
+    const repo = 'barrasck/app-trabajador';
+    const branch = 'main';
 
-    // Obtener el SHA del archivo si existe
     let sha;
     try {
         const response = await fetch(`https://api.github.com/repos/${repo}/contents/${rutaArchivo}?ref=${branch}`);
@@ -365,12 +364,11 @@ async function guardarEnRepositorio(rutaArchivo, contenido) {
         console.error('Error al obtener el SHA del archivo:', error);
     }
 
-    // Crear o actualizar el archivo
     try {
         const response = await fetch(`https://api.github.com/repos/${repo}/contents/${rutaArchivo}`, {
             method: 'PUT',
             headers: {
-                'Authorization': `Bearer <TU_TOKEN_DE_ACCESO>`, // Asegúrate de usar un token de acceso válido
+                'Authorization': `Bearer <TU_TOKEN_DE_ACCESO>`, // Reemplaza con tu token válido
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
@@ -423,6 +421,8 @@ function inicializarMapa() {
     }
 }
 
+
+         
 async function login(event) {
     event.preventDefault();
     const username = document.getElementById('username').value.toUpperCase();
@@ -456,13 +456,14 @@ async function login(event) {
             actualizarUI();
 
             if (usuarioActual.role === 'admin') {
-    inicializarMapa(); // Inicializa el mapa
-    cargarUbicacionesTrabajadores(); // Carga solo las ubicaciones de los trabajadores
-    iniciarGeolocalizacion();
-    cargarNotificaciones();
-            } else {
-                mostrarNomina();
-                cargarProgramacionTrabajador();
+                inicializarMapa(); // Inicializa el mapa
+                cargarUbicacionesTrabajadores(); // Carga solo las ubicaciones de los trabajadores
+                iniciarGeolocalizacion();
+                cargarNotificaciones();
+            } else if (usuarioActual.role === 'worker') {
+                mostrarNomina(); // Muestra nómina del trabajador
+                iniciarTrackingTrabajador(); // Inicia el rastreo en tiempo real
+                cargarProgramacionTrabajador(); // Carga los turnos asignados
                 document.querySelector('.tabs').style.display = 'none';
                 document.querySelector('.nomina-panel').style.display = 'block';
                 document.getElementById('mapa').style.display = 'none';
@@ -477,12 +478,36 @@ async function login(event) {
             document.getElementById('username').focus();
         }
     } catch (error) {
-        console.error('Error during login:', error);
-        alert('An error occurred during login. Check the console for details.');
+        console.error('Error durante el inicio de sesión:', error);
+        alert('Ocurrió un error durante el inicio de sesión. Revisa la consola para más detalles.');
     }
 }
 
-        
+function actualizarMapaTrabajadores(ubicaciones) {
+    if (!map) {
+        console.error("El mapa no está inicializado.");
+        return;
+    }
+
+    Object.keys(ubicaciones).forEach(trabajadorKey => {
+        const ubicacion = ubicaciones[trabajadorKey];
+        const marker = trabajadoresMarkers[trabajadorKey];
+
+        if (marker) {
+            // Actualizar la posición del marcador existente
+            marker.setLatLng([ubicacion.lat, ubicacion.lng]);
+        } else {
+            // Crear un nuevo marcador si no existe
+            trabajadoresMarkers[trabajadorKey] = L.marker([ubicacion.lat, ubicacion.lng], {
+                icon: L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                    iconSize: [25, 41]
+                })
+            }).addTo(map).bindPopup(`Trabajador: ${trabajadorKey}`);
+        }
+    });
+}
+         
 async function cargarUbicacionesTrabajadores() {
     try {
         // Obtener ubicaciones desde el repositorio
@@ -740,25 +765,42 @@ async function asignarSede() {
 
 async function iniciarTrackingTrabajador() {
     if (navigator.geolocation && usuarioActual.role === 'worker') {
-        navigator.geolocation.watchPosition(async position => {
-            const ubicacion = {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude,
-                timestamp: new Date().toISOString()
-            };
+        navigator.geolocation.watchPosition(
+            async position => {
+                const ubicacion = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude,
+                    timestamp: new Date().toISOString()
+                };
 
-            try {
-                const response = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/ubicaciones.json?ref=main');
-                const data = await response.json();
-                const ubicaciones = JSON.parse(atob(data.content));
+                console.log("Ubicación obtenida en tiempo real:", ubicacion);
 
-                // Actualiza la ubicación del trabajador
-                ubicaciones[usuarioActual.username] = ubicacion;
-                await guardarEnRepositorio('ubicaciones.json', JSON.stringify(ubicaciones, null, 2));
-            } catch (error) {
-                console.error('Error al actualizar la ubicación del trabajador:', error);
+                try {
+                    // Obtener las ubicaciones actuales desde el archivo remoto
+                    const response = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/ubicaciones.json?ref=main');
+                    const data = await response.json();
+                    const ubicaciones = JSON.parse(atob(data.content));
+
+                    // Actualizar la ubicación del trabajador actual
+                    ubicaciones[usuarioActual.username] = ubicacion;
+
+                    // Guardar la nueva ubicación en el repositorio
+                    await guardarEnRepositorio('ubicaciones.json', JSON.stringify(ubicaciones, null, 2));
+                } catch (error) {
+                    console.error('Error al actualizar la ubicación del trabajador:', error);
+                }
+            },
+            error => {
+                console.error('Error al obtener la ubicación:', error);
+            },
+            {
+                enableHighAccuracy: true,
+                maximumAge: 10000,
+                timeout: 30000
             }
-        });
+        );
+    } else {
+        console.warn("El navegador no soporta geolocalización o el usuario no tiene permisos.");
     }
 }
 
