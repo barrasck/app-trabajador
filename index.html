@@ -456,9 +456,10 @@ async function login(event) {
             actualizarUI();
 
             if (usuarioActual.role === 'admin') {
-                inicializarMapa(); // Se inicializa el mapa y carga ubicaciones
-                iniciarGeolocalizacion();
-                cargarNotificaciones();
+    inicializarMapa(); // Inicializa el mapa
+    cargarUbicacionesTrabajadores(); // Carga solo las ubicaciones de los trabajadores
+    iniciarGeolocalizacion();
+    cargarNotificaciones();
             } else {
                 mostrarNomina();
                 cargarProgramacionTrabajador();
@@ -484,6 +485,7 @@ async function login(event) {
         
 async function cargarUbicacionesTrabajadores() {
     try {
+        // Obtener las ubicaciones de los trabajadores
         const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/ubicaciones.json?ref=main');
         if (!response.ok) {
             throw new Error(`Error: ${response.status} ${response.statusText}`);
@@ -491,21 +493,32 @@ async function cargarUbicacionesTrabajadores() {
         const data = await response.json();
         const ubicaciones = JSON.parse(atob(data.content));
 
+        // Obtener la lista de trabajadores para filtrar por rol "worker"
+        const trabajadoresResponse = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/trabajadores.json?ref=main');
+        if (!trabajadoresResponse.ok) {
+            throw new Error(`Error: ${trabajadoresResponse.status} ${trabajadoresResponse.statusText}`);
+        }
+        const trabajadoresData = await trabajadoresResponse.json();
+        const trabajadores = JSON.parse(atob(trabajadoresData.content));
+
+        // Filtrar y mostrar únicamente las ubicaciones de los trabajadores
         Object.keys(ubicaciones).forEach(trabajador => {
-            const ubicacion = ubicaciones[trabajador];
+            if (trabajadores[trabajador]?.role === "worker") {
+                const ubicacion = ubicaciones[trabajador];
 
-            if (trabajadoresMarkers[trabajador]) {
-                trabajadoresMarkers[trabajador].setLatLng([ubicacion.lat, ubicacion.lng]);
-            } else {
-                const marker = L.marker([ubicacion.lat, ubicacion.lng], {
-                    icon: L.icon({
-                        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-                        iconSize: [25, 41]
-                    })
-                }).addTo(map);
+                if (trabajadoresMarkers[trabajador]) {
+                    trabajadoresMarkers[trabajador].setLatLng([ubicacion.lat, ubicacion.lng]);
+                } else {
+                    const marker = L.marker([ubicacion.lat, ubicacion.lng], {
+                        icon: L.icon({
+                            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                            iconSize: [25, 41]
+                        })
+                    }).addTo(map);
 
-                marker.bindPopup(`<b>${trabajador}</b><br>Última actualización: ${new Date(ubicacion.timestamp).toLocaleTimeString()}`);
-                trabajadoresMarkers[trabajador] = marker;
+                    marker.bindPopup(`<b>${trabajador}</b><br>Última actualización: ${new Date(ubicacion.timestamp).toLocaleTimeString()}`);
+                    trabajadoresMarkers[trabajador] = marker;
+                }
             }
         });
     } catch (error) {
