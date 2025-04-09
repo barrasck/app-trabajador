@@ -391,24 +391,21 @@ async function guardarEnRepositorio(rutaArchivo, contenido) {
     }
 }
 
-function cerrarSesion() {
-    sessionStorage.removeItem('session');
-    usuarioActual = null;
-    document.querySelector('.content-wrapper').style.display = 'none';
-    document.getElementById('loginModal').style.display = 'flex';
-    document.getElementById('logoutBtn').style.display = 'none';
-
-    if (map) {
-        map.remove();
-        map = null;
-        userMarker = null;
-        accuracyCircle = null;
-    }
-
-    document.getElementById('username').value = '';
-    document.getElementById('password').value = '';
-    alert("🔒 Sesión cerrada.");
-}
+        function cerrarSesion() {
+            sessionStorage.removeItem('session');
+            usuarioActual = null;
+            document.querySelector('.content-wrapper').style.display = 'none';
+            document.getElementById('loginModal').style.display = 'flex';
+            document.getElementById('logoutBtn').style.display = 'none';
+            if(map) {
+                map.remove();
+                map = null;
+                userMarker = null;
+                accuracyCircle = null;
+            }
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
 
 function inicializarMapa() {
     if (!map) {
@@ -452,19 +449,27 @@ async function login(event) {
                 role: user.role,
                 datos: user
             };
-
-            console.log('Usuario actual:', usuarioActual); // Debug
-
+             console.log('Usuario actual:', usuarioActual);
             document.getElementById('loginModal').style.display = 'none';
             document.querySelector('.content-wrapper').style.display = 'block';
             document.getElementById('logoutBtn').style.display = 'block';
             sessionStorage.setItem('session', JSON.stringify(usuarioActual));
+            actualizarUI();
 
-            if (usuarioActual.role === 'worker') {
-                // Inicia la geolocalización obligatoria
-                iniciarTrackingTrabajador();
+            if (usuarioActual.role === 'admin') {
+    inicializarMapa(); // Inicializa el mapa
+    cargarUbicacionesTrabajadores(); // Carga solo las ubicaciones de los trabajadores
+    iniciarGeolocalizacion();
+    cargarNotificaciones();
             } else {
-                inicializarMapa(); // Admin
+                mostrarNomina();
+                cargarProgramacionTrabajador();
+                document.querySelector('.tabs').style.display = 'none';
+                document.querySelector('.nomina-panel').style.display = 'block';
+                document.getElementById('mapa').style.display = 'none';
+                document.getElementById('sedes').style.display = 'none';
+                document.querySelector('.notificaciones-panel').style.display = 'none';
+                document.querySelector('.upload-section').style.display = 'none';
             }
         } else {
             alert('Credenciales incorrectas');
@@ -474,7 +479,7 @@ async function login(event) {
         }
     } catch (error) {
         console.error('Error during login:', error);
-        alert('Ocurrió un error durante el inicio de sesión. Revisa la consola para más detalles.');
+        alert('An error occurred during login. Check the console for details.');
     }
 }
 
@@ -726,53 +731,40 @@ async function asignarSede() {
 
 async function iniciarTrackingTrabajador() {
     if (!navigator.geolocation) {
-        alert("❌ Tu navegador no soporta geolocalización.");
+        alert("❌ Tu navegador no soporta geolocalización."); // Aquí
         return;
     }
 
     if (usuarioActual.role === 'worker') {
         console.log('Iniciando seguimiento de ubicación para:', usuarioActual.username);
+        navigator.geolocation.watchPosition(async position => {
+            const ubicacion = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+                timestamp: new Date().toISOString()
+            };
 
-        navigator.geolocation.watchPosition(
-            async position => {
-                const ubicacion = {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude,
-                    timestamp: new Date().toISOString()
-                };
-
-                try {
-                    const response = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/ubicaciones.json?ref=main');
-                    if (!response.ok) {
-                        throw new Error(`Error al acceder al archivo ubicaciones.json: ${response.statusText}`);
-                    }
-
-                    const data = await response.json();
-                    const ubicaciones = JSON.parse(atob(data.content));
-
-                    // Actualiza la ubicación del trabajador actual
-                    ubicaciones[usuarioActual.username] = ubicacion;
-
-                    // Guarda las ubicaciones actualizadas
-                    await guardarEnRepositorio('ubicaciones.json', JSON.stringify(ubicaciones, null, 2));
-                    console.log('Ubicación actualizada para:', usuarioActual.username);
-                } catch (error) {
-                    console.error('Error al actualizar la ubicación del trabajador:', error);
+            try {
+                const response = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/ubicaciones.json?ref=main');
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status} ${response.statusText}`);
                 }
-            },
-            error => {
-                console.error('Error de geolocalización:', error.message);
-                alert("🚨 Debes permitir el acceso a tu ubicación para continuar.");
-                cerrarSesion(); // Forzar cierre de sesión si no otorgan permisos
-            },
-            {
-                enableHighAccuracy: true,
-                maximumAge: 10000,
-                timeout: 30000
+
+                const data = await response.json();
+                const ubicaciones = JSON.parse(atob(data.content));
+
+                ubicaciones[usuarioActual.username] = ubicacion;
+
+                await guardarEnRepositorio('ubicaciones.json', JSON.stringify(ubicaciones, null, 2));
+                console.log('Ubicación actualizada para:', usuarioActual.username);
+            } catch (error) {
+                console.error('Error al actualizar la ubicación del trabajador:', error);
             }
-        );
+        }, error => {
+            console.error('Error de geolocalización:', error.message);
+        });
     } else {
-        console.log('Geolocalización solo habilitada para trabajadores.');
+        console.log('Geolocalización no soportada o el usuario no es un trabajador.');
     }
 }
 
@@ -878,17 +870,18 @@ window.onload = async function() {
         } else {
             document.querySelector('.content-wrapper').style.display = 'block';
             usuarioActual = JSON.parse(session);
-
-            console.log('Usuario actual:', usuarioActual);
+            actualizarUI();
 
             if (usuarioActual.role === 'admin') {
                 inicializarMapa();
+                iniciarGeolocalizacion();
             } else if (usuarioActual.role === 'worker') {
                 mostrarNomina();
-                iniciarTrackingTrabajador(); // Forzar geolocalización
+                iniciarTrackingTrabajador();
             }
         }
 
+        // Cargar trabajadores desde el repositorio
         await cargarTrabajadoresDesdeRepositorio();
     } catch (error) {
         console.error('Error durante la inicialización:', error);
