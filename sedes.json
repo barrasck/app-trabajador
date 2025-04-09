@@ -1,0 +1,52 @@
+[
+    {
+        "Nombre": "Newell",
+        "Latitud": 4.747593,
+        "Longitud": -74.163485
+    },
+    {
+        "Nombre": "Maersk",
+        "Latitud": 4.740862,
+        "Longitud": -74.153751
+    },
+    {
+        "Nombre": "Distriservices",
+        "Latitud": 4.673570,
+        "Longitud": -74.157371
+    },
+    {
+        "Nombre": "Ceva600",
+        "Latitud": 4.768008,
+        "Longitud": -74.178495
+    },
+    {
+        "Nombre": "Ceva700",
+        "Latitud": 4.768008,
+        "Longitud": -74.178495
+    },
+    {
+        "Nombre": "Imbocar",
+        "Latitud": 4.682430,
+        "Longitud": -74.157172
+    },
+    {
+        "Nombre": "Solistica",
+        "Latitud": 4.773591,
+        "Longitud": -74.176717
+    },
+    {
+        "Nombre": "Silogistica",
+        "Latitud": 4.680069,
+        "Longitud": -74.230599
+    },
+    {
+        "Nombre": "Zalt",
+        "Latitud": 4.672489,
+        "Longitud": -74.162095
+    },
+    {
+        "Nombre": "Bochica",
+        "Latitud": 4.606359,
+        "Longitud": -74.107049
+    }
+]
