@@ -506,8 +506,15 @@ async function cargarUbicacionesTrabajadores() {
             const trabajador = trabajadores[trabajadorKey];
             const ubicacion = ubicaciones[trabajadorKey];
 
-            // Verificar si el trabajador existe y tiene un nombre
-            if (trabajador && trabajador.role === "worker") {
+            // Validar si el trabajador existe, tiene rol de worker y datos de ubicación son válidos
+            if (
+                trabajador &&
+                trabajador.role === "worker" &&
+                ubicacion &&
+                typeof ubicacion.lat === "number" &&
+                typeof ubicacion.lng === "number" &&
+                ubicacion.timestamp
+            ) {
                 console.log(`Procesando trabajador: ${trabajadorKey}`, trabajador); // Depuración
                 const popupContent = `
                     <b>Nombre:</b> ${trabajador.nombre || "No disponible"}<br>
@@ -527,10 +534,13 @@ async function cargarUbicacionesTrabajadores() {
                 marker.on('mouseover', function () {
                     this.openPopup();
                 });
+            } else {
+                console.warn(`Datos incompletos o inválidos para el trabajador: ${trabajadorKey}`);
             }
         });
     } catch (error) {
         console.error('Error al cargar ubicaciones de trabajadores:', error);
+        alert('No se pudieron cargar las ubicaciones. Intenta nuevamente.');
     }
 }
 
@@ -738,13 +748,11 @@ async function iniciarTrackingTrabajador() {
             };
 
             try {
-                const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/ubicaciones.json?ref=main');
-                if (!response.ok) {
-                    throw new Error(`Error: ${response.status} ${response.statusText}`);
-                }
+                const response = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/ubicaciones.json?ref=main');
                 const data = await response.json();
                 const ubicaciones = JSON.parse(atob(data.content));
 
+                // Actualiza la ubicación del trabajador
                 ubicaciones[usuarioActual.username] = ubicacion;
                 await guardarEnRepositorio('ubicaciones.json', JSON.stringify(ubicaciones, null, 2));
             } catch (error) {
@@ -754,19 +762,19 @@ async function iniciarTrackingTrabajador() {
     }
 }
 
-        function actualizarUI() {
-            if(usuarioActual.role === 'admin') {
-                document.querySelector('.tabs').style.display = 'flex';
-                document.querySelector('.content-wrapper').style.display = 'block';
-                document.querySelector('.nomina-panel').style.display = 'none';
-                openTab('programacion', { currentTarget: document.querySelector('.tab-btn.active') }); // Pass a mock event
-            } else {
-                document.querySelector('.tabs').style.display = 'none';
-                document.querySelector('.nomina-panel').style.display = 'block';
-                document.getElementById('mapa').style.display = 'none';
-                document.getElementById('sedes').style.display = 'none';
-            }
-        }
+function actualizarUI() {
+    if (usuarioActual.role === 'admin') {
+        document.querySelector('.tabs').style.display = 'flex';
+        document.querySelector('.content-wrapper').style.display = 'block';
+        document.querySelector('.nomina-panel').style.display = 'none';
+        openTab('programacion', { currentTarget: document.querySelector('.tab-btn.active') });
+    } else if (usuarioActual.role === 'worker') {
+        document.querySelector('.tabs').style.display = 'none';
+        document.querySelector('.nomina-panel').style.display = 'block';
+        document.getElementById('mapa').style.display = 'none';
+        document.getElementById('sedes').style.display = 'none';
+    }
+}
 
         function mostrarNomina() {
             const trabajador = usuarioActual.datos;
@@ -855,11 +863,20 @@ window.onload = async function() {
             actualizarUI();
 
             if (usuarioActual.role === 'admin') {
-                inicializarMapa();
-                iniciarGeolocalizacion();
+    inicializarMapa(); // Inicializa el mapa
+    cargarUbicacionesTrabajadores(); // Carga ubicaciones de trabajadores
+    iniciarGeolocalizacion(); // Inicia la geolocalización para el administrador
+    cargarNotificaciones(); // Carga las notificaciones
             } else if (usuarioActual.role === 'worker') {
-                mostrarNomina();
-                iniciarTrackingTrabajador();
+    mostrarNomina(); // Muestra nómina del trabajador
+    iniciarTrackingTrabajador(); // Inicia el envío de ubicación
+    cargarProgramacionTrabajador(); // Carga los turnos asignados
+    document.querySelector('.tabs').style.display = 'none';
+    document.querySelector('.nomina-panel').style.display = 'block';
+    document.getElementById('mapa').style.display = 'none';
+    document.getElementById('sedes').style.display = 'none';
+    document.querySelector('.notificaciones-panel').style.display = 'none';
+    document.querySelector('.upload-section').style.display = 'none';
             }
         }
 
