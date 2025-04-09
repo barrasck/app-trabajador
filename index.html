@@ -726,7 +726,7 @@ window.onload = async function() {
             actualizarUI();
 
             if (usuarioActual.role === 'admin') {
-                inicializarMapa();
+                inicializarMapa(); // Asegúrate de que esta línea existe
                 iniciarGeolocalizacion();
             } else if (usuarioActual.role === 'worker') {
                 mostrarNomina();
