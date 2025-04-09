@@ -1024,25 +1024,26 @@ async function rechazarTurno(fecha) {
 }
 
 async function cargarNotificaciones() {
-    const repo = 'barrasck/app-trabajador'; // Repositorio correcto
-    const path = 'notificaciones.json'; // Archivo correcto
-    const branch = 'main'; // Rama principal
-
     try {
-        const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=${branch}`);
-        if (!response.ok) {
-            if (response.status === 404) {
-                throw new Error('El archivo notificaciones.json no existe en el repositorio.');
-            }
-            throw new Error(`Error ${response.status}: ${response.statusText}`);
-        }
+        const response = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/notificaciones.json?ref=main');
+        if (!response.ok) throw new Error(`Error al cargar notificaciones: ${response.status}`);
 
         const data = await response.json();
-        const notificaciones = JSON.parse(atob(data.content)); // Decodificar contenido Base64 y convertir a JSON
-        actualizarUIConNotificaciones(notificaciones);
+        if (!data.content) {
+            console.warn('El archivo notificaciones.json está vacío.');
+            return; // Salimos si el archivo está vacío
+        }
+
+        const decodedContent = atob(data.content);
+        if (decodedContent.trim() === '') {
+            console.warn('El archivo notificaciones.json está vacío después de decodificar.');
+            return; // Salimos si el contenido decodificado está vacío
+        }
+
+        const notificaciones = JSON.parse(decodedContent); // Intentar analizar el JSON
+        console.log('Notificaciones cargadas:', notificaciones);
     } catch (error) {
         console.error('Error al cargar las notificaciones:', error);
-        alert('No se pudieron cargar las notificaciones. Verifica si el archivo notificaciones.json existe y tiene el formato correcto.');
     }
 }
 
