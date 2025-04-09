@@ -400,23 +400,26 @@ function inicializarMapa() {
         map = L.map('map', {
             maxZoom: CONFIG.opcionesMapa.maxZoom
         }).setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
+
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }).addTo(map);
+
         const destinoIcon = L.icon({
             iconUrl: './marker-icon-2x-red.png',
             iconSize: [25, 41],
             iconAnchor: [12, 41]
         });
+
         L.marker([CONFIG.destino.lat, CONFIG.destino.lng], { icon: destinoIcon })
             .addTo(map)
             .bindPopup('<b>Punto de Destino</b><br>Bogotá D.C.')
             .openPopup();
 
+        // Cargar ubicaciones de los trabajadores automáticamente
         if (usuarioActual.role === 'admin') {
             cargarUbicacionesTrabajadores();
         }
-        actualizarSedesEnMapa(); // Llamar a la función para actualizar las sedes en el mapa
     }
 }
 
@@ -435,7 +438,7 @@ async function login(event) {
         const trabajadoresImportados = JSON.parse(atob(trabajadoresImportadosData.content));
         const USUARIOS_COMBINADOS = {
             ...USUARIOS,
-            trabajadores: {...USUARIOS.trabajadores, ...trabajadoresImportados}
+            trabajadores: { ...USUARIOS.trabajadores, ...trabajadoresImportados }
         };
 
         const user = USUARIOS_COMBINADOS.administradores[username] || USUARIOS_COMBINADOS.trabajadores[username];
@@ -451,8 +454,9 @@ async function login(event) {
             document.getElementById('logoutBtn').style.display = 'block';
             sessionStorage.setItem('session', JSON.stringify(usuarioActual));
             actualizarUI();
+
             if (usuarioActual.role === 'admin') {
-                inicializarMapa();
+                inicializarMapa(); // Se inicializa el mapa y carga ubicaciones
                 iniciarGeolocalizacion();
                 cargarNotificaciones();
             } else {
@@ -487,23 +491,8 @@ async function cargarUbicacionesTrabajadores() {
         const data = await response.json();
         const ubicaciones = JSON.parse(atob(data.content));
 
-        const asignacionesResponse = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/asignaciones.json?ref=main');
-        if (!asignacionesResponse.ok) {
-            throw new Error(`Error: ${asignacionesResponse.status} ${asignacionesResponse.statusText}`);
-        }
-        const asignacionesData = await asignacionesResponse.json();
-        const asignaciones = JSON.parse(atob(asignacionesData.content));
-
-        const sedesResponse = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/sedes.json?ref=main');
-        if (!sedesResponse.ok) {
-            throw new Error(`Error: ${sedesResponse.status} ${sedesResponse.statusText}`);
-        }
-        const sedesData = await sedesResponse.json();
-        const sedes = JSON.parse(atob(sedesData.content));
-
         Object.keys(ubicaciones).forEach(trabajador => {
             const ubicacion = ubicaciones[trabajador];
-            const sedeAsignada = sedes.find(s => s.Nombre === asignaciones[trabajador]);
 
             if (trabajadoresMarkers[trabajador]) {
                 trabajadoresMarkers[trabajador].setLatLng([ubicacion.lat, ubicacion.lng]);
@@ -515,17 +504,7 @@ async function cargarUbicacionesTrabajadores() {
                     })
                 }).addTo(map);
 
-                let popupContent = `<b>${trabajador}</b><br>Última actualización: ${new Date(ubicacion.timestamp).toLocaleTimeString()}`;
-
-                if (sedeAsignada) {
-                    popupContent += `<br>Sede asignada: ${sedeAsignada.Nombre}`;
-                    L.polyline([[ubicacion.lat, ubicacion.lng], [sedeAsignada.Latitud, sedeAsignada.Longitud]], {
-                        color: 'gray',
-                        dashArray: '5'
-                    }).addTo(map);
-                }
-
-                marker.bindPopup(popupContent);
+                marker.bindPopup(`<b>${trabajador}</b><br>Última actualización: ${new Date(ubicacion.timestamp).toLocaleTimeString()}`);
                 trabajadoresMarkers[trabajador] = marker;
             }
         });
