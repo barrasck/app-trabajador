@@ -473,17 +473,19 @@ async function login(event) {
         
 async function cargarUbicacionesTrabajadores() {
     try {
-        const response = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/sedes.json?ref=main');
+        const response = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/ubicaciones.json?ref=main');
         if (!response.ok) throw new Error("Error al cargar ubicaciones");
 
         const data = await response.json();
         const ubicaciones = JSON.parse(atob(data.content));
+        console.log('Ubicaciones:', ubicaciones); // Depuración
 
         const trabajadoresResponse = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/trabajadores.json?ref=main');
         if (!trabajadoresResponse.ok) throw new Error("Error al cargar trabajadores");
 
         const trabajadoresData = await trabajadoresResponse.json();
         const trabajadores = JSON.parse(atob(trabajadoresData.content));
+        console.log('Trabajadores:', trabajadores); // Depuración
 
         Object.keys(ubicaciones).forEach(trabajador => {
             if (trabajadores[trabajador]?.role === "worker") {
