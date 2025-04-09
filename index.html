@@ -484,6 +484,7 @@ async function login(event) {
         
 async function cargarUbicacionesTrabajadores() {
     try {
+        // Obtener ubicaciones desde el repositorio
         const response = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/ubicaciones.json?ref=main');
         if (!response.ok) throw new Error("Error al cargar ubicaciones");
 
@@ -491,6 +492,7 @@ async function cargarUbicacionesTrabajadores() {
         const ubicaciones = JSON.parse(atob(data.content));
         console.log('Ubicaciones:', ubicaciones); // Depuración
 
+        // Obtener información de trabajadores desde el repositorio
         const trabajadoresResponse = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/trabajadores.json?ref=main');
         if (!trabajadoresResponse.ok) throw new Error("Error al cargar trabajadores");
 
@@ -498,14 +500,23 @@ async function cargarUbicacionesTrabajadores() {
         const trabajadores = JSON.parse(atob(trabajadoresData.content));
         console.log('Trabajadores:', trabajadores); // Depuración
 
-        Object.keys(ubicaciones).forEach(trabajador => {
-            if (trabajadores[trabajador]?.role === "worker") {
-                const ubicacion = ubicaciones[trabajador];
-                const trabajadorInfo = trabajadores[trabajador];
+        // **Agrega este fragmento aquí**
+        Object.keys(ubicaciones).forEach(trabajadorKey => {
+            const trabajador = trabajadores[trabajadorKey];
+            console.log(`Procesando trabajador: ${trabajadorKey}`, trabajador); // Depuración
+        });
+
+        // Agregar marcadores al mapa, excluyendo a los administrativos
+        Object.keys(ubicaciones).forEach(trabajadorKey => {
+            const trabajador = trabajadores[trabajadorKey];
+            const ubicacion = ubicaciones[trabajadorKey];
+
+            // Verificar si el trabajador existe y no es un administrativo
+            if (trabajador && trabajador.role === "worker") {
                 const popupContent = `
-                    <b>Nombre:</b> ${trabajadorInfo.nombre}<br>
-                    <b>Documento:</b> ${trabajadorInfo.documento}<br>
-                    <b>Celular:</b> ${trabajadorInfo.celular || "No disponible"}<br>
+                    <b>Nombre:</b> ${trabajador.nombre || "No disponible"}<br>
+                    <b>Documento:</b> ${trabajador.documento || "No disponible"}<br>
+                    <b>Celular:</b> ${trabajador.celular || "No disponible"}<br>
                     <b>Última actualización:</b> ${new Date(ubicacion.timestamp).toLocaleString()}
                 `;
 
