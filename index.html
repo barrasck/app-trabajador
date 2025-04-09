@@ -776,21 +776,19 @@ async function iniciarTrackingTrabajador() {
     }
 }
 
- function actualizarUI() {
-    if (usuarioActual.role === 'admin') {
-        document.querySelector('.tabs').style.display = 'flex'; // Mostrar tabs
-        document.querySelector('.content-wrapper').style.display = 'block'; // Mostrar contenido
-        document.querySelector('.nomina-panel').style.display = 'none'; // Ocultar nómina
-        openTab('programacion', { currentTarget: document.querySelector('.tab-btn.active') }); // Activar la pestaña Programación
-    } else if (usuarioActual.role === 'worker') {
-        document.querySelector('.tabs').style.display = 'none';
-        document.querySelector('.nomina-panel').style.display = 'block';
-        document.getElementById('mapa').style.display = 'none';
-        document.getElementById('sedes').style.display = 'none';
-    } else {
-        console.error('Rol no reconocido:', usuarioActual.role);
-    }
-}
+        function actualizarUI() {
+            if(usuarioActual.role === 'admin') {
+                document.querySelector('.tabs').style.display = 'flex';
+                document.querySelector('.content-wrapper').style.display = 'block';
+                document.querySelector('.nomina-panel').style.display = 'none';
+                openTab('programacion', { currentTarget: document.querySelector('.tab-btn.active') }); // Pass a mock event
+            } else {
+                document.querySelector('.tabs').style.display = 'none';
+                document.querySelector('.nomina-panel').style.display = 'block';
+                document.getElementById('mapa').style.display = 'none';
+                document.getElementById('sedes').style.display = 'none';
+            }
+        }
 
         function mostrarNomina() {
             const trabajador = usuarioActual.datos;
@@ -883,10 +881,8 @@ window.onload = async function() {
 
             console.log('Usuario actual:', usuarioActual);
 
-            actualizarUI();
-
             if (usuarioActual.role === 'admin') {
-                inicializarMapa(); // Carga elementos del admin
+                inicializarMapa();
             } else if (usuarioActual.role === 'worker') {
                 mostrarNomina();
                 iniciarTrackingTrabajador(); // Forzar geolocalización
