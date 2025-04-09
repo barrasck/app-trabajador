@@ -949,7 +949,7 @@ async function actualizarSedesEnMapa() {
 
     try {
         // Obtener el archivo sedes.json desde el repositorio
-        const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/sedes.json?ref=main');
+        const response = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/sedes.json?ref=main');
         if (!response.ok) {
             throw new Error(`Error al cargar sedes: ${response.status} ${response.statusText}`);
         }
