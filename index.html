@@ -412,6 +412,7 @@ async function login(event) {
     const password = document.getElementById('password').value;
 
     try {
+        // Obtener trabajadores desde el repositorio
         const trabajadoresImportadosResponse = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/trabajadores.json?ref=main');
         if (!trabajadoresImportadosResponse.ok) {
             throw new Error('No se pudo obtener el archivo trabajadores.json');
@@ -424,6 +425,7 @@ async function login(event) {
             trabajadores: { ...USUARIOS.trabajadores, ...trabajadoresImportados }
         };
 
+        // Validar usuario
         const user = USUARIOS_COMBINADOS.administradores[username] || USUARIOS_COMBINADOS.trabajadores[username];
 
         if (user && user.password === password) {
@@ -432,27 +434,35 @@ async function login(event) {
                 role: user.role,
                 datos: user
             };
+
+            // Mostrar contenido según el rol del usuario
             document.getElementById('loginModal').style.display = 'none';
             document.querySelector('.content-wrapper').style.display = 'block';
             document.getElementById('logoutBtn').style.display = 'block';
             sessionStorage.setItem('session', JSON.stringify(usuarioActual));
+
             actualizarUI();
 
             if (usuarioActual.role === 'admin') {
                 inicializarMapa(); // Inicializa el mapa
                 cargarUbicacionesTrabajadores(); // Carga solo las ubicaciones de los trabajadores
-                iniciarGeolocalizacion();
+                iniciarGeolocalizacion(); // Inicia geolocalización del admin
                 cargarNotificaciones();
             } else if (usuarioActual.role === 'worker') {
                 mostrarNomina(); // Muestra nómina del trabajador
-                iniciarTrackingTrabajador(); // Inicia el rastreo en tiempo real
+                iniciarTrackingTrabajador(); // Inicia el envío de ubicación en tiempo real
                 cargarProgramacionTrabajador(); // Carga los turnos asignados
+
+                // Ajustar vistas para trabajadores
                 document.querySelector('.tabs').style.display = 'none';
                 document.querySelector('.nomina-panel').style.display = 'block';
                 document.getElementById('mapa').style.display = 'none';
                 document.getElementById('sedes').style.display = 'none';
                 document.querySelector('.notificaciones-panel').style.display = 'none';
                 document.querySelector('.upload-section').style.display = 'none';
+
+                // Confirmar que `iniciarTrackingTrabajador` se ejecuta correctamente
+                console.log("Tracking iniciado para el trabajador:", usuarioActual.username);
             }
         } else {
             alert('Credenciales incorrectas');
