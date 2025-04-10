@@ -307,7 +307,7 @@
         let accuracyCircle = null;
         let trabajadoresMarkers = {};
         let sedeAssignments = {};
-          const url = 'https://barrasck.github.io/app-trabajador/trabajadores.json';
+          const url = 'https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/trabajadores.json';
         
         const USUARIOS = {
             administradores: {
@@ -414,13 +414,11 @@ async function login(event) {
 
     try {
         // Obtener trabajadores desde el repositorio
-        const trabajadoresImportadosResponse = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/trabajadores.json?ref=main');
+        const trabajadoresImportadosResponse = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/trabajadores.json');
         if (!trabajadoresImportadosResponse.ok) {
             throw new Error('No se pudo obtener el archivo trabajadores.json');
         }
-
-        const trabajadoresImportadosData = await trabajadoresImportadosResponse.json();
-        const trabajadoresImportados = JSON.parse(atob(trabajadoresImportadosData.content));
+        const trabajadoresImportados = await trabajadoresImportadosResponse.json();
         const USUARIOS_COMBINADOS = {
             ...USUARIOS,
             trabajadores: { ...USUARIOS.trabajadores, ...trabajadoresImportados }
@@ -532,11 +530,7 @@ async function cargarUbicacionesTrabajadores() {
         console.log('Ubicaciones:', ubicaciones); // Depuración
 
         // Obtener información de trabajadores desde el repositorio
-        const trabajadoresResponse = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/trabajadores.json?ref=main', {
-            headers: {
-                'Authorization': `Bearer ${GITHUB_TOKEN}` // Agrega el token aquí
-            }
-        });
+        const response = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/trabajadores.json');
         if (!trabajadoresResponse.ok) throw new Error("Error al cargar trabajadores");
 
         const trabajadoresData = await trabajadoresResponse.json();
@@ -586,10 +580,10 @@ async function cargarUbicacionesTrabajadores() {
     }
 }
 
-
 async function cargarTrabajadores() {
     try {
-        const response = await fetch(url);
+        // Utiliza la URL RAW de GitHub para evitar problemas de CORS
+        const response = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/trabajadores.json');
         if (!response.ok) {
             throw new Error(`Error ${response.status}: ${response.statusText}`);
         }
