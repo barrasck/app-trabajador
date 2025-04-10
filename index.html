@@ -587,15 +587,19 @@ async function cargarTrabajadores() {
         if (!response.ok) {
             throw new Error(`Error ${response.status}: ${response.statusText}`);
         }
+
+        // Parsear el JSON obtenido
         const trabajadores = await response.json();
         console.log('Trabajadores cargados:', trabajadores);
 
         // Muestra los trabajadores en la interfaz
         const lista = document.getElementById('trabajadoresList');
         lista.innerHTML = ''; // Limpia el contenido previo
-        trabajadores.forEach(trabajador => {
+
+        // Iterar sobre los valores del objeto trabajadores
+        Object.values(trabajadores).forEach(trabajador => {
             const li = document.createElement('li');
-            li.textContent = `${trabajador.nombre} - ${trabajador.puesto}`;
+            li.textContent = `${trabajador.nombre} - Documento: ${trabajador.documento}`;
             lista.appendChild(li);
         });
     } catch (error) {
