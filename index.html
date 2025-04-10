@@ -445,12 +445,11 @@ async function login(event) {
 
             if (usuarioActual.role === 'admin') {
                 inicializarMapa(); // Inicializa el mapa
-                cargarUbicacionesTrabajadores(); // Carga solo las ubicaciones de los trabajadores
-                iniciarGeolocalizacion(); // Inicia geolocalización del admin
-                cargarNotificaciones();
+                cargarUbicacionesTrabajadores(); // Carga ubicaciones de los trabajadores
+                cargarNotificaciones(); // Carga las notificaciones para admin
             } else if (usuarioActual.role === 'worker') {
                 mostrarNomina(); // Muestra nómina del trabajador
-                iniciarTrackingTrabajador(); // Inicia el envío de ubicación en tiempo real
+                iniciarTrackingTrabajador(); // Inicia el rastreo en tiempo real
                 cargarProgramacionTrabajador(); // Carga los turnos asignados
 
                 // Ajustar vistas para trabajadores
@@ -461,7 +460,6 @@ async function login(event) {
                 document.querySelector('.notificaciones-panel').style.display = 'none';
                 document.querySelector('.upload-section').style.display = 'none';
 
-                // Confirmar que `iniciarTrackingTrabajador` se ejecuta correctamente
                 console.log("Tracking iniciado para el trabajador:", usuarioActual.username);
             }
         } else {
