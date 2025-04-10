@@ -517,66 +517,36 @@ function actualizarMapaTrabajadores(ubicaciones) {
 
 async function cargarUbicacionesTrabajadores() {
     try {
-        // Obtener ubicaciones desde el repositorio
-        const response = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/ubicaciones.json?ref=main', {
-            headers: {
-                'Authorization': `Bearer ${GITHUB_TOKEN}` // Agrega el token aquí
-            }
-        });
-        if (!response.ok) throw new Error("Error al cargar ubicaciones");
+        // Cargar ubicaciones desde el archivo RAW
+        const ubicacionesResponse = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/ubicaciones.json');
+        if (!ubicacionesResponse.ok) {
+            throw new Error(`Error ${ubicacionesResponse.status}: ${ubicacionesResponse.statusText}`);
+        }
+        const ubicaciones = await ubicacionesResponse.json();
+        console.log('Ubicaciones cargadas:', ubicaciones);
 
-        const data = await response.json();
-        const ubicaciones = JSON.parse(atob(data.content));
-        console.log('Ubicaciones:', ubicaciones); // Depuración
+        // Cargar trabajadores desde el archivo RAW
+        const trabajadoresResponse = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/trabajadores.json');
+        if (!trabajadoresResponse.ok) {
+            throw new Error(`Error ${trabajadoresResponse.status}: ${trabajadoresResponse.statusText}`);
+        }
+        const trabajadores = await trabajadoresResponse.json();
+        console.log('Trabajadores cargados:', trabajadores);
 
-        // Obtener información de trabajadores desde el repositorio
-        const response = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/trabajadores.json');
-        if (!trabajadoresResponse.ok) throw new Error("Error al cargar trabajadores");
-
-        const trabajadoresData = await trabajadoresResponse.json();
-        const trabajadores = JSON.parse(atob(trabajadoresData.content));
-        console.log('Trabajadores:', trabajadores); // Depuración
-
-        // Agregar marcadores al mapa
+        // Procesar y mostrar las ubicaciones en la consola (puedes adaptarlo a tu lógica)
         Object.keys(ubicaciones).forEach(trabajadorKey => {
-            const trabajador = trabajadores[trabajadorKey];
             const ubicacion = ubicaciones[trabajadorKey];
+            const trabajador = trabajadores[trabajadorKey];
 
-            // Validar si el trabajador existe, tiene rol de worker y los datos de ubicación son válidos
-            if (
-                trabajador &&
-                trabajador.role === "worker" &&
-                ubicacion &&
-                typeof ubicacion.lat === "number" &&
-                typeof ubicacion.lng === "number" &&
-                ubicacion.timestamp
-            ) {
-                console.log(`Procesando trabajador: ${trabajadorKey}`, trabajador); // Depuración
-                const popupContent = `
-                    <b>Nombre:</b> ${trabajador.nombre || "No disponible"}<br>
-                    <b>Documento:</b> ${trabajador.documento || "No disponible"}<br>
-                    <b>Celular:</b> ${trabajador.celular || "No disponible"}<br>
-                    <b>Última actualización:</b> ${new Date(ubicacion.timestamp).toLocaleString()}
-                `;
-
-                const marker = L.marker([ubicacion.lat, ubicacion.lng], {
-                    icon: L.icon({
-                        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-                        iconSize: [25, 41]
-                    })
-                }).addTo(map);
-
-                marker.bindPopup(popupContent);
-                marker.on('mouseover', function () {
-                    this.openPopup();
-                });
+            if (trabajador && ubicacion) {
+                console.log(`Trabajador: ${trabajador.nombre}, Ubicación: ${ubicacion.lat}, ${ubicacion.lng}`);
             } else {
-                console.warn(`Datos incompletos o inválidos para el trabajador: ${trabajadorKey}`);
+                console.warn(`No se encontró información completa para el trabajador con ID ${trabajadorKey}`);
             }
         });
     } catch (error) {
-        console.error('Error al cargar ubicaciones de trabajadores:', error);
-        alert('No se pudieron cargar las ubicaciones. Intenta nuevamente.');
+        console.error('Error al cargar ubicaciones o trabajadores:', error);
+        alert('No se pudieron cargar las ubicaciones o los trabajadores.');
     }
 }
 
