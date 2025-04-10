@@ -307,6 +307,7 @@
         let accuracyCircle = null;
         let trabajadoresMarkers = {};
         let sedeAssignments = {};
+         const GITHUB_TOKEN = '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'; // Token centralizado
         
         const USUARIOS = {
             administradores: {
@@ -368,7 +369,7 @@ async function guardarEnRepositorio(rutaArchivo, contenido) {
         const response = await fetch(`https://api.github.com/repos/${repo}/contents/${rutaArchivo}`, {
             method: 'PUT',
             headers: {
-                'Authorization': `Bearer <TU_TOKEN_DE_ACCESO>`, // Reemplaza con tu token válido
+                'Authorization': `Bearer ${GITHUB_TOKEN}`, // Reemplaza con tu token válido
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
@@ -515,11 +516,15 @@ function actualizarMapaTrabajadores(ubicaciones) {
         }
     });
 }
-         
+
 async function cargarUbicacionesTrabajadores() {
     try {
         // Obtener ubicaciones desde el repositorio
-        const response = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/ubicaciones.json?ref=main');
+        const response = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/ubicaciones.json?ref=main', {
+            headers: {
+                'Authorization': `Bearer ${GITHUB_TOKEN}` // Agrega el token aquí
+            }
+        });
         if (!response.ok) throw new Error("Error al cargar ubicaciones");
 
         const data = await response.json();
@@ -527,7 +532,11 @@ async function cargarUbicacionesTrabajadores() {
         console.log('Ubicaciones:', ubicaciones); // Depuración
 
         // Obtener información de trabajadores desde el repositorio
-        const trabajadoresResponse = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/trabajadores.json?ref=main');
+        const trabajadoresResponse = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/trabajadores.json?ref=main', {
+            headers: {
+                'Authorization': `Bearer ${GITHUB_TOKEN}` // Agrega el token aquí
+            }
+        });
         if (!trabajadoresResponse.ok) throw new Error("Error al cargar trabajadores");
 
         const trabajadoresData = await trabajadoresResponse.json();
@@ -539,7 +548,7 @@ async function cargarUbicacionesTrabajadores() {
             const trabajador = trabajadores[trabajadorKey];
             const ubicacion = ubicaciones[trabajadorKey];
 
-            // Validar si el trabajador existe, tiene rol de worker y datos de ubicación son válidos
+            // Validar si el trabajador existe, tiene rol de worker y los datos de ubicación son válidos
             if (
                 trabajador &&
                 trabajador.role === "worker" &&
