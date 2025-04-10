@@ -234,7 +234,16 @@
 </div>
 <div id="listaTrabajadores">
     <h3>👷 Lista de Trabajadores</h3>
-    <ul id="trabajadoresList"></ul>
+    <table id="trabajadoresTable" style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr>
+                <th style="border: 1px solid #ddd; padding: 8px; background-color: #2563eb; color: white;">Nombre</th>
+                <th style="border: 1px solid #ddd; padding: 8px; background-color: #2563eb; color: white;">Documento</th>
+                <th style="border: 1px solid #ddd; padding: 8px; background-color: #2563eb; color: white;">Celular</th>
+            </tr>
+        </thead>
+        <tbody id="trabajadoresTableBody"></tbody>
+    </table>
 </div>
                 <h3>📤 Importar Trabajadores</h3>
                 <input type="file" id="excelTrabajadores" accept=".xlsx, .xls">
