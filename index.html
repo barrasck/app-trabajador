@@ -307,7 +307,7 @@
         let accuracyCircle = null;
         let trabajadoresMarkers = {};
         let sedeAssignments = {};
-         const GITHUB_TOKEN = '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'; // Token centralizado
+          const url = 'https://barrasck.github.io/app-trabajador/trabajadores.json';
         
         const USUARIOS = {
             administradores: {
@@ -587,30 +587,31 @@ async function cargarUbicacionesTrabajadores() {
 }
 
 
-async function cargarTrabajadoresDesdeRepositorio() {
-    const url = 'https://api.github.com/repos/barrasck/app-trabajador/contents/trabajadores.json?ref=main';
+async function cargarTrabajadores() {
     try {
-        const response = await fetch(url, {
-            headers: {
-                'Authorization': `Bearer ${GITHUB_TOKEN}`, // Incluye el token aquí
-                'Cache-Control': 'no-cache' // Evita problemas de caché
-            }
-        });
-
+        const response = await fetch(url);
         if (!response.ok) {
             throw new Error(`Error ${response.status}: ${response.statusText}`);
         }
-
-        const data = await response.json();
-        const trabajadores = JSON.parse(atob(data.content)); // Decodifica el contenido Base64
+        const trabajadores = await response.json();
         console.log('Trabajadores cargados:', trabajadores);
+
+        // Muestra los trabajadores en la interfaz
+        const lista = document.getElementById('trabajadoresList');
+        lista.innerHTML = ''; // Limpia el contenido previo
+        trabajadores.forEach(trabajador => {
+            const li = document.createElement('li');
+            li.textContent = `${trabajador.nombre} - ${trabajador.puesto}`;
+            lista.appendChild(li);
+        });
     } catch (error) {
         console.error('Error al cargar los trabajadores:', error);
-        alert('No se pudieron cargar los trabajadores. Por favor, verifica el token y la configuración.');
+        alert('No se pudieron cargar los trabajadores.');
     }
 }
 
-cargarTrabajadoresDesdeRepositorio();
+// Llama a la función para cargar trabajadores
+cargarTrabajadores();
 
 async function procesarTrabajadores() {
     const file = document.getElementById('excelTrabajadores').files[0];
@@ -944,7 +945,7 @@ window.onload = async function() {
         }
 
         // Cargar trabajadores desde el repositorio
-        await cargarTrabajadoresDesdeRepositorio();
+        await cargarTrabajadores();
     } catch (error) {
         console.error('Error durante la inicialización:', error);
         alert('Ocurrió un error durante la inicialización. Revisa la consola para más detalles.');
