@@ -664,23 +664,12 @@ function crearTrabajador() {
     alert("Trabajador agregado exitosamente.");
 }
 
-function actualizarListaTrabajadores() {
-    const lista = document.getElementById('trabajadoresList');
-    lista.innerHTML = ''; // Limpiar la lista existente
-
-    Object.values(trabajadores).forEach(trabajador => {
-        const li = document.createElement('li');
-        li.textContent = `${trabajador.nombre} - ${trabajador.documento} - ${trabajador.celular}`;
-        lista.appendChild(li);
-    });
-}
-
 async function actualizarListaTrabajadores() {
-    const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/trabajadores.json?ref=main');
+    const response = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/trabajadores.json?ref=mainn');
     const data = await response.json();
     const trabajadores = JSON.parse(atob(data.content));
 
-    const sedesResponse = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/sedes.json?ref=main');
+    const sedesResponse = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/sedes.json?ref=main');
     const sedesData = await sedesResponse.json();
     const sedes = JSON.parse(atob(sedesData.content));
 
@@ -948,7 +937,7 @@ async function procesarProgramacion() {
             }
 
             // Validar que la sede exista
-            const sedesResponse = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/sedes.json?ref=main');
+            const sedesResponse = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/sedes.json?ref=main');
             const sedesData = await sedesResponse.json();
             const sedesCargadas = JSON.parse(atob(sedesData.content));
 
