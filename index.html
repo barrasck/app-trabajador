@@ -373,16 +373,27 @@ async function guardarEnRepositorio(rutaArchivo, contenido) {
     const repo = 'barrasck/app-trabajador';
     const branch = 'main';
 
-    let sha;
     try {
         const response = await fetch(`https://api.github.com/repos/${repo}/contents/${rutaArchivo}?ref=${branch}`);
-        if (response.ok) {
-            const data = await response.json();
-            sha = data.sha; // Obtener el SHA si el archivo ya existe
-        }
+        const data = response.ok ? await response.json() : null;
+
+        await fetch(`https://api.github.com/repos/${repo}/contents/${rutaArchivo}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer <tu-token-de-acceso>`, // Reemplaza con tu token
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: `Actualización de ${rutaArchivo}`,
+                content: btoa(contenido),
+                branch: branch,
+                sha: data ? data.sha : undefined
+            })
+        });
     } catch (error) {
-        console.error('Error al obtener el SHA del archivo:', error);
+        console.error('Error al guardar en el repositorio:', error);
     }
+}
 
     try {
         const response = await fetch(`https://api.github.com/repos/${repo}/contents/${rutaArchivo}`, {
@@ -664,20 +675,45 @@ function crearTrabajador() {
         return;
     }
 
-    // Agregar el trabajador al objeto global
+    // Agregar trabajador al objeto global
     trabajadores[documento] = {
         nombre: nombre,
         documento: documento,
         celular: celular,
-        role: 'worker',
+        role: 'worker', // Asegurar que tengan el rol correcto
         nomina: []
     };
 
     // Guardar los trabajadores en el repositorio remoto
     guardarTrabajadoresEnRepositorio();
 
-    // Actualizar visualmente la tabla
+    // Actualizar la lista visual de trabajadores
     actualizarListaTrabajadores();
+
+    // Activar seguimiento de ubicación para el nuevo trabajador
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            position => {
+                const ubicacion = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude,
+                    timestamp: new Date().toISOString()
+                };
+
+                console.log(`Ubicación inicial para ${nombre}:`, ubicacion);
+
+                // Guardar ubicación inicial (puedes usar el método de guardado en el repositorio si es necesario)
+                const ubicaciones = {};
+                ubicaciones[documento] = ubicacion;
+                guardarEnRepositorio('ubicaciones.json', JSON.stringify(ubicaciones, null, 2));
+            },
+            error => {
+                console.error('Error al obtener ubicación:', error);
+                alert(`No se pudo obtener la ubicación del trabajador ${nombre}.`);
+            },
+            { enableHighAccuracy: true }
+        );
+    }
 
     // Limpiar el formulario
     document.getElementById('nombreTrabajador').value = '';
@@ -800,7 +836,7 @@ async function asignarSede() {
 }
 
 async function iniciarTrackingTrabajador() {
-    if (navigator.geolocation && usuarioActual.role === 'worker') {
+    if (navigator.geolocation) {
         navigator.geolocation.watchPosition(
             async position => {
                 const ubicacion = {
@@ -817,10 +853,14 @@ async function iniciarTrackingTrabajador() {
                     const data = await response.json();
                     const ubicaciones = JSON.parse(atob(data.content));
 
-                    // Actualizar la ubicación del trabajador actual
-                    ubicaciones[usuarioActual.username] = ubicacion;
+                    // Actualizar la ubicación para cada trabajador (en este ejemplo, para el usuario actual)
+                    Object.keys(trabajadores).forEach(documento => {
+                        if (trabajadores[documento].role === 'worker') {
+                            ubicaciones[documento] = ubicacion;
+                        }
+                    });
 
-                    // Guardar la nueva ubicación en el repositorio
+                    // Guardar las ubicaciones actualizadas en el repositorio
                     await guardarEnRepositorio('ubicaciones.json', JSON.stringify(ubicaciones, null, 2));
                 } catch (error) {
                     console.error('Error al actualizar la ubicación del trabajador:', error);
@@ -836,7 +876,7 @@ async function iniciarTrackingTrabajador() {
             }
         );
     } else {
-        console.warn("El navegador no soporta geolocalización o el usuario no tiene permisos.");
+        console.warn("El navegador no soporta geolocalización.");
     }
 }
 
