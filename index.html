@@ -1068,28 +1068,33 @@ async function rechazarTurno(fecha) {
 }
 
 async function cargarNotificaciones() {
-    const repo = 'barrasck/app-trabajador'; // Repositorio correcto
-    const path = 'notificaciones.json'; // Archivo correcto
-    const branch = 'main'; // Rama principal
-
     try {
-        const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=${branch}`);
-        if (!response.ok) {
-            if (response.status === 404) {
-                throw new Error('El archivo notificaciones.json no existe en el repositorio.');
-            }
-            throw new Error(`Error ${response.status}: ${response.statusText}`);
-        }
+        const response = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/notificaciones.json?ref=main');
+        if (!response.ok) throw new Error("Error al cargar las notificaciones");
 
         const data = await response.json();
-        const notificaciones = JSON.parse(atob(data.content)); // Decodificar contenido Base64 y convertir a JSON
-        actualizarUIConNotificaciones(notificaciones);
+        const notificaciones = JSON.parse(atob(data.content));
+        actualizarUIConNotificaciones(notificaciones); // Llamar a la nueva función
     } catch (error) {
         console.error('Error al cargar las notificaciones:', error);
-        alert('No se pudieron cargar las notificaciones. Verifica si el archivo notificaciones.json existe y tiene el formato correcto.');
+        alert('No se pudieron cargar las notificaciones.');
     }
 }
 
+         function actualizarUIConNotificaciones(notificaciones) {
+    const listaNotificaciones = document.getElementById('listaNotificaciones');
+    listaNotificaciones.innerHTML = ''; // Limpia las notificaciones previas
+
+    notificaciones.forEach(notificacion => {
+        const item = document.createElement('div');
+        item.className = 'notificacion-item';
+        item.innerHTML = `
+            <span>${notificacion.mensaje}</span>
+            <button onclick="marcarComoLeida('${notificacion.id}')">✔️</button>
+        `;
+        listaNotificaciones.appendChild(item);
+    });
+}
 
 async function marcarComoResuelto(index) {
     const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/notificaciones.json?ref=main');
