@@ -592,7 +592,11 @@ async function cargarTrabajadoresDesdeRepositorio() {
     const branch = 'main'; // Rama principal
 
     try {
-        const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=${branch}`);
+        const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=${branch}`, {
+            headers: {
+                'Authorization': `Bearer ${GITHUB_TOKEN}`, // Incluye el token aquí
+            }
+        });
         if (!response.ok) {
             if (response.status === 404) {
                 throw new Error('El archivo trabajadores.json no existe en el repositorio.');
