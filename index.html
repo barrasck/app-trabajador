@@ -226,9 +226,12 @@
                     <div id="listaNotificaciones"></div>
                 </div>
             </div>
-            <div id="mapa" class="tab-content">
-                <div id="map"></div>
-            </div>
+<div id="mapa" class="tab-content">
+    <div id="map"></div>
+    <table id="compartiendo-ubicacion">
+        <tbody></tbody>
+    </table>
+</div>
             <div id="sedes" class="tab-content">
                 <div class="upload-section">
                     <h3>📤 Subir Sedes</h3>
@@ -510,8 +513,19 @@ function inicializarMapa() {
 }
 
 function actualizarTablaUbicaciones(ubicaciones) {
-    const tabla = document.getElementById('compartiendo-ubicacion').querySelector('tbody');
-    tabla.innerHTML = ''; // Limpiar contenido anterior
+    const tablaElement = document.getElementById('compartiendo-ubicacion');
+    if (!tablaElement) {
+        console.error('El elemento #compartiendo-ubicacion no existe en el DOM.');
+        return;
+    }
+
+    const tbody = tablaElement.querySelector('tbody');
+    if (!tbody) {
+        console.error('El elemento <tbody> dentro de #compartiendo-ubicacion no existe.');
+        return;
+    }
+
+    tbody.innerHTML = ''; // Limpiar contenido anterior
 
     Object.keys(ubicaciones).forEach(trabajadorKey => {
         const ubicacion = ubicaciones[trabajadorKey];
@@ -522,7 +536,7 @@ function actualizarTablaUbicaciones(ubicaciones) {
             <td>${trabajadorKey}</td>
             <td>Lat: ${ubicacion.lat}, Lng: ${ubicacion.lng}</td>
         `;
-        tabla.appendChild(row);
+        tbody.appendChild(row);
     });
 }
 
