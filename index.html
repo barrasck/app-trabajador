@@ -617,19 +617,32 @@ function actualizarMapaTrabajadores(ubicaciones) {
         return;
     }
 
-    // Mantener una lista de trabajadores procesados para detectar obsoletos
+    // Mantener un registro de trabajadores procesados para detectar obsoletos
     const procesados = new Set();
 
+    // Iterar sobre las ubicaciones recibidas
     Object.keys(ubicaciones).forEach(trabajadorKey => {
         const ubicacion = ubicaciones[trabajadorKey];
-        const marker = trabajadoresMarkers[trabajadorKey];
 
-        // Marcar como procesado
-        procesados.add(trabajadorKey);
+        // Validar que la ubicación tenga latitud y longitud
+        if (!ubicacion || typeof ubicacion.lat !== 'number' || typeof ubicacion.lng !== 'number') {
+            console.warn(`Ubicación inválida para el trabajador: ${trabajadorKey}`, ubicacion);
+            return;
+        }
+
+        const marker = trabajadoresMarkers[trabajadorKey];
+        procesados.add(trabajadorKey); // Marcar como procesado
 
         if (marker) {
-            // Actualizar la posición del marcador existente
-            marker.setLatLng([ubicacion.lat, ubicacion.lng]).bindPopup(`Trabajador: ${ubicacion.nombre || trabajadorKey}`);
+            // Actualizar la posición del marcador existente solo si la ubicación cambió
+            if (
+                marker.getLatLng().lat !== ubicacion.lat ||
+                marker.getLatLng().lng !== ubicacion.lng
+            ) {
+                marker.setLatLng([ubicacion.lat, ubicacion.lng])
+                    .setPopupContent(`Trabajador: ${ubicacion.nombre || trabajadorKey}`);
+                console.log(`Ubicación actualizada para el trabajador: ${trabajadorKey}`);
+            }
         } else {
             // Crear un nuevo marcador si no existe
             trabajadoresMarkers[trabajadorKey] = L.marker([ubicacion.lat, ubicacion.lng], {
@@ -638,6 +651,7 @@ function actualizarMapaTrabajadores(ubicaciones) {
                     iconSize: [25, 41],
                 }),
             }).addTo(map).bindPopup(`Trabajador: ${ubicacion.nombre || trabajadorKey}`);
+            console.log(`Marcador creado para el trabajador: ${trabajadorKey}`);
         }
     });
 
@@ -646,6 +660,7 @@ function actualizarMapaTrabajadores(ubicaciones) {
         if (!procesados.has(trabajadorKey)) {
             map.removeLayer(trabajadoresMarkers[trabajadorKey]);
             delete trabajadoresMarkers[trabajadorKey];
+            console.log(`Marcador eliminado para el trabajador: ${trabajadorKey}`);
         }
     });
 }
