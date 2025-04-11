@@ -238,6 +238,15 @@
                     <input type="file" id="excelSedes" accept=".xlsx, .xls">
                     <button onclick="procesarSedes()">Cargar Sedes</button>
                 </div>
+                 <form id="add-sede-form">
+  <label for="sede-name">Nombre de la Sede:</label>
+  <input type="text" id="sede-name" required />
+  <button type="submit">Agregar Sede</button>
+</form>
+<div id="sedes-list">
+  <h3>Sedes:</h3>
+  <ul id="sedes"></ul>
+</div>
                 <div id="listaSedes"></div>
             </div>
         </div>
@@ -776,6 +785,52 @@ function actualizarTablaUbicaciones(ubicaciones) {
 setInterval(() => {
     actualizarMapaTrabajadores();
 }, 10000); // Actualizar cada 10 segundos
+
+
+    document.getElementById('add-sede-form').addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const sedeName = document.getElementById('sede-name').value;
+        if (!sedeName) return;
+
+        try {
+            const response = await fetch('/api/sedes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: sedeName })
+            });
+
+            if (response.ok) {
+                loadSedes(); // Recargar la lista de sedes
+                document.getElementById('sede-name').value = ''; // Limpiar el formulario
+            } else {
+                console.error('Error al agregar la sede');
+            }
+        } catch (error) {
+            console.error('Error de conexión', error);
+        }
+    });
+
+    async function loadSedes() {
+        try {
+            const response = await fetch('/api/sedes');
+            const sedes = await response.json();
+
+            const sedesList = document.getElementById('sedes');
+            sedesList.innerHTML = '';
+            sedes.forEach(sede => {
+                const li = document.createElement('li');
+                li.textContent = sede.name;
+                sedesList.appendChild(li);
+            });
+        } catch (error) {
+            console.error('Error al cargar las sedes', error);
+        }
+    }
+
+    // Inicializar la lista de sedes al cargar la página
+    loadSedes();
+
+         
 async function cargarTrabajadores() {
     try {
         // Utiliza la URL RAW de GitHub para evitar problemas de CORS
