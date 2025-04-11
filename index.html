@@ -554,62 +554,6 @@ function inicializarMapa() {
     }
 }
 
-function actualizarTablaUbicaciones(ubicaciones) {
-    try {
-        const tablaElement = document.getElementById('compartiendo-ubicacion');
-        if (!tablaElement) {
-            console.warn('El elemento #compartiendo-ubicacion no existe en el DOM.');
-            return;
-        }
-
-        const tbody = tablaElement.querySelector('tbody');
-        if (!tbody) {
-            console.warn('El elemento <tbody> dentro de #compartiendo-ubicacion no existe.');
-            return;
-        }
-
-        // Limpiar contenido anterior de la tabla
-        tbody.innerHTML = '';
-
-        // Verificar si hay ubicaciones válidas para mostrar
-        if (!ubicaciones || Object.keys(ubicaciones).length === 0) {
-            console.info('No se encontraron ubicaciones para mostrar en la tabla.');
-            const row = document.createElement('tr');
-            row.innerHTML = `<td colspan="3">No hay ubicaciones disponibles</td>`;
-            tbody.appendChild(row);
-            return;
-        }
-
-        // Iterar sobre las ubicaciones y actualizar la tabla
-        Object.keys(ubicaciones).forEach(trabajadorKey => {
-            const ubicacion = ubicaciones[trabajadorKey];
-            const row = document.createElement('tr');
-
-            if (ubicacion && ubicacion.lat && ubicacion.lng) {
-                // Fila para un trabajador con ubicación válida
-                row.innerHTML = `
-                    <td>${trabajadorKey}</td>
-                    <td>Lat: ${ubicacion.lat.toFixed(5)}</td>
-                    <td>Lng: ${ubicacion.lng.toFixed(5)}</td>
-                `;
-            } else {
-                // Fila para un trabajador con ubicación inválida o faltante
-                console.warn(`La ubicación del trabajador ${trabajadorKey} es inválida o incompleta.`);
-                row.innerHTML = `
-                    <td>${trabajadorKey}</td>
-                    <td colspan="2">Ubicación no disponible</td>
-                `;
-            }
-
-            tbody.appendChild(row);
-        });
-
-        console.log('Tabla de ubicaciones actualizada correctamente.');
-    } catch (error) {
-        console.error('Error al actualizar la tabla de ubicaciones:', error);
-    }
-}
-
 
 function actualizarMapaTrabajadores(ubicaciones) {
     if (!map) {
@@ -680,76 +624,137 @@ setInterval(async () => {
     }
 }, 10000); // Intervalo de 10 segundos
 
-async function cargarUbicacionesTrabajadores() {
+// Función principal para actualizar el mapa con las ubicaciones de los trabajadores
+async function actualizarMapaTrabajadores() {
     try {
-        // Cargar ubicaciones desde el archivo RAW
+        // Obtener las ubicaciones desde el archivo remoto
         const ubicacionesResponse = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/ubicaciones.json');
         if (!ubicacionesResponse.ok) {
-            throw new Error(`Error al cargar ubicaciones: ${ubicacionesResponse.status} - ${ubicacionesResponse.statusText}`);
+            throw new Error(`Error al cargar las ubicaciones: ${ubicacionesResponse.statusText}`);
         }
+
         const ubicaciones = await ubicacionesResponse.json();
 
-        // Validar el formato de las ubicaciones
-        if (!ubicaciones || typeof ubicaciones !== 'object') {
-            throw new Error('El archivo ubicaciones.json no tiene un formato válido.');
-        }
-
-        // Cargar trabajadores desde el archivo RAW
-        const trabajadoresResponse = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/trabajadores.json');
-        if (!trabajadoresResponse.ok) {
-            throw new Error(`Error al cargar trabajadores: ${trabajadoresResponse.status} - ${trabajadoresResponse.statusText}`);
-        }
-        const trabajadores = await trabajadoresResponse.json();
-
-        // Validar el formato de los trabajadores
-        if (!trabajadores || typeof trabajadores !== 'object') {
-            throw new Error('El archivo trabajadores.json no tiene un formato válido.');
-        }
-
-        // Verificar que la tabla existe en el DOM
-        const tabla = document.getElementById('compartiendo-ubicacion')?.querySelector('tbody');
-        if (!tabla) {
-            console.warn('El elemento de la tabla de ubicaciones no existe en el DOM.');
+        if (!map) {
+            console.error("El mapa no está inicializado.");
             return;
         }
 
-        // Limpiar la tabla antes de actualizarla
-        tabla.innerHTML = '';
+        // Mantener un registro de trabajadores procesados para detectar obsoletos
+        const procesados = new Set();
 
-        // Iterar sobre las ubicaciones y actualizar la tabla
-        let ubicacionesProcesadas = 0;
+        // Iterar sobre las ubicaciones recibidas
         Object.keys(ubicaciones).forEach(trabajadorKey => {
             const ubicacion = ubicaciones[trabajadorKey];
-            const trabajador = trabajadores[trabajadorKey];
 
-            if (trabajador && ubicacion && ubicacion.lat && ubicacion.lng) {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${trabajador.nombre || trabajadorKey}</td>
-                    <td>Lat: ${ubicacion.lat.toFixed(5)}, Lng: ${ubicacion.lng.toFixed(5)}</td>
-                `;
-                tabla.appendChild(row);
-                ubicacionesProcesadas++;
+            // Validar que la ubicación tenga latitud y longitud
+            if (!ubicacion || typeof ubicacion.lat !== 'number' || typeof ubicacion.lng !== 'number') {
+                console.warn(`Ubicación inválida para el trabajador: ${trabajadorKey}`, ubicacion);
+                return;
+            }
+
+            const marker = trabajadoresMarkers[trabajadorKey];
+            procesados.add(trabajadorKey); // Marcar como procesado
+
+            if (marker) {
+                // Actualizar la posición del marcador existente solo si la ubicación cambió
+                if (
+                    marker.getLatLng().lat !== ubicacion.lat ||
+                    marker.getLatLng().lng !== ubicacion.lng
+                ) {
+                    marker.setLatLng([ubicacion.lat, ubicacion.lng])
+                        .setPopupContent(`Trabajador: ${ubicacion.nombre || trabajadorKey}`);
+                    console.log(`Ubicación actualizada para el trabajador: ${trabajadorKey}`);
+                }
             } else {
-                console.warn(`Información incompleta para el trabajador: ${trabajadorKey}.`);
+                // Crear un nuevo marcador si no existe
+                trabajadoresMarkers[trabajadorKey] = L.marker([ubicacion.lat, ubicacion.lng], {
+                    icon: L.icon({
+                        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                        iconSize: [25, 41],
+                    }),
+                }).addTo(map).bindPopup(`Trabajador: ${ubicacion.nombre || trabajadorKey}`);
+                console.log(`Marcador creado para el trabajador: ${trabajadorKey}`);
             }
         });
 
-        // Mostrar mensaje de resultado
-        if (ubicacionesProcesadas === 0) {
-            console.warn('No se procesaron ubicaciones para mostrar en la tabla.');
-            const row = document.createElement('tr');
-            row.innerHTML = '<td colspan="2">No hay ubicaciones disponibles</td>';
-            tabla.appendChild(row);
-        } else {
-            console.log(`${ubicacionesProcesadas} ubicaciones procesadas y mostradas en la tabla.`);
-        }
+        // Eliminar marcadores obsoletos (trabajadores que ya no están en ubicaciones)
+        Object.keys(trabajadoresMarkers).forEach(trabajadorKey => {
+            if (!procesados.has(trabajadorKey)) {
+                map.removeLayer(trabajadoresMarkers[trabajadorKey]);
+                delete trabajadoresMarkers[trabajadorKey];
+                console.log(`Marcador eliminado para el trabajador: ${trabajadorKey}`);
+            }
+        });
+
+        // Actualizar la tabla de ubicaciones en el DOM
+        actualizarTablaUbicaciones(ubicaciones);
     } catch (error) {
-        console.error('Error al cargar ubicaciones o trabajadores:', error);
-        alert('No se pudieron cargar las ubicaciones o los trabajadores. Revisa la consola para más detalles.');
+        console.error("Error al actualizar los trabajadores en el mapa:", error);
     }
 }
 
+// Función auxiliar para actualizar la tabla de ubicaciones
+function actualizarTablaUbicaciones(ubicaciones) {
+    try {
+        const tablaElement = document.getElementById('compartiendo-ubicacion');
+        if (!tablaElement) {
+            console.warn('El elemento #compartiendo-ubicacion no existe en el DOM.');
+            return;
+        }
+
+        const tbody = tablaElement.querySelector('tbody');
+        if (!tbody) {
+            console.warn('El elemento <tbody> dentro de #compartiendo-ubicacion no existe.');
+            return;
+        }
+
+        // Limpiar contenido anterior de la tabla
+        tbody.innerHTML = '';
+
+        // Verificar si hay ubicaciones válidas para mostrar
+        if (!ubicaciones || Object.keys(ubicaciones).length === 0) {
+            console.info('No se encontraron ubicaciones para mostrar en la tabla.');
+            const row = document.createElement('tr');
+            row.innerHTML = `<td colspan="3">No hay ubicaciones disponibles</td>`;
+            tbody.appendChild(row);
+            return;
+        }
+
+        // Iterar sobre las ubicaciones y actualizar la tabla
+        Object.keys(ubicaciones).forEach(trabajadorKey => {
+            const ubicacion = ubicaciones[trabajadorKey];
+            const row = document.createElement('tr');
+
+            if (ubicacion && ubicacion.lat && ubicacion.lng) {
+                // Fila para un trabajador con ubicación válida
+                row.innerHTML = `
+                    <td>${trabajadorKey}</td>
+                    <td>Lat: ${ubicacion.lat.toFixed(5)}</td>
+                    <td>Lng: ${ubicacion.lng.toFixed(5)}</td>
+                `;
+            } else {
+                // Fila para un trabajador con ubicación inválida o faltante
+                console.warn(`La ubicación del trabajador ${trabajadorKey} es inválida o incompleta.`);
+                row.innerHTML = `
+                    <td>${trabajadorKey}</td>
+                    <td colspan="2">Ubicación no disponible</td>
+                `;
+            }
+
+            tbody.appendChild(row);
+        });
+
+        console.log('Tabla de ubicaciones actualizada correctamente.');
+    } catch (error) {
+        console.error('Error al actualizar la tabla de ubicaciones:', error);
+    }
+}
+
+// Refrescar el mapa automáticamente a intervalos definidos (por ejemplo, cada 10 segundos)
+setInterval(() => {
+    actualizarMapaTrabajadores();
+}, 10000); // Actualizar cada 10 segundos
 async function cargarTrabajadores() {
     try {
         // Utiliza la URL RAW de GitHub para evitar problemas de CORS
