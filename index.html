@@ -239,9 +239,13 @@
                     <button onclick="procesarSedes()">Cargar Sedes</button>
                 </div>
                  <form id="add-sede-form">
-  <label for="sede-name">Nombre de la Sede:</label>
-  <input type="text" id="sede-name" required />
-  <button type="submit">Agregar Sede</button>
+    <label for="sede-name">Nombre de la Sede:</label>
+    <input type="text" id="sede-name" required />
+    <label for="sede-lat">Latitud:</label>
+    <input type="number" id="sede-lat" step="any" required />
+    <label for="sede-lng">Longitud:</label>
+    <input type="number" id="sede-lng" step="any" required />
+    <button type="submit">Agregar Sede</button>
 </form>
 <div id="sedes-list">
   <h3>Sedes:</h3>
@@ -787,48 +791,59 @@ setInterval(() => {
 }, 10000); // Actualizar cada 10 segundos
 
 
-    document.getElementById('add-sede-form').addEventListener('submit', async function (event) {
-        event.preventDefault();
-        const sedeName = document.getElementById('sede-name').value;
-        if (!sedeName) return;
+document.getElementById('add-sede-form').addEventListener('submit', async function (event) {
+    event.preventDefault();
+    const sedeName = document.getElementById('sede-name').value;
+    const sedeLat = parseFloat(document.getElementById('sede-lat').value);
+    const sedeLng = parseFloat(document.getElementById('sede-lng').value);
 
-        try {
-            const response = await fetch('/api/sedes', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: sedeName })
-            });
-
-            if (response.ok) {
-                loadSedes(); // Recargar la lista de sedes
-                document.getElementById('sede-name').value = ''; // Limpiar el formulario
-            } else {
-                console.error('Error al agregar la sede');
-            }
-        } catch (error) {
-            console.error('Error de conexión', error);
-        }
-    });
-
-    async function loadSedes() {
-        try {
-            const response = await fetch('/api/sedes');
-            const sedes = await response.json();
-
-            const sedesList = document.getElementById('sedes');
-            sedesList.innerHTML = '';
-            sedes.forEach(sede => {
-                const li = document.createElement('li');
-                li.textContent = sede.name;
-                sedesList.appendChild(li);
-            });
-        } catch (error) {
-            console.error('Error al cargar las sedes', error);
-        }
+    if (!sedeName || isNaN(sedeLat) || isNaN(sedeLng)) {
+        alert('Por favor completa todos los campos.');
+        return;
     }
 
-    // Inicializar la lista de sedes al cargar la página
-    loadSedes();
+    try {
+        const response = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/main/sedes.json');
+        const sedes = response.ok ? await response.json() : [];
+
+        sedes.push({ Nombre: sedeName, Latitud: sedeLat, Longitud: sedeLng });
+
+        await guardarEnRepositorio('sedes.json', JSON.stringify(sedes, null, 2));
+        alert('Sede agregada exitosamente.');
+        loadSedes(); // Recargar la lista de sedes.
+    } catch (error) {
+        console.error('Error al guardar la sede:', error);
+    }
+});
+
+async function loadSedes() {
+    try {
+        // URL RAW de GitHub para obtener el archivo sedes.json
+        const response = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/main/sedes.json');
+        if (!response.ok) {
+            throw new Error('Error al cargar sedes.json');
+        }
+
+        // Parsear el contenido del archivo JSON
+        const sedes = await response.json();
+
+        // Obtener el elemento de la lista de sedes en el DOM
+        const sedesList = document.getElementById('sedes');
+        sedesList.innerHTML = ''; // Limpiar la lista anterior
+
+        // Recorrer las sedes y agregarlas a la lista
+        sedes.forEach(sede => {
+            const li = document.createElement('li');
+            li.textContent = `${sede.Nombre} - Lat: ${sede.Latitud}, Lng: ${sede.Longitud}`;
+            sedesList.appendChild(li);
+        });
+    } catch (error) {
+        console.error('Error al cargar las sedes:', error);
+    }
+}
+
+// Inicializar la lista de sedes al cargar la página
+loadSedes();
 
          
 async function cargarTrabajadores() {
