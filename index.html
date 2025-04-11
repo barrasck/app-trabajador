@@ -510,7 +510,7 @@ function actualizarMapaTrabajadores(ubicaciones) {
                     iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
                     iconSize: [25, 41]
                 })
-            }).addTo(map).bindPopup(`Trabajador: ${trabajadorKey}`);
+            }).addTo(map).bindPopup(`Trabajador: ${ubicacion.nombre || trabajadorKey}`);
         }
     });
 }
