@@ -493,51 +493,98 @@ async function login(event) {
 }
          
 function inicializarMapa() {
-    if (!map) {
-        map = L.map('map', {
-            maxZoom: CONFIG.opcionesMapa.maxZoom
-        }).setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
+    try {
+        if (!map) {
+            // Inicializar el mapa con configuraciones predeterminadas
+            map = L.map('map', {
+                maxZoom: CONFIG.opcionesMapa.maxZoom
+            }).setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        }).addTo(map);
+            // Agregar las capas de OpenStreetMap
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(map);
 
-        // Cargar ubicaciones de trabajadores y actualizar la tabla
-        cargarUbicacionesTrabajadores().then(ubicaciones => {
-            actualizarTablaUbicaciones(ubicaciones);
-        });
+            console.log("Mapa inicializado correctamente.");
 
-        // Actualizar sedes en el mapa
-        actualizarSedesEnMapa();
+            // Cargar ubicaciones de trabajadores y actualizar la tabla
+            cargarUbicacionesTrabajadores()
+                .then(ubicaciones => {
+                    if (ubicaciones && Object.keys(ubicaciones).length > 0) {
+                        actualizarTablaUbicaciones(ubicaciones);
+                        actualizarMapaTrabajadores(ubicaciones);
+                        console.log("Ubicaciones de trabajadores cargadas y actualizadas en el mapa.");
+                    } else {
+                        console.warn("No se encontraron ubicaciones de trabajadores.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error al cargar las ubicaciones de los trabajadores:", error);
+                });
+
+            // Actualizar sedes en el mapa
+            actualizarSedesEnMapa()
+                .then(() => {
+                    console.log("Sedes actualizadas en el mapa.");
+                })
+                .catch(error => {
+                    console.error("Error al actualizar las sedes en el mapa:", error);
+                });
+        } else {
+            console.log("El mapa ya está inicializado.");
+        }
+    } catch (error) {
+        console.error("Error al inicializar el mapa:", error);
     }
 }
 
 function actualizarTablaUbicaciones(ubicaciones) {
-    const tablaElement = document.getElementById('compartiendo-ubicacion');
-    if (!tablaElement) {
-        console.error('El elemento #compartiendo-ubicacion no existe en el DOM.');
-        return;
+    try {
+        const tablaElement = document.getElementById('compartiendo-ubicacion');
+        if (!tablaElement) {
+            console.warn('El elemento #compartiendo-ubicacion no existe en el DOM.');
+            return;
+        }
+
+        const tbody = tablaElement.querySelector('tbody');
+        if (!tbody) {
+            console.warn('El elemento <tbody> dentro de #compartiendo-ubicacion no existe.');
+            return;
+        }
+
+        // Limpiar contenido anterior de la tabla
+        tbody.innerHTML = '';
+
+        // Verificar si hay ubicaciones válidas para mostrar
+        if (!ubicaciones || Object.keys(ubicaciones).length === 0) {
+            console.info('No se encontraron ubicaciones para mostrar en la tabla.');
+            const row = document.createElement('tr');
+            row.innerHTML = `<td colspan="2">No hay ubicaciones disponibles</td>`;
+            tbody.appendChild(row);
+            return;
+        }
+
+        // Iterar sobre las ubicaciones y actualizar la tabla
+        Object.keys(ubicaciones).forEach(trabajadorKey => {
+            const ubicacion = ubicaciones[trabajadorKey];
+            if (!ubicacion.lat || !ubicacion.lng) {
+                console.warn(`La ubicación del trabajador ${trabajadorKey} es inválida.`);
+                return;
+            }
+
+            // Crear una nueva fila con el nombre del trabajador y sus coordenadas
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${trabajadorKey}</td>
+                <td>Lat: ${ubicacion.lat.toFixed(5)}, Lng: ${ubicacion.lng.toFixed(5)}</td>
+            `;
+            tbody.appendChild(row);
+        });
+
+        console.log('Tabla de ubicaciones actualizada correctamente.');
+    } catch (error) {
+        console.error('Error al actualizar la tabla de ubicaciones:', error);
     }
-
-    const tbody = tablaElement.querySelector('tbody');
-    if (!tbody) {
-        console.error('El elemento <tbody> dentro de #compartiendo-ubicacion no existe.');
-        return;
-    }
-
-    tbody.innerHTML = ''; // Limpiar contenido anterior
-
-    Object.keys(ubicaciones).forEach(trabajadorKey => {
-        const ubicacion = ubicaciones[trabajadorKey];
-
-        // Crear una nueva fila con el nombre del trabajador y sus coordenadas
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${trabajadorKey}</td>
-            <td>Lat: ${ubicacion.lat}, Lng: ${ubicacion.lng}</td>
-        `;
-        tbody.appendChild(row);
-    });
 }
 
 
@@ -600,25 +647,33 @@ async function cargarUbicacionesTrabajadores() {
         // Cargar ubicaciones desde el archivo RAW
         const ubicacionesResponse = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/ubicaciones.json');
         if (!ubicacionesResponse.ok) {
-            throw new Error(`Error ${ubicacionesResponse.status}: ${ubicacionesResponse.statusText}`);
+            throw new Error(`Error al cargar ubicaciones: ${ubicacionesResponse.status} - ${ubicacionesResponse.statusText}`);
         }
         const ubicaciones = await ubicacionesResponse.json();
-        
+
         // Cargar trabajadores desde el archivo RAW
         const trabajadoresResponse = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/trabajadores.json');
         if (!trabajadoresResponse.ok) {
-            throw new Error(`Error ${trabajadoresResponse.status}: ${trabajadoresResponse.statusText}`);
+            throw new Error(`Error al cargar trabajadores: ${trabajadoresResponse.status} - ${trabajadoresResponse.statusText}`);
         }
         const trabajadores = await trabajadoresResponse.json();
 
-        // Actualizar la tabla de usuarios compartiendo ubicación
-        const tabla = document.getElementById('compartiendo-ubicacion').querySelector('tbody');
-        tabla.innerHTML = ''; // Limpiar contenido anterior
-        
+        // Verificar que la tabla existe en el DOM
+        const tabla = document.getElementById('compartiendo-ubicacion')?.querySelector('tbody');
+        if (!tabla) {
+            console.warn('El elemento de la tabla de ubicaciones no existe en el DOM.');
+            return;
+        }
+
+        // Limpiar la tabla antes de actualizarla
+        tabla.innerHTML = '';
+
+        // Iterar sobre las ubicaciones y actualizar la tabla
+        let ubicacionesProcesadas = 0;
         Object.keys(ubicaciones).forEach(trabajadorKey => {
             const ubicacion = ubicaciones[trabajadorKey];
             const trabajador = trabajadores[trabajadorKey];
-            
+
             if (trabajador && ubicacion) {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -626,13 +681,20 @@ async function cargarUbicacionesTrabajadores() {
                     <td>Lat: ${ubicacion.lat}, Lng: ${ubicacion.lng}</td>
                 `;
                 tabla.appendChild(row);
+                ubicacionesProcesadas++;
+            } else {
+                console.warn(`No se encontró información completa para el trabajador: ${trabajadorKey}`);
             }
         });
 
-        console.log('Ubicaciones cargadas:', ubicaciones);
+        if (ubicacionesProcesadas === 0) {
+            console.warn('No se procesaron ubicaciones para mostrar en la tabla.');
+        } else {
+            console.log(`${ubicacionesProcesadas} ubicaciones procesadas y mostradas en la tabla.`);
+        }
     } catch (error) {
         console.error('Error al cargar ubicaciones o trabajadores:', error);
-        alert('No se pudieron cargar las ubicaciones o los trabajadores.');
+        alert('No se pudieron cargar las ubicaciones o los trabajadores. Revisa la consola para más detalles.');
     }
 }
 
