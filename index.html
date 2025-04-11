@@ -176,6 +176,22 @@
         .content-wrapper {
             display: none;
         }
+         #compartiendo-ubicacion {
+    width: 100%;
+    margin-top: 10px;
+    border-collapse: collapse;
+}
+
+#compartiendo-ubicacion th, #compartiendo-ubicacion td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+#compartiendo-ubicacion th {
+    background-color: #2563eb;
+    color: white;
+}
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
 </head>
@@ -483,10 +499,33 @@ function inicializarMapa() {
             attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }).addTo(map);
 
-        // Cargar ubicaciones de trabajadores y sedes
-        cargarUbicacionesTrabajadores();
+        // Cargar ubicaciones de trabajadores y actualizar la tabla
+        cargarUbicacionesTrabajadores().then(ubicaciones => {
+            actualizarTablaUbicaciones(ubicaciones);
+        });
+
+        // Actualizar sedes en el mapa
         actualizarSedesEnMapa();
     }
+}
+          * Función para actualizar dinámicamente la tabla con los usuarios y sus ubicaciones
+ * @param {Object} ubicaciones - Objeto con las ubicaciones de los trabajadores
+ */
+function actualizarTablaUbicaciones(ubicaciones) {
+    const tabla = document.getElementById('compartiendo-ubicacion').querySelector('tbody');
+    tabla.innerHTML = ''; // Limpiar contenido anterior
+
+    Object.keys(ubicaciones).forEach(trabajadorKey => {
+        const ubicacion = ubicaciones[trabajadorKey];
+
+        // Crear una nueva fila con el nombre del trabajador y sus coordenadas
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${trabajadorKey}</td>
+            <td>Lat: ${ubicacion.lat}, Lng: ${ubicacion.lng}</td>
+        `;
+        tabla.appendChild(row);
+    });
 }
 
 
@@ -523,27 +562,33 @@ async function cargarUbicacionesTrabajadores() {
             throw new Error(`Error ${ubicacionesResponse.status}: ${ubicacionesResponse.statusText}`);
         }
         const ubicaciones = await ubicacionesResponse.json();
-        console.log('Ubicaciones cargadas:', ubicaciones);
-
+        
         // Cargar trabajadores desde el archivo RAW
         const trabajadoresResponse = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/trabajadores.json');
         if (!trabajadoresResponse.ok) {
             throw new Error(`Error ${trabajadoresResponse.status}: ${trabajadoresResponse.statusText}`);
         }
         const trabajadores = await trabajadoresResponse.json();
-        console.log('Trabajadores cargados:', trabajadores);
 
-        // Procesar y mostrar las ubicaciones en la consola (puedes adaptarlo a tu lógica)
+        // Actualizar la tabla de usuarios compartiendo ubicación
+        const tabla = document.getElementById('compartiendo-ubicacion').querySelector('tbody');
+        tabla.innerHTML = ''; // Limpiar contenido anterior
+        
         Object.keys(ubicaciones).forEach(trabajadorKey => {
             const ubicacion = ubicaciones[trabajadorKey];
             const trabajador = trabajadores[trabajadorKey];
-
+            
             if (trabajador && ubicacion) {
-                console.log(`Trabajador: ${trabajador.nombre}, Ubicación: ${ubicacion.lat}, ${ubicacion.lng}`);
-            } else {
-                console.warn(`No se encontró información completa para el trabajador con ID ${trabajadorKey}`);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${trabajador.nombre || trabajadorKey}</td>
+                    <td>Lat: ${ubicacion.lat}, Lng: ${ubicacion.lng}</td>
+                `;
+                tabla.appendChild(row);
             }
         });
+
+        console.log('Ubicaciones cargadas:', ubicaciones);
     } catch (error) {
         console.error('Error al cargar ubicaciones o trabajadores:', error);
         alert('No se pudieron cargar las ubicaciones o los trabajadores.');
