@@ -491,8 +491,35 @@ async function login(event) {
         alert('Ocurrió un error durante el inicio de sesión. Revisa la consola para más detalles.');
     }
 }
+
+         async function cargarUbicacionesTrabajadores() {
+    try {
+        // Realiza una solicitud para obtener el archivo JSON de ubicaciones
+        const response = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/main/ubicaciones.json');
+
+        // Verifica si la respuesta HTTP es exitosa
+        if (!response.ok) {
+            throw new Error(`Error al cargar las ubicaciones: ${response.statusText} (HTTP ${response.status})`);
+        }
+
+        // Convierte la respuesta a JSON
+        const ubicaciones = await response.json();
+
+        // Valida que las ubicaciones tengan el formato esperado
+        if (typeof ubicaciones !== 'object' || ubicaciones === null) {
+            throw new Error("El archivo de ubicaciones no tiene un formato JSON válido.");
+        }
+
+        console.log("Ubicaciones cargadas exitosamente:", ubicaciones);
+        return ubicaciones; // Devuelve las ubicaciones para que otras funciones las utilicen
+    } catch (error) {
+        // Manejo de errores: muestra el error en la consola y devuelve null
+        console.error("Error al cargar las ubicaciones de los trabajadores:", error);
+        return null; // Devuelve null si ocurre un error para evitar fallos en otras partes del código
+    }
+}
          
-function inicializarMapa() {
+async function inicializarMapa() {
     try {
         if (!map) {
             // Inicializar el mapa con configuraciones predeterminadas
@@ -508,40 +535,34 @@ function inicializarMapa() {
             console.log("Mapa inicializado correctamente.");
 
             // Cargar ubicaciones de trabajadores y actualizar la tabla inicialmente
-            cargarUbicacionesTrabajadores()
-                .then(ubicaciones => {
-                    if (ubicaciones && Object.keys(ubicaciones).length > 0) {
-                        actualizarTablaUbicaciones(ubicaciones);
-                        actualizarMapaTrabajadores(ubicaciones);
-                        console.log("Ubicaciones de trabajadores cargadas y actualizadas en el mapa.");
-                    } else {
-                        console.warn("No se encontraron ubicaciones de trabajadores.");
-                    }
-                })
-                .catch(error => {
-                    console.error("Error al cargar las ubicaciones de los trabajadores:", error);
-                });
+            const ubicaciones = await cargarUbicacionesTrabajadores();
+            if (ubicaciones && Object.keys(ubicaciones).length > 0) {
+                actualizarTablaUbicaciones(ubicaciones); // Actualiza la tabla de ubicaciones
+                actualizarMapaTrabajadores(ubicaciones); // Refresca los marcadores en el mapa
+                console.log("Ubicaciones de trabajadores cargadas y actualizadas en el mapa.");
+            } else {
+                console.warn("No se encontraron ubicaciones de trabajadores.");
+            }
 
             // Actualizar sedes en el mapa
-            actualizarSedesEnMapa()
-                .then(() => {
-                    console.log("Sedes actualizadas en el mapa.");
-                })
-                .catch(error => {
-                    console.error("Error al actualizar las sedes en el mapa:", error);
-                });
+            try {
+                await actualizarSedesEnMapa();
+                console.log("Sedes actualizadas en el mapa.");
+            } catch (error) {
+                console.error("Error al actualizar las sedes en el mapa:", error);
+            }
 
             // **Agregar el intervalo para actualizar las ubicaciones periódicamente**
             setInterval(async () => {
                 try {
-                    const response = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/main/ubicaciones.json');
-                    if (!response.ok) {
-                        throw new Error(`Error al cargar ubicaciones: ${response.statusText}`);
+                    const ubicacionesActualizadas = await cargarUbicacionesTrabajadores();
+                    if (ubicacionesActualizadas && Object.keys(ubicacionesActualizadas).length > 0) {
+                        actualizarTablaUbicaciones(ubicacionesActualizadas); // Actualiza la tabla de ubicaciones
+                        actualizarMapaTrabajadores(ubicacionesActualizadas); // Refresca los marcadores en el mapa
+                        console.log("Ubicaciones actualizadas en tiempo real.");
+                    } else {
+                        console.warn("No se encontraron ubicaciones en la actualización periódica.");
                     }
-                    const ubicaciones = await response.json();
-                    actualizarTablaUbicaciones(ubicaciones); // Actualiza la tabla de ubicaciones
-                    actualizarMapaTrabajadores(ubicaciones); // Refresca los marcadores en el mapa
-                    console.log("Ubicaciones actualizadas en tiempo real.");
                 } catch (error) {
                     console.error("Error al actualizar las ubicaciones en el mapa:", error);
                 }
