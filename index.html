@@ -547,24 +547,53 @@ function actualizarMapaTrabajadores(ubicaciones) {
         return;
     }
 
+    // Mantener una lista de trabajadores procesados para detectar obsoletos
+    const procesados = new Set();
+
     Object.keys(ubicaciones).forEach(trabajadorKey => {
         const ubicacion = ubicaciones[trabajadorKey];
         const marker = trabajadoresMarkers[trabajadorKey];
 
+        // Marcar como procesado
+        procesados.add(trabajadorKey);
+
         if (marker) {
             // Actualizar la posición del marcador existente
-            marker.setLatLng([ubicacion.lat, ubicacion.lng]);
+            marker.setLatLng([ubicacion.lat, ubicacion.lng]).bindPopup(`Trabajador: ${ubicacion.nombre || trabajadorKey}`);
         } else {
             // Crear un nuevo marcador si no existe
             trabajadoresMarkers[trabajadorKey] = L.marker([ubicacion.lat, ubicacion.lng], {
                 icon: L.icon({
                     iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-                    iconSize: [25, 41]
-                })
+                    iconSize: [25, 41],
+                }),
             }).addTo(map).bindPopup(`Trabajador: ${ubicacion.nombre || trabajadorKey}`);
         }
     });
+
+    // Eliminar marcadores obsoletos (trabajadores que ya no están en ubicaciones)
+    Object.keys(trabajadoresMarkers).forEach(trabajadorKey => {
+        if (!procesados.has(trabajadorKey)) {
+            map.removeLayer(trabajadoresMarkers[trabajadorKey]);
+            delete trabajadoresMarkers[trabajadorKey];
+        }
+    });
 }
+
+// Refrescar el mapa automáticamente a intervalos definidos (por ejemplo, cada 10 segundos)
+setInterval(async () => {
+    try {
+        const ubicacionesResponse = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/ubicaciones.json');
+        if (!ubicacionesResponse.ok) {
+            throw new Error(`Error al cargar las ubicaciones: ${ubicacionesResponse.statusText}`);
+        }
+
+        const ubicaciones = await ubicacionesResponse.json();
+        actualizarMapaTrabajadores(ubicaciones);
+    } catch (error) {
+        console.error("Error al actualizar los trabajadores en el mapa:", error);
+    }
+}, 10000); // Intervalo de 10 segundos
 
 async function cargarUbicacionesTrabajadores() {
     try {
