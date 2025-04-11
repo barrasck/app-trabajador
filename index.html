@@ -559,7 +559,7 @@ function actualizarTablaUbicaciones(ubicaciones) {
         if (!ubicaciones || Object.keys(ubicaciones).length === 0) {
             console.info('No se encontraron ubicaciones para mostrar en la tabla.');
             const row = document.createElement('tr');
-            row.innerHTML = `<td colspan="2">No hay ubicaciones disponibles</td>`;
+            row.innerHTML = `<td colspan="3">No hay ubicaciones disponibles</td>`;
             tbody.appendChild(row);
             return;
         }
@@ -567,17 +567,24 @@ function actualizarTablaUbicaciones(ubicaciones) {
         // Iterar sobre las ubicaciones y actualizar la tabla
         Object.keys(ubicaciones).forEach(trabajadorKey => {
             const ubicacion = ubicaciones[trabajadorKey];
-            if (!ubicacion.lat || !ubicacion.lng) {
-                console.warn(`La ubicación del trabajador ${trabajadorKey} es inválida.`);
-                return;
+            const row = document.createElement('tr');
+
+            if (ubicacion && ubicacion.lat && ubicacion.lng) {
+                // Fila para un trabajador con ubicación válida
+                row.innerHTML = `
+                    <td>${trabajadorKey}</td>
+                    <td>Lat: ${ubicacion.lat.toFixed(5)}</td>
+                    <td>Lng: ${ubicacion.lng.toFixed(5)}</td>
+                `;
+            } else {
+                // Fila para un trabajador con ubicación inválida o faltante
+                console.warn(`La ubicación del trabajador ${trabajadorKey} es inválida o incompleta.`);
+                row.innerHTML = `
+                    <td>${trabajadorKey}</td>
+                    <td colspan="2">Ubicación no disponible</td>
+                `;
             }
 
-            // Crear una nueva fila con el nombre del trabajador y sus coordenadas
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${trabajadorKey}</td>
-                <td>Lat: ${ubicacion.lat.toFixed(5)}, Lng: ${ubicacion.lng.toFixed(5)}</td>
-            `;
             tbody.appendChild(row);
         });
 
@@ -651,12 +658,22 @@ async function cargarUbicacionesTrabajadores() {
         }
         const ubicaciones = await ubicacionesResponse.json();
 
+        // Validar el formato de las ubicaciones
+        if (!ubicaciones || typeof ubicaciones !== 'object') {
+            throw new Error('El archivo ubicaciones.json no tiene un formato válido.');
+        }
+
         // Cargar trabajadores desde el archivo RAW
         const trabajadoresResponse = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/trabajadores.json');
         if (!trabajadoresResponse.ok) {
             throw new Error(`Error al cargar trabajadores: ${trabajadoresResponse.status} - ${trabajadoresResponse.statusText}`);
         }
         const trabajadores = await trabajadoresResponse.json();
+
+        // Validar el formato de los trabajadores
+        if (!trabajadores || typeof trabajadores !== 'object') {
+            throw new Error('El archivo trabajadores.json no tiene un formato válido.');
+        }
 
         // Verificar que la tabla existe en el DOM
         const tabla = document.getElementById('compartiendo-ubicacion')?.querySelector('tbody');
@@ -674,21 +691,25 @@ async function cargarUbicacionesTrabajadores() {
             const ubicacion = ubicaciones[trabajadorKey];
             const trabajador = trabajadores[trabajadorKey];
 
-            if (trabajador && ubicacion) {
+            if (trabajador && ubicacion && ubicacion.lat && ubicacion.lng) {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${trabajador.nombre || trabajadorKey}</td>
-                    <td>Lat: ${ubicacion.lat}, Lng: ${ubicacion.lng}</td>
+                    <td>Lat: ${ubicacion.lat.toFixed(5)}, Lng: ${ubicacion.lng.toFixed(5)}</td>
                 `;
                 tabla.appendChild(row);
                 ubicacionesProcesadas++;
             } else {
-                console.warn(`No se encontró información completa para el trabajador: ${trabajadorKey}`);
+                console.warn(`Información incompleta para el trabajador: ${trabajadorKey}.`);
             }
         });
 
+        // Mostrar mensaje de resultado
         if (ubicacionesProcesadas === 0) {
             console.warn('No se procesaron ubicaciones para mostrar en la tabla.');
+            const row = document.createElement('tr');
+            row.innerHTML = '<td colspan="2">No hay ubicaciones disponibles</td>';
+            tabla.appendChild(row);
         } else {
             console.log(`${ubicacionesProcesadas} ubicaciones procesadas y mostradas en la tabla.`);
         }
@@ -929,25 +950,48 @@ async function iniciarTrackingTrabajador() {
                 try {
                     // Obtener las ubicaciones actuales desde el archivo remoto
                     const response = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/ubicaciones.json?ref=main');
+                    if (!response.ok) {
+                        throw new Error(`Error al cargar ubicaciones: ${response.status} - ${response.statusText}`);
+                    }
+
                     const data = await response.json();
                     const ubicaciones = JSON.parse(atob(data.content));
+
+                    // Validar el formato del archivo de ubicaciones
+                    if (!ubicaciones || typeof ubicaciones !== 'object') {
+                        throw new Error('El archivo ubicaciones.json no tiene un formato válido.');
+                    }
 
                     // Actualizar la ubicación del trabajador actual
                     ubicaciones[usuarioActual.username] = ubicacion;
 
                     // Guardar la nueva ubicación en el repositorio
                     await guardarEnRepositorio('ubicaciones.json', JSON.stringify(ubicaciones, null, 2));
+                    console.log("Ubicación actualizada en el repositorio para el usuario:", usuarioActual.username);
                 } catch (error) {
                     console.error('Error al actualizar la ubicación del trabajador:', error);
                 }
             },
             error => {
-                console.error('Error al obtener la ubicación:', error);
+                switch (error.code) {
+                    case error.PERMISSION_DENIED:
+                        console.error("El usuario denegó el acceso a la ubicación.");
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        console.error("La información de ubicación no está disponible.");
+                        break;
+                    case error.TIMEOUT:
+                        console.error("El tiempo de espera para obtener la ubicación se agotó.");
+                        break;
+                    default:
+                        console.error("Ocurrió un error desconocido al obtener la ubicación:", error.message);
+                        break;
+                }
             },
             {
-                enableHighAccuracy: true,
-                maximumAge: 10000,
-                timeout: 30000
+                enableHighAccuracy: true, // Alta precisión
+                maximumAge: 10000,       // Máximo 10 segundos de caché
+                timeout: 30000           // Tiempo de espera de 30 segundos
             }
         );
     } else {
