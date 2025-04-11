@@ -566,15 +566,28 @@ async function cargarTrabajadores() {
         const lista = document.getElementById('trabajadoresList');
         lista.innerHTML = ''; // Limpia el contenido previo
 
+        // Verificar si hay trabajadores en los datos cargados
+        const trabajadoresArray = Object.values(trabajadores);
+        if (trabajadoresArray.length === 0) {
+            lista.innerHTML = '<li>No hay trabajadores registrados.</li>';
+            return;
+        }
+
         // Iterar sobre los valores del objeto trabajadores
-        Object.values(trabajadores).forEach(trabajador => {
+        trabajadoresArray.forEach(trabajador => {
+            // Validar que los campos necesarios estén presentes
+            if (!trabajador.nombre || !trabajador.documento) {
+                console.warn(`Trabajador con datos incompletos:`, trabajador);
+                return; // Ignorar trabajadores con datos incompletos
+            }
+
             const li = document.createElement('li');
             li.textContent = `${trabajador.nombre} - Documento: ${trabajador.documento}`;
             lista.appendChild(li);
         });
     } catch (error) {
         console.error('Error al cargar los trabajadores:', error);
-        alert('No se pudieron cargar los trabajadores.');
+        alert('No se pudieron cargar los trabajadores. Por favor, verifica tu conexión o el archivo JSON.');
     }
 }
 
