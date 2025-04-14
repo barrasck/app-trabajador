@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<link rel="manifest" href="manifest.json">
-     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link rel="manifest" href="manifest.json">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
     <title>AMA PLUS LOGISTICS</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -176,22 +176,20 @@
         .content-wrapper {
             display: none;
         }
-         #compartiendo-ubicacion {
-    width: 100%;
-    margin-top: 10px;
-    border-collapse: collapse;
-}
-
-#compartiendo-ubicacion th, #compartiendo-ubicacion td {
-    padding: 8px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-}
-
-#compartiendo-ubicacion th {
-    background-color: #2563eb;
-    color: white;
-}
+        #compartiendo-ubicacion {
+            width: 100%;
+            margin-top: 10px;
+            border-collapse: collapse;
+        }
+        #compartiendo-ubicacion th, #compartiendo-ubicacion td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        #compartiendo-ubicacion th {
+            background-color: #2563eb;
+            color: white;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
 </head>
@@ -226,66 +224,69 @@
                     <div id="listaNotificaciones"></div>
                 </div>
             </div>
-<div id="mapa" class="tab-content">
-    <div id="map"></div>
-    <table id="compartiendo-ubicacion">
-        <tbody></tbody>
-    </table>
-</div>
+            <div id="mapa" class="tab-content">
+                <div id="map"></div>
+                <table id="compartiendo-ubicacion">
+                    <thead>
+                        <tr>
+                            <th>Trabajador</th>
+                            <th>Latitud</th>
+                            <th>Longitud</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
             <div id="sedes" class="tab-content">
                 <div class="upload-section">
                     <h3>📤 Subir Sedes</h3>
                     <input type="file" id="excelSedes" accept=".xlsx, .xls">
                     <button onclick="procesarSedes()">Cargar Sedes</button>
                 </div>
-                 <form id="add-sede-form">
-    <label for="sede-name">Nombre de la Sede:</label>
-    <input type="text" id="sede-name" required />
-    <label for="sede-lat">Latitud:</label>
-    <input type="number" id="sede-lat" step="any" required />
-    <label for="sede-lng">Longitud:</label>
-    <input type="number" id="sede-lng" step="any" required />
-    <button type="submit">Agregar Sede</button>
-</form>
-<div id="sedes-list">
-  <h3>Sedes:</h3>
-  <ul id="sedes"></ul>
-</div>
-                <div id="listaSedes"></div>
+                <form id="add-sede-form">
+                    <label for="sede-name">Nombre de la Sede:</label>
+                    <input type="text" id="sede-name" required />
+                    <label for="sede-lat">Latitud:</label>
+                    <input type="number" id="sede-lat" step="any" required />
+                    <label for="sede-lng">Longitud:</label>
+                    <input type="number" id="sede-lng" step="any" required />
+                    <button type="submit">Agregar Sede</button>
+                </form>
+                <div id="sedes-list">
+                    <h3>Sedes:</h3>
+                    <ul id="sedes"></ul>
+                </div>
+            </div>
+            <div id="trabajadores" class="tab-content">
+                <div class="upload-section">
+                    <div id="crearTrabajador" class="upload-section">
+                        <h3>🆕 Crear Trabajador</h3>
+                        <input type="text" id="nombreTrabajador" placeholder="Nombre del Trabajador">
+                        <input type="text" id="documentoTrabajador" placeholder="Número de Documento">
+                        <input type="text" id="celularTrabajador" placeholder="Número de Celular">
+                        <button onclick="crearTrabajador()">Agregar Trabajador</button>
+                    </div>
+                    <div id="listaTrabajadores">
+                        <h3>👷 Lista de Trabajadores</h3>
+                        <ul id="trabajadoresList"></ul>
+                    </div>
+                    <h3>📤 Importar Trabajadores</h3>
+                    <input type="file" id="excelTrabajadores" accept=".xlsx, .xls">
+                    <button onclick="procesarTrabajadores()">Cargar Trabajadores</button>
+                </div>
+                <div class="asignacion-section">
+                    <h3>🔗 Asignar Sedes</h3>
+                    <select id="selectTrabajador">
+                        <option value="">Seleccionar Trabajador</option>
+                    </select>
+                    <select id="selectSede">
+                        <option value="">Seleccionar Sede</option>
+                    </select>
+                    <button onclick="asignarSede()">Asignar Sede</button>
+                </div>
             </div>
         </div>
 
-        <div id="trabajadores" class="tab-content"> <!-- Nuevo tab -->
-            <div class="upload-section">
-                 <div id="crearTrabajador" class="upload-section">
-    <h3>🆕 Crear Trabajador</h3>
-<input type="text" id="nombreTrabajador" placeholder="Nombre del Trabajador">
-<input type="text" id="documentoTrabajador" placeholder="Número de Documento">
-<input type="text" id="celularTrabajador" placeholder="Número de Celular">
-<button onclick="crearTrabajador()">Agregar Trabajador</button>
-</div>
-<div id="listaTrabajadores">
-    <h3>👷 Lista de Trabajadores</h3>
-    <ul id="trabajadoresList"></ul>
-</div>
-                <h3>📤 Importar Trabajadores</h3>
-                <input type="file" id="excelTrabajadores" accept=".xlsx, .xls">
-                <button onclick="procesarTrabajadores()">Cargar Trabajadores</button>
-            </div>
-            <div class="asignacion-section">
-                <h3>🔗 Asignar Sedes</h3>
-                <select id="selectTrabajador">
-                    <option value="">Seleccionar Trabajador</option>
-                </select>
-                <select id="selectSede">
-                    <option value="">Seleccionar Sede</option>
-                </select>
-                <button onclick="asignarSede()">Asignar Sede</button>
-            </div>
-            <div id="listaTrabajadores"></div>
-        </div>
-    </div>
-        
         <!-- Panel para trabajadores -->
         <div class="nomina-panel">
             <div class="programacion-panel">
@@ -324,13 +325,6 @@
     </div>
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
     <script>
-
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js')
-      .then(() => console.log('App funciona offline'))
-      .catch(err => console.log('Error:', err));
-  }
-        
         // Variables globales
         let map;
         let sedes = [];
@@ -338,9 +332,7 @@
         let userMarker = null;
         let accuracyCircle = null;
         let trabajadoresMarkers = {};
-        let sedeAssignments = {};
-          const url = 'https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/trabajadores.json';
-        
+
         const USUARIOS = {
             administradores: {
                 'WENDY': {password: 'WENDY123!', role: 'admin'},
@@ -382,53 +374,13 @@
             }
         };
 
-async function guardarEnRepositorio(rutaArchivo, contenido) {
-    const repo = 'barrasck/app-trabajador';
-    const branch = 'main';
-
-    let sha;
-    try {
-        const response = await fetch(`https://api.github.com/repos/${repo}/contents/${rutaArchivo}?ref=${branch}`);
-        if (response.ok) {
-            const data = await response.json();
-            sha = data.sha; // Obtener el SHA si el archivo ya existe
-        }
-    } catch (error) {
-        console.error('Error al obtener el SHA del archivo:', error);
-    }
-
-    try {
-        const response = await fetch(`https://api.github.com/repos/${repo}/contents/${rutaArchivo}`, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${GITHUB_TOKEN}`, // Reemplaza con tu token válido
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                message: `Actualización de ${rutaArchivo}`,
-                content: btoa(contenido), // Codificar el contenido en Base64
-                branch: branch,
-                sha: sha // Incluir el SHA si el archivo ya existe
-            })
-        });
-
-        if (response.ok) {
-            console.log('Archivo guardado en el repositorio');
-        } else {
-            console.error('Error al guardar el archivo en el repositorio:', response.statusText);
-        }
-    } catch (error) {
-        console.error('Error al guardar el archivo en el repositorio:', error);
-    }
-}
-
         function cerrarSesion() {
             sessionStorage.removeItem('session');
             usuarioActual = null;
             document.querySelector('.content-wrapper').style.display = 'none';
             document.getElementById('loginModal').style.display = 'flex';
             document.getElementById('logoutBtn').style.display = 'none';
-            if(map) {
+            if (map) {
                 map.remove();
                 map = null;
                 userMarker = null;
@@ -438,754 +390,336 @@ async function guardarEnRepositorio(rutaArchivo, contenido) {
             document.getElementById('password').value = '';
         }
 
-         
-async function login(event) {
-    event.preventDefault();
-    const username = document.getElementById('username').value.toUpperCase();
-    const password = document.getElementById('password').value;
+        async function login(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value.toUpperCase();
+            const password = document.getElementById('password').value;
 
-    try {
-        // Obtener trabajadores desde el repositorio
-        const trabajadoresImportadosResponse = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/trabajadores.json');
-        if (!trabajadoresImportadosResponse.ok) {
-            throw new Error('No se pudo obtener el archivo trabajadores.json');
+            try {
+                const trabajadoresResponse = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/trabajadores.json');
+                const trabajadoresImportados = trabajadoresResponse.ok ? await trabajadoresResponse.json() : {};
+                const USUARIOS_COMBINADOS = {
+                    ...USUARIOS,
+                    trabajadores: { ...USUARIOS.trabajadores, ...trabajadoresImportados }
+                };
+
+                const user = USUARIOS_COMBINADOS.administradores[username] || USUARIOS_COMBINADOS.trabajadores[username];
+                if (user && user.password === password) {
+                    usuarioActual = {
+                        username: username,
+                        role: user.role,
+                        datos: user
+                    };
+                    document.getElementById('loginModal').style.display = 'none';
+                    document.querySelector('.content-wrapper').style.display = 'block';
+                    document.getElementById('logoutBtn').style.display = 'block';
+                    sessionStorage.setItem('session', JSON.stringify(usuarioActual));
+                    actualizarUI();
+
+                    if (usuarioActual.role === 'admin') {
+                        inicializarMapa();
+                        cargarUbicacionesTrabajadores();
+                        cargarNotificaciones();
+                    } else if (usuarioActual.role === 'worker') {
+                        mostrarNomina();
+                        iniciarTrackingTrabajador();
+                        cargarProgramacionTrabajador();
+                        document.querySelector('.tabs').style.display = 'none';
+                        document.querySelector('.nomina-panel').style.display = 'block';
+                        document.querySelector('.programacion-panel').style.display = 'block';
+                    }
+                } else {
+                    alert('Credenciales incorrectas');
+                    document.getElementById('username').value = '';
+                    document.getElementById('password').value = '';
+                }
+            } catch (error) {
+                console.error('Error durante el inicio de sesión:', error);
+                alert('Error al iniciar sesión. Revisa la consola.');
+            }
         }
-        const trabajadoresImportados = await trabajadoresImportadosResponse.json();
-        const USUARIOS_COMBINADOS = {
-            ...USUARIOS,
-            trabajadores: { ...USUARIOS.trabajadores, ...trabajadoresImportados }
-        };
 
-        // Validar usuario
-        const user = USUARIOS_COMBINADOS.administradores[username] || USUARIOS_COMBINADOS.trabajadores[username];
+        async function cargarUbicacionesTrabajadores() {
+            try {
+                const response = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/ubicaciones.json');
+                if (!response.ok) throw new Error('Error al cargar ubicaciones');
+                const ubicaciones = await response.json();
+                actualizarTablaUbicaciones(ubicaciones);
+                actualizarMapaTrabajadores(ubicaciones);
+            } catch (error) {
+                console.error('Error al cargar ubicaciones:', error);
+            }
+        }
 
-        if (user && user.password === password) {
-            usuarioActual = {
-                username: username,
-                role: user.role,
-                datos: user
+        async function inicializarMapa() {
+            if (!map) {
+                map = L.map('map', {
+                    maxZoom: CONFIG.opcionesMapa.maxZoom
+                }).setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                }).addTo(map);
+                await actualizarSedesEnMapa();
+                setInterval(cargarUbicacionesTrabajadores, 10000); // Actualizar cada 10 segundos
+            }
+        }
+
+        function actualizarMapaTrabajadores(ubicaciones) {
+            if (!map) return;
+            const procesados = new Set();
+            Object.keys(ubicaciones).forEach(trabajadorKey => {
+                const ubicacion = ubicaciones[trabajadorKey];
+                if (ubicacion && typeof ubicacion.lat === 'number' && typeof ubicacion.lng === 'number') {
+                    const marker = trabajadoresMarkers[trabajadorKey];
+                    procesados.add(trabajadorKey);
+                    if (marker) {
+                        marker.setLatLng([ubicacion.lat, ubicacion.lng])
+                            .setPopupContent(`Trabajador: ${ubicacion.nombre || trabajadorKey}`);
+                    } else {
+                        trabajadoresMarkers[trabajadorKey] = L.marker([ubicacion.lat, ubicacion.lng], {
+                            icon: L.icon({
+                                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                                iconSize: [25, 41]
+                            })
+                        }).addTo(map).bindPopup(`Trabajador: ${ubicacion.nombre || trabajadorKey}`);
+                    }
+                }
+            });
+            Object.keys(trabajadoresMarkers).forEach(key => {
+                if (!procesados.has(key)) {
+                    map.removeLayer(trabajadoresMarkers[key]);
+                    delete trabajadoresMarkers[key];
+                }
+            });
+        }
+
+        function actualizarTablaUbicaciones(ubicaciones) {
+            const tbody = document.querySelector('#compartiendo-ubicacion tbody');
+            tbody.innerHTML = '';
+            if (!ubicaciones || Object.keys(ubicaciones).length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3">No hay ubicaciones disponibles</td></tr>';
+                return;
+            }
+            Object.keys(ubicaciones).forEach(trabajadorKey => {
+                const ubicacion = ubicaciones[trabajadorKey];
+                const row = document.createElement('tr');
+                row.innerHTML = ubicacion && ubicacion.lat && ubicacion.lng
+                    ? `<td>${trabajadorKey}</td><td>${ubicacion.lat.toFixed(5)}</td><td>${ubicacion.lng.toFixed(5)}</td>`
+                    : `<td>${trabajadorKey}</td><td colspan="2">Ubicación no disponible</td>`;
+                tbody.appendChild(row);
+            });
+        }
+
+        async function loadSedes() {
+            try {
+                const response = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/sedes.json');
+                if (!response.ok) throw new Error('Error al cargar sedes');
+                sedes = await response.json();
+                const sedesList = document.getElementById('sedes');
+                sedesList.innerHTML = '';
+                sedes.forEach(sede => {
+                    const li = document.createElement('li');
+                    li.textContent = `${sede.Nombre} - Lat: ${sede.Latitud}, Lng: ${sede.Longitud}`;
+                    sedesList.appendChild(li);
+                });
+            } catch (error) {
+                console.error('Error al cargar sedes:', error);
+            }
+        }
+
+        document.getElementById('add-sede-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const sedeName = document.getElementById('sede-name').value;
+            const sedeLat = parseFloat(document.getElementById('sede-lat').value);
+            const sedeLng = parseFloat(document.getElementById('sede-lng').value);
+
+            if (!sedeName || isNaN(sedeLat) || isNaN(sedeLng)) {
+                alert('Por favor completa todos los campos.');
+                return;
+            }
+
+            sedes.push({ Nombre: sedeName, Latitud: sedeLat, Longitud: sedeLng });
+            await guardarEnRepositorio('sedes.json', JSON.stringify(sedes, null, 2));
+            loadSedes();
+            actualizarSedesEnMapa();
+            alert('Sede agregada exitosamente.');
+        });
+
+        async function cargarTrabajadores() {
+            try {
+                const response = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/trabajadores.json');
+                if (!response.ok) throw new Error('Error al cargar trabajadores');
+                const trabajadores = await response.json();
+                const lista = document.getElementById('trabajadoresList');
+                lista.innerHTML = '';
+                Object.values(trabajadores).forEach(trabajador => {
+                    if (trabajador.nombre && trabajador.documento) {
+                        const li = document.createElement('li');
+                        li.textContent = `${trabajador.nombre} - Documento: ${trabajador.documento}`;
+                        lista.appendChild(li);
+                    }
+                });
+            } catch (error) {
+                console.error('Error al cargar trabajadores:', error);
+            }
+        }
+
+        async function procesarTrabajadores() {
+            const file = document.getElementById('excelTrabajadores').files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+                    if (!jsonData[0]?.['Número de Documento'] || !jsonData[0]?.Nombre || !jsonData[0]?.['Número de Celular']) {
+                        throw new Error("Formato incorrecto. Columnas requeridas: Número de Documento, Nombre, Número de Celular");
+                    }
+
+                    const trabajadores = jsonData.reduce((acc, t) => {
+                        const documento = t['Número de Documento'];
+                        acc[documento] = {
+                            password: documento,
+                            role: 'worker',
+                            documento: documento,
+                            nombre: t['Nombre'],
+                            celular: t['Número de Celular'],
+                            nomina: []
+                        };
+                        return acc;
+                    }, {});
+
+                    await guardarEnRepositorio('trabajadores.json', JSON.stringify(trabajadores, null, 2));
+                    cargarTrabajadores();
+                    alert("Trabajadores importados exitosamente!");
+                } catch (error) {
+                    alert(error.message);
+                }
             };
+            reader.readAsArrayBuffer(file);
+        }
 
-            // Mostrar contenido según el rol del usuario
-            document.getElementById('loginModal').style.display = 'none';
-            document.querySelector('.content-wrapper').style.display = 'block';
-            document.getElementById('logoutBtn').style.display = 'block';
-            sessionStorage.setItem('session', JSON.stringify(usuarioActual));
+        let trabajadores = {};
 
-            actualizarUI();
+        function crearTrabajador() {
+            const nombre = document.getElementById('nombreTrabajador').value;
+            const documento = document.getElementById('documentoTrabajador').value;
+            const celular = document.getElementById('celularTrabajador').value;
 
+            if (!nombre || !documento || !celular) {
+                alert("Por favor, completa todos los campos.");
+                return;
+            }
+
+            trabajadores[documento] = {
+                nombre: nombre,
+                documento: documento,
+                celular: celular,
+                role: 'worker',
+                nomina: []
+            };
+            actualizarListaTrabajadores();
+            document.getElementById('nombreTrabajador').value = '';
+            document.getElementById('documentoTrabajador').value = '';
+            document.getElementById('celularTrabajador').value = '';
+            alert("Trabajador agregado exitosamente.");
+        }
+
+        async function actualizarListaTrabajadores() {
+            try {
+                const response = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/trabajadores.json');
+                const trabajadoresData = response.ok ? await response.json() : {};
+                const sedesResponse = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/sedes.json');
+                const sedesData = sedesResponse.ok ? await sedesResponse.json() : [];
+
+                const selectTrabajador = document.getElementById('selectTrabajador');
+                const selectSede = document.getElementById('selectSede');
+                selectTrabajador.innerHTML = '<option value="">Seleccionar Trabajador</option>';
+                selectSede.innerHTML = '<option value="">Seleccionar Sede</option>';
+
+                Object.keys(trabajadoresData).forEach(t => {
+                    selectTrabajador.innerHTML += `<option value="${t}">${trabajadoresData[t].nombre}</option>`;
+                });
+                sedesData.forEach(s => {
+                    selectSede.innerHTML += `<option value="${s.Nombre}">${s.Nombre}</option>`;
+                });
+
+                const lista = document.getElementById('trabajadoresList');
+                lista.innerHTML = '';
+                Object.keys(trabajadoresData).forEach(doc => {
+                    const t = trabajadoresData[doc];
+                    const li = document.createElement('li');
+                    li.textContent = `${t.nombre} (Documento: ${t.documento}, Celular: ${t.celular})`;
+                    lista.appendChild(li);
+                });
+            } catch (error) {
+                console.error('Error al actualizar lista de trabajadores:', error);
+            }
+        }
+
+        async function asignarSede() {
+            const trabajador = document.getElementById('selectTrabajador').value;
+            const sede = document.getElementById('selectSede').value;
+
+            if (!trabajador || !sede) {
+                alert("Seleccione un trabajador y una sede");
+                return;
+            }
+
+            const response = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/asignaciones.json');
+            const asignaciones = response.ok ? await response.json() : {};
+            asignaciones[trabajador] = sede;
+            await guardarEnRepositorio('asignaciones.json', JSON.stringify(asignaciones, null, 2));
+            alert("Sede asignada exitosamente!");
+        }
+
+        async function iniciarTrackingTrabajador() {
+            if (navigator.geolocation && usuarioActual.role === 'worker') {
+                navigator.geolocation.watchPosition(
+                    async position => {
+                        const ubicacion = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude,
+                            timestamp: new Date().toISOString()
+                        };
+                        try {
+                            const response = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/ubicaciones.json');
+                            const ubicaciones = response.ok ? await response.json() : {};
+                            ubicaciones[usuarioActual.username] = ubicacion;
+                            await guardarEnRepositorio('ubicaciones.json', JSON.stringify(ubicaciones, null, 2));
+                        } catch (error) {
+                            console.error('Error al actualizar ubicación:', error);
+                        }
+                    },
+                    error => console.error('Error de geolocalización:', error),
+                    { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 }
+                );
+            }
+        }
+
+        function actualizarUI() {
             if (usuarioActual.role === 'admin') {
-                inicializarMapa(); // Inicializa el mapa
-                cargarUbicacionesTrabajadores(); // Carga ubicaciones de los trabajadores
-                cargarNotificaciones(); // Carga las notificaciones para admin
+                document.querySelector('.tabs').style.display = 'flex';
+                document.querySelector('.content-wrapper').style.display = 'block';
+                document.querySelector('.nomina-panel').style.display = 'none';
+                openTab('programacion', { currentTarget: document.querySelector('.tab-btn.active') });
             } else if (usuarioActual.role === 'worker') {
-                mostrarNomina(); // Muestra nómina del trabajador
-                iniciarTrackingTrabajador(); // Inicia el rastreo en tiempo real
-                cargarProgramacionTrabajador(); // Carga los turnos asignados
-
-                // Ajustar vistas para trabajadores
                 document.querySelector('.tabs').style.display = 'none';
                 document.querySelector('.nomina-panel').style.display = 'block';
-                document.getElementById('mapa').style.display = 'none';
-                document.getElementById('sedes').style.display = 'none';
-                document.querySelector('.notificaciones-panel').style.display = 'none';
-                document.querySelector('.upload-section').style.display = 'none';
-
-                console.log("Tracking iniciado para el trabajador:", usuarioActual.username);
             }
-        } else {
-            alert('Credenciales incorrectas');
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
-            document.getElementById('username').focus();
         }
-    } catch (error) {
-        console.error('Error durante el inicio de sesión:', error);
-        alert('Ocurrió un error durante el inicio de sesión. Revisa la consola para más detalles.');
-    }
-}
-
-         async function cargarUbicacionesTrabajadores() {
-    try {
-        // Realiza una solicitud para obtener el archivo JSON de ubicaciones
-        const response = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/main/ubicaciones.json');
-
-        // Verifica si la respuesta HTTP es exitosa
-        if (!response.ok) {
-            throw new Error(`Error al cargar las ubicaciones: ${response.statusText} (HTTP ${response.status})`);
-        }
-
-        // Convierte la respuesta a JSON
-        const ubicaciones = await response.json();
-
-        // Valida que las ubicaciones tengan el formato esperado
-        if (typeof ubicaciones !== 'object' || ubicaciones === null) {
-            throw new Error("El archivo de ubicaciones no tiene un formato JSON válido.");
-        }
-
-        console.log("Ubicaciones cargadas exitosamente:", ubicaciones);
-        return ubicaciones; // Devuelve las ubicaciones para que otras funciones las utilicen
-    } catch (error) {
-        // Manejo de errores: muestra el error en la consola y devuelve null
-        console.error("Error al cargar las ubicaciones de los trabajadores:", error);
-        return null; // Devuelve null si ocurre un error para evitar fallos en otras partes del código
-    }
-}
-         
-async function inicializarMapa() {
-    try {
-        if (!map) {
-            // Inicializar el mapa con configuraciones predeterminadas
-            map = L.map('map', {
-                maxZoom: CONFIG.opcionesMapa.maxZoom
-            }).setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
-
-            // Agregar las capas de OpenStreetMap
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            }).addTo(map);
-
-            console.log("Mapa inicializado correctamente.");
-
-            // Cargar ubicaciones de trabajadores y actualizar la tabla inicialmente
-            const ubicaciones = await cargarUbicacionesTrabajadores();
-            if (ubicaciones && Object.keys(ubicaciones).length > 0) {
-                actualizarTablaUbicaciones(ubicaciones); // Actualiza la tabla de ubicaciones
-                actualizarMapaTrabajadores(ubicaciones); // Refresca los marcadores en el mapa
-                console.log("Ubicaciones de trabajadores cargadas y actualizadas en el mapa.");
-            } else {
-                console.warn("No se encontraron ubicaciones de trabajadores.");
-            }
-
-            // Actualizar sedes en el mapa
-            try {
-                await actualizarSedesEnMapa();
-                console.log("Sedes actualizadas en el mapa.");
-            } catch (error) {
-                console.error("Error al actualizar las sedes en el mapa:", error);
-            }
-
-            // **Agregar el intervalo para actualizar las ubicaciones periódicamente**
-            setInterval(async () => {
-                try {
-                    const ubicacionesActualizadas = await cargarUbicacionesTrabajadores();
-                    if (ubicacionesActualizadas && Object.keys(ubicacionesActualizadas).length > 0) {
-                        actualizarTablaUbicaciones(ubicacionesActualizadas); // Actualiza la tabla de ubicaciones
-                        actualizarMapaTrabajadores(ubicacionesActualizadas); // Refresca los marcadores en el mapa
-                        console.log("Ubicaciones actualizadas en tiempo real.");
-                    } else {
-                        console.warn("No se encontraron ubicaciones en la actualización periódica.");
-                    }
-                } catch (error) {
-                    console.error("Error al actualizar las ubicaciones en el mapa:", error);
-                }
-            }, 10000); // Actualizar cada 10 segundos
-        } else {
-            console.log("El mapa ya está inicializado.");
-        }
-    } catch (error) {
-        console.error("Error al inicializar el mapa:", error);
-    }
-}
-
-
-function actualizarMapaTrabajadores(ubicaciones) {
-    if (!map) {
-        console.error("El mapa no está inicializado.");
-        return;
-    }
-
-    // Mantener un registro de trabajadores procesados para detectar obsoletos
-    const procesados = new Set();
-
-    // Iterar sobre las ubicaciones recibidas
-    Object.keys(ubicaciones).forEach(trabajadorKey => {
-        const ubicacion = ubicaciones[trabajadorKey];
-
-        // Validar que la ubicación tenga latitud y longitud
-        if (!ubicacion || typeof ubicacion.lat !== 'number' || typeof ubicacion.lng !== 'number') {
-            console.warn(`Ubicación inválida para el trabajador: ${trabajadorKey}`, ubicacion);
-            return;
-        }
-
-        const marker = trabajadoresMarkers[trabajadorKey];
-        procesados.add(trabajadorKey); // Marcar como procesado
-
-        if (marker) {
-            // Actualizar la posición del marcador existente solo si la ubicación cambió
-            if (
-                marker.getLatLng().lat !== ubicacion.lat ||
-                marker.getLatLng().lng !== ubicacion.lng
-            ) {
-                marker.setLatLng([ubicacion.lat, ubicacion.lng])
-                    .setPopupContent(`Trabajador: ${ubicacion.nombre || trabajadorKey}`);
-                console.log(`Ubicación actualizada para el trabajador: ${trabajadorKey}`);
-            }
-        } else {
-            // Crear un nuevo marcador si no existe
-            trabajadoresMarkers[trabajadorKey] = L.marker([ubicacion.lat, ubicacion.lng], {
-                icon: L.icon({
-                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-                    iconSize: [25, 41],
-                }),
-            }).addTo(map).bindPopup(`Trabajador: ${ubicacion.nombre || trabajadorKey}`);
-            console.log(`Marcador creado para el trabajador: ${trabajadorKey}`);
-        }
-    });
-
-    // Eliminar marcadores obsoletos (trabajadores que ya no están en ubicaciones)
-    Object.keys(trabajadoresMarkers).forEach(trabajadorKey => {
-        if (!procesados.has(trabajadorKey)) {
-            map.removeLayer(trabajadoresMarkers[trabajadorKey]);
-            delete trabajadoresMarkers[trabajadorKey];
-            console.log(`Marcador eliminado para el trabajador: ${trabajadorKey}`);
-        }
-    });
-}
-
-// Refrescar el mapa automáticamente a intervalos definidos (por ejemplo, cada 10 segundos)
-setInterval(async () => {
-    try {
-        const ubicacionesResponse = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/ubicaciones.json');
-        if (!ubicacionesResponse.ok) {
-            throw new Error(`Error al cargar las ubicaciones: ${ubicacionesResponse.statusText}`);
-        }
-
-        const ubicaciones = await ubicacionesResponse.json();
-        actualizarMapaTrabajadores(ubicaciones);
-    } catch (error) {
-        console.error("Error al actualizar los trabajadores en el mapa:", error);
-    }
-}, 10000); // Intervalo de 10 segundos
-
-// Función principal para actualizar el mapa con las ubicaciones de los trabajadores
-async function actualizarMapaTrabajadores() {
-    try {
-        // Obtener las ubicaciones desde el archivo remoto
-        const ubicacionesResponse = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/ubicaciones.json');
-        if (!ubicacionesResponse.ok) {
-            throw new Error(`Error al cargar las ubicaciones: ${ubicacionesResponse.statusText}`);
-        }
-
-        const ubicaciones = await ubicacionesResponse.json();
-
-        if (!map) {
-            console.error("El mapa no está inicializado.");
-            return;
-        }
-
-        // Mantener un registro de trabajadores procesados para detectar obsoletos
-        const procesados = new Set();
-
-        // Iterar sobre las ubicaciones recibidas
-        Object.keys(ubicaciones).forEach(trabajadorKey => {
-            const ubicacion = ubicaciones[trabajadorKey];
-
-            // Validar que la ubicación tenga latitud y longitud
-            if (!ubicacion || typeof ubicacion.lat !== 'number' || typeof ubicacion.lng !== 'number') {
-                console.warn(`Ubicación inválida para el trabajador: ${trabajadorKey}`, ubicacion);
-                return;
-            }
-
-            const marker = trabajadoresMarkers[trabajadorKey];
-            procesados.add(trabajadorKey); // Marcar como procesado
-
-            if (marker) {
-                // Actualizar la posición del marcador existente solo si la ubicación cambió
-                if (
-                    marker.getLatLng().lat !== ubicacion.lat ||
-                    marker.getLatLng().lng !== ubicacion.lng
-                ) {
-                    marker.setLatLng([ubicacion.lat, ubicacion.lng])
-                        .setPopupContent(`Trabajador: ${ubicacion.nombre || trabajadorKey}`);
-                    console.log(`Ubicación actualizada para el trabajador: ${trabajadorKey}`);
-                }
-            } else {
-                // Crear un nuevo marcador si no existe
-                trabajadoresMarkers[trabajadorKey] = L.marker([ubicacion.lat, ubicacion.lng], {
-                    icon: L.icon({
-                        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-                        iconSize: [25, 41],
-                    }),
-                }).addTo(map).bindPopup(`Trabajador: ${ubicacion.nombre || trabajadorKey}`);
-                console.log(`Marcador creado para el trabajador: ${trabajadorKey}`);
-            }
-        });
-
-        // Eliminar marcadores obsoletos (trabajadores que ya no están en ubicaciones)
-        Object.keys(trabajadoresMarkers).forEach(trabajadorKey => {
-            if (!procesados.has(trabajadorKey)) {
-                map.removeLayer(trabajadoresMarkers[trabajadorKey]);
-                delete trabajadoresMarkers[trabajadorKey];
-                console.log(`Marcador eliminado para el trabajador: ${trabajadorKey}`);
-            }
-        });
-
-        // Actualizar la tabla de ubicaciones en el DOM
-        actualizarTablaUbicaciones(ubicaciones);
-    } catch (error) {
-        console.error("Error al actualizar los trabajadores en el mapa:", error);
-    }
-}
-
-// Función auxiliar para actualizar la tabla de ubicaciones
-function actualizarTablaUbicaciones(ubicaciones) {
-    try {
-        const tablaElement = document.getElementById('compartiendo-ubicacion');
-        if (!tablaElement) {
-            console.warn('El elemento #compartiendo-ubicacion no existe en el DOM.');
-            return;
-        }
-
-        const tbody = tablaElement.querySelector('tbody');
-        if (!tbody) {
-            console.warn('El elemento <tbody> dentro de #compartiendo-ubicacion no existe.');
-            return;
-        }
-
-        // Limpiar contenido anterior de la tabla
-        tbody.innerHTML = '';
-
-        // Verificar si hay ubicaciones válidas para mostrar
-        if (!ubicaciones || Object.keys(ubicaciones).length === 0) {
-            console.info('No se encontraron ubicaciones para mostrar en la tabla.');
-            const row = document.createElement('tr');
-            row.innerHTML = `<td colspan="3">No hay ubicaciones disponibles</td>`;
-            tbody.appendChild(row);
-            return;
-        }
-
-        // Iterar sobre las ubicaciones y actualizar la tabla
-        Object.keys(ubicaciones).forEach(trabajadorKey => {
-            const ubicacion = ubicaciones[trabajadorKey];
-            const row = document.createElement('tr');
-
-            if (ubicacion && ubicacion.lat && ubicacion.lng) {
-                // Fila para un trabajador con ubicación válida
-                row.innerHTML = `
-                    <td>${trabajadorKey}</td>
-                    <td>Lat: ${ubicacion.lat.toFixed(5)}</td>
-                    <td>Lng: ${ubicacion.lng.toFixed(5)}</td>
-                `;
-            } else {
-                // Fila para un trabajador con ubicación inválida o faltante
-                console.warn(`La ubicación del trabajador ${trabajadorKey} es inválida o incompleta.`);
-                row.innerHTML = `
-                    <td>${trabajadorKey}</td>
-                    <td colspan="2">Ubicación no disponible</td>
-                `;
-            }
-
-            tbody.appendChild(row);
-        });
-
-        console.log('Tabla de ubicaciones actualizada correctamente.');
-    } catch (error) {
-        console.error('Error al actualizar la tabla de ubicaciones:', error);
-    }
-}
-
-// Refrescar el mapa automáticamente a intervalos definidos (por ejemplo, cada 10 segundos)
-setInterval(() => {
-    actualizarMapaTrabajadores();
-}, 10000); // Actualizar cada 10 segundos
-
-
-document.getElementById('add-sede-form').addEventListener('submit', async function (event) {
-    event.preventDefault();
-    const sedeName = document.getElementById('sede-name').value;
-    const sedeLat = parseFloat(document.getElementById('sede-lat').value);
-    const sedeLng = parseFloat(document.getElementById('sede-lng').value);
-
-    if (!sedeName || isNaN(sedeLat) || isNaN(sedeLng)) {
-        alert('Por favor completa todos los campos.');
-        return;
-    }
-
-    try {
-        const response = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/main/sedes.json');
-        const sedes = response.ok ? await response.json() : [];
-
-        sedes.push({ Nombre: sedeName, Latitud: sedeLat, Longitud: sedeLng });
-
-        await guardarEnRepositorio('sedes.json', JSON.stringify(sedes, null, 2));
-        alert('Sede agregada exitosamente.');
-        loadSedes(); // Recargar la lista de sedes.
-    } catch (error) {
-        console.error('Error al guardar la sede:', error);
-    }
-});
-
-async function loadSedes() {
-    try {
-        // URL RAW de GitHub para obtener el archivo sedes.json
-        const response = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/main/sedes.json');
-        if (!response.ok) {
-            throw new Error('Error al cargar sedes.json');
-        }
-
-        // Parsear el contenido del archivo JSON
-        const sedes = await response.json();
-
-        // Obtener el elemento de la lista de sedes en el DOM
-        const sedesList = document.getElementById('sedes');
-        sedesList.innerHTML = ''; // Limpiar la lista anterior
-
-        // Recorrer las sedes y agregarlas a la lista
-        sedes.forEach(sede => {
-            const li = document.createElement('li');
-            li.textContent = `${sede.Nombre} - Lat: ${sede.Latitud}, Lng: ${sede.Longitud}`;
-            sedesList.appendChild(li);
-        });
-    } catch (error) {
-        console.error('Error al cargar las sedes:', error);
-    }
-}
-
-// Inicializar la lista de sedes al cargar la página
-loadSedes();
-
-         
-async function cargarTrabajadores() {
-    try {
-        // Utiliza la URL RAW de GitHub para evitar problemas de CORS
-        const response = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/trabajadores.json');
-        if (!response.ok) {
-            throw new Error(`Error ${response.status}: ${response.statusText}`);
-        }
-
-        // Parsear el JSON obtenido
-        const trabajadores = await response.json();
-        console.log('Trabajadores cargados:', trabajadores);
-
-        // Muestra los trabajadores en la interfaz
-        const lista = document.getElementById('trabajadoresList');
-        lista.innerHTML = ''; // Limpia el contenido previo
-
-        // Verificar si hay trabajadores en los datos cargados
-        const trabajadoresArray = Object.values(trabajadores);
-        if (trabajadoresArray.length === 0) {
-            lista.innerHTML = '<li>No hay trabajadores registrados.</li>';
-            return;
-        }
-
-        // Iterar sobre los valores del objeto trabajadores
-        trabajadoresArray.forEach(trabajador => {
-            // Validar que los campos necesarios estén presentes
-            if (!trabajador.nombre || !trabajador.documento) {
-                console.warn(`Trabajador con datos incompletos:`, trabajador);
-                return; // Ignorar trabajadores con datos incompletos
-            }
-
-            const li = document.createElement('li');
-            li.textContent = `${trabajador.nombre} - Documento: ${trabajador.documento}`;
-            lista.appendChild(li);
-        });
-    } catch (error) {
-        console.error('Error al cargar los trabajadores:', error);
-        alert('No se pudieron cargar los trabajadores. Por favor, verifica tu conexión o el archivo JSON.');
-    }
-}
-
-// Llama a la función para cargar trabajadores
-cargarTrabajadores();
-
-async function procesarTrabajadores() {
-    const file = document.getElementById('excelTrabajadores').files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = async function(e) {
-        try {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, {type: 'array'});
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            const jsonData = XLSX.utils.sheet_to_json(sheet);
-
-            // Validar columnas requeridas
-            if (!jsonData[0]?.['Número de Documento'] || !jsonData[0]?.Nombre || !jsonData[0]?.['Número de Celular']) {
-                throw new Error("Formato incorrecto. Columnas requeridas: Número de Documento, Nombre, Número de Celular");
-            }
-
-            const trabajadores = jsonData.reduce((acc, t) => {
-                const documento = t['Número de Documento'];
-                acc[documento] = {
-                    password: documento,
-                    role: 'worker',
-                    documento: documento,
-                    nombre: t['Nombre'],
-                    celular: t['Número de Celular'],
-                    nomina: []
-                };
-                return acc;
-            }, {});
-
-            await guardarEnRepositorio('trabajadores.json', JSON.stringify(trabajadores, null, 2));
-            actualizarListaTrabajadores();
-            alert("Trabajadores importados y guardados exitosamente!");
-        } catch (error) {
-            alert(error.message);
-        }
-    };
-    reader.readAsArrayBuffer(file);
-}
-
-         let trabajadores = {}; // Almacén local de trabajadores
-
-function crearTrabajador() {
-    const nombre = document.getElementById('nombreTrabajador').value;
-    const documento = document.getElementById('documentoTrabajador').value;
-    const celular = document.getElementById('celularTrabajador').value;
-
-    if (!nombre || !documento || !celular) {
-        alert("Por favor, completa todos los campos.");
-        return;
-    }
-
-    // Agregar trabajador al objeto global
-    trabajadores[documento] = {
-        nombre: nombre,
-        documento: documento,
-        celular: celular,
-        role: 'worker',
-        nomina: []
-    };
-
-    // Actualizar la lista visual
-    actualizarListaTrabajadores();
-
-    // Limpiar el formulario
-    document.getElementById('nombreTrabajador').value = '';
-    document.getElementById('documentoTrabajador').value = '';
-    document.getElementById('celularTrabajador').value = '';
-
-    alert("Trabajador agregado exitosamente.");
-}
-
-async function actualizarListaTrabajadores() {
-    // Obtener trabajadores desde el repositorio remoto
-    const response = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/trabajadores.json?ref=main');
-    const data = await response.json();
-    const trabajadores = JSON.parse(atob(data.content));
-
-    // Obtener sedes desde el repositorio remoto
-    const sedesResponse = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/sedes.json?ref=main');
-    const sedesData = await sedesResponse.json();
-    const sedes = JSON.parse(atob(sedesData.content));
-
-    // Actualizar selects
-    const selectTrabajador = document.getElementById('selectTrabajador');
-    const selectSede = document.getElementById('selectSede');
-
-    selectTrabajador.innerHTML = '<option value="">Seleccionar Trabajador</option>';
-    selectSede.innerHTML = '<option value="">Seleccionar Sede</option>';
-
-    Object.keys(trabajadores).forEach(t => {
-        selectTrabajador.innerHTML += `<option value="${t}">${trabajadores[t].nombre}</option>`;
-    });
-
-    sedes.forEach(s => {
-        selectSede.innerHTML += `<option value="${s.Nombre}">${s.Nombre}</option>`;
-    });
-
-    // Actualizar la lista visual de trabajadores
-    const lista = document.getElementById('trabajadoresList'); // Seleccionar el `<ul>`
-    lista.innerHTML = ''; // Limpiar el contenido previo
-
-    Object.keys(trabajadores).forEach((documento) => {
-        const trabajador = trabajadores[documento];
-        const li = document.createElement('li'); // Crear un nuevo elemento de lista
-        li.textContent = `${trabajador.nombre} (Documento: ${trabajador.documento}, Celular: ${trabajador.celular})`;
-        lista.appendChild(li); // Agregar el elemento a la lista
-    });
-}
-async function guardarTrabajadoresEnRepositorio() {
-    const contenido = btoa(JSON.stringify(trabajadores, null, 2)); // Codificar en Base64
-    const repo = 'barrasck/app-trabajador';
-    const path = 'trabajadores.json';
-    const branch = 'main';
-    const mensaje = 'Actualización de trabajadores';
-
-    let sha;
-    try {
-        // **Este bloque verifica si el archivo ya existe y obtiene el SHA**
-        const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=${branch}`);
-        if (response.ok) {
-            const data = await response.json();
-            sha = data.sha;
-        }
-    } catch (error) {
-        console.warn('El archivo no existe, se creará uno nuevo.');
-    }
-
-    try {
-        // Guardar el archivo actualizado
-        const resultado = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer <tu-token-de-acceso>`, // Asegúrate de usar un token de acceso válido
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                message: mensaje,
-                content: contenido,
-                branch: branch,
-                sha: sha, // Incluye el SHA si existe
-            }),
-        });
-
-        if (resultado.ok) {
-            alert('Trabajadores guardados en el repositorio.');
-        } else {
-            alert('Error al guardar los trabajadores.');
-        }
-    } catch (error) {
-        console.error('Error al guardar los trabajadores:', error);
-    }
-}
-
-async function asignarSede() {
-    const trabajador = document.getElementById('selectTrabajador').value;
-    const sede = document.getElementById('selectSede').value;
-
-    if (!trabajador || !sede) {
-        alert("Seleccione un trabajador y una sede");
-        return;
-    }
-
-    const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/asignaciones.json?ref=main');
-    const data = await response.json();
-    const asignaciones = JSON.parse(atob(data.content));
-
-    asignaciones[trabajador] = sede;
-    await guardarEnRepositorio('asignaciones.json', JSON.stringify(asignaciones, null, 2));
-    alert("Sede asignada exitosamente!");
-}
-
-async function iniciarTrackingTrabajador() {
-    if (navigator.geolocation && usuarioActual.role === 'worker') {
-        console.log("Iniciando rastreo de ubicación en tiempo real para el usuario:", usuarioActual.username);
-
-        // Mantener un intervalo para verificar y actualizar ubicaciones
-        const intervaloActualizacion = 10000; // Actualizar cada 10 segundos
-        let ultimaUbicacion = null;
-
-        navigator.geolocation.watchPosition(
-            async position => {
-                const ubicacion = {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude,
-                    timestamp: new Date().toISOString()
-                };
-
-                console.log("Ubicación obtenida en tiempo real:", ubicacion);
-
-                // Evitar actualizaciones innecesarias si no hay cambios significativos
-                if (ultimaUbicacion &&
-                    ultimaUbicacion.lat === ubicacion.lat &&
-                    ultimaUbicacion.lng === ubicacion.lng) {
-                    console.log("La ubicación no ha cambiado significativamente, no se actualiza.");
-                    return;
-                }
-
-                ultimaUbicacion = ubicacion; // Actualizar la última ubicación
-
-                try {
-                    // Obtener ubicaciones actuales desde el archivo remoto
-                    const response = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/ubicaciones.json?ref=main');
-                    if (!response.ok) {
-                        throw new Error(`Error al cargar ubicaciones: ${response.status} - ${response.statusText}`);
-                    }
-
-                    const data = await response.json();
-                    const ubicaciones = JSON.parse(atob(data.content));
-
-                    // Validar el formato del archivo de ubicaciones
-                    if (!ubicaciones || typeof ubicaciones !== 'object') {
-                        throw new Error('El archivo ubicaciones.json no tiene un formato válido.');
-                    }
-
-                    // Actualizar la ubicación del trabajador actual
-                    ubicaciones[usuarioActual.username] = ubicacion;
-
-                    // Guardar la nueva ubicación en el repositorio
-                    await guardarEnRepositorio('ubicaciones.json', JSON.stringify(ubicaciones, null, 2));
-                    console.log("Ubicación actualizada en el repositorio para el usuario:", usuarioActual.username);
-                } catch (error) {
-                    console.error('Error al actualizar la ubicación del trabajador:', error);
-                }
-            },
-            error => {
-                switch (error.code) {
-                    case error.PERMISSION_DENIED:
-                        console.error("El usuario denegó el acceso a la ubicación.");
-                        break;
-                    case error.POSITION_UNAVAILABLE:
-                        console.error("La información de ubicación no está disponible.");
-                        break;
-                    case error.TIMEOUT:
-                        console.error("El tiempo de espera para obtener la ubicación se agotó.");
-                        break;
-                    default:
-                        console.error("Ocurrió un error desconocido al obtener la ubicación:", error.message);
-                        break;
-                }
-            },
-            {
-                enableHighAccuracy: true, // Alta precisión
-                maximumAge: 5000,        // Máximo 5 segundos de caché
-                timeout: 20000           // Tiempo de espera de 20 segundos
-            }
-        );
-
-        // Actualización periódica del repositorio
-        setInterval(async () => {
-            if (!ultimaUbicacion) {
-                console.warn("No se ha registrado ninguna ubicación nueva para actualizar.");
-                return;
-            }
-
-            try {
-                const response = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/ubicaciones.json?ref=main');
-                const data = await response.json();
-                const ubicaciones = JSON.parse(atob(data.content));
-
-                // Actualizar solo si la última ubicación es válida
-                ubicaciones[usuarioActual.username] = ultimaUbicacion;
-
-                // Guardar en el repositorio
-                await guardarEnRepositorio('ubicaciones.json', JSON.stringify(ubicaciones, null, 2));
-                console.log("Ubicación periódica actualizada para el usuario:", usuarioActual.username);
-            } catch (error) {
-                console.error("Error al actualizar periódicamente la ubicación:", error);
-            }
-        }, intervaloActualizacion);
-    } else {
-        console.warn("El navegador no soporta geolocalización o el usuario no tiene permisos.");
-    }
-}
-
-function actualizarUI() {
-    if (usuarioActual.role === 'admin') {
-        document.querySelector('.tabs').style.display = 'flex';
-        document.querySelector('.content-wrapper').style.display = 'block';
-        document.querySelector('.nomina-panel').style.display = 'none';
-        openTab('programacion', { currentTarget: document.querySelector('.tab-btn.active') });
-    } else if (usuarioActual.role === 'worker') {
-        document.querySelector('.tabs').style.display = 'none';
-        document.querySelector('.nomina-panel').style.display = 'block';
-        document.getElementById('mapa').style.display = 'none';
-        document.getElementById('sedes').style.display = 'none';
-    }
-}
 
         function mostrarNomina() {
             const trabajador = usuarioActual.datos;
             const tbody = document.getElementById('registro-nomina');
             let total = 0;
-            document.getElementById('nombre-trabajador').textContent = trabajador.username;
+            document.getElementById('nombre-trabajador').textContent = trabajador.username || usuarioActual.username;
             tbody.innerHTML = '';
-            trabajador.nomina.forEach(dia => {
+            (trabajador.nomina || []).forEach(dia => {
                 const totalDia = dia.horas * dia.valorHora;
                 total += totalDia;
                 tbody.innerHTML += `
@@ -1200,137 +734,61 @@ function actualizarUI() {
             document.getElementById('total-pagar').textContent = total.toLocaleString();
         }
 
-        function iniciarGeolocalizacion() {
-            if (navigator.geolocation) {
-                navigator.geolocation.watchPosition(
-                    manejarPosicion,
-                    (error) => {
-                        console.error(`Error de geolocalización (${error.code}): ${error.message}`);
-                        document.getElementById('status').innerHTML = "❌ Error al obtener ubicación";
-                    },
-                    {
-                        enableHighAccuracy: true,
-                        maximumAge: 10000,
-                        timeout: 30000
-                    }
-                );
+        window.onload = async function() {
+            const session = sessionStorage.getItem('session');
+            document.getElementById('logoutBtn').style.display = session ? 'block' : 'none';
+            if (!session) {
+                document.getElementById('loginModal').style.display = 'flex';
             } else {
-                document.getElementById('status').innerHTML = "❌ Tu navegador no soporta geolocalización";
+                usuarioActual = JSON.parse(session);
+                document.querySelector('.content-wrapper').style.display = 'block';
+                actualizarUI();
+                if (usuarioActual.role === 'admin') {
+                    inicializarMapa();
+                    cargarUbicacionesTrabajadores();
+                    cargarNotificaciones();
+                } else if (usuarioActual.role === 'worker') {
+                    mostrarNomina();
+                    iniciarTrackingTrabajador();
+                    cargarProgramacionTrabajador();
+                }
             }
+            await cargarTrabajadores();
+            await loadSedes();
+        };
+
+        async function procesarProgramacion() {
+            const file = document.getElementById('excelProgramacion').files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+                    if (!jsonData[0]?.Sede || !jsonData[0]?.Fecha || !jsonData[0]?.Turno || !jsonData[0]?.Nombre) {
+                        throw new Error("Formato incorrecto. Columnas requeridas: Sede, Fecha, Turno, Nombre");
+                    }
+
+                    const sedesResponse = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/sedes.json');
+                    const sedesData = sedesResponse.ok ? await sedesResponse.json() : [];
+                    const sedesInvalidas = jsonData.filter(t => !sedesData.some(s => s.Nombre === t.Sede));
+                    if (sedesInvalidas.length > 0) {
+                        throw new Error(`Sedes no encontradas: ${sedesInvalidas.map(t => t.Sede).join(', ')}`);
+                    }
+
+                    await guardarEnRepositorio('programacion.json', JSON.stringify(jsonData, null, 2));
+                    mostrarProgramacionAdmin(jsonData);
+                    alert("Programación cargada exitosamente!");
+                } catch (error) {
+                    alert(error.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
         }
-
-function manejarPosicion(position) {
-    if (!map) {
-        console.error("El mapa no está inicializado.");
-        return;
-    }
-
-    const userCoords = {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude,
-        accuracy: position.coords.accuracy
-    };
-    const coordinatesElement = document.getElementById('coordinates');
-    if (coordinatesElement) {
-        coordinatesElement.textContent = `📌 Tus coordenadas: ${userCoords.lat.toFixed(5)}, ${userCoords.lng.toFixed(5)}`;
-    }
-
-    if (userMarker) {
-        userMarker.setLatLng([userCoords.lat, userCoords.lng]);
-    } else {
-        userMarker = L.marker([userCoords.lat, userCoords.lng]).addTo(map);
-    }
-    if (accuracyCircle) {
-        accuracyCircle.setLatLng([userCoords.lat, userCoords.lng])
-            .setRadius(userCoords.accuracy * CONFIG.estilos.precision.escala);
-    } else {
-        accuracyCircle = L.circle([userCoords.lat, userCoords.lng], {
-            radius: userCoords.accuracy * CONFIG.estilos.precision.escala,
-            color: CONFIG.estilos.precision.color,
-            fillColor: CONFIG.estilos.precision.color,
-            fillOpacity: CONFIG.estilos.precision.relleno,
-        }).addTo(map);
-    }
-}
-
-window.onload = async function() {
-    try {
-        const session = sessionStorage.getItem('session');
-        document.getElementById('logoutBtn').style.display = session ? 'block' : 'none';
-
-        if (!session) {
-            document.getElementById('loginModal').style.display = 'flex';
-        } else {
-            document.querySelector('.content-wrapper').style.display = 'block';
-            usuarioActual = JSON.parse(session);
-            actualizarUI();
-
-            if (usuarioActual.role === 'admin') {
-    inicializarMapa(); // Inicializa el mapa
-    cargarUbicacionesTrabajadores(); // Carga ubicaciones de trabajadores
-    iniciarGeolocalizacion(); // Inicia la geolocalización para el administrador
-    cargarNotificaciones(); // Carga las notificaciones
-            } else if (usuarioActual.role === 'worker') {
-    mostrarNomina(); // Muestra nómina del trabajador
-    iniciarTrackingTrabajador(); // Inicia el envío de ubicación
-    cargarProgramacionTrabajador(); // Carga los turnos asignados
-    document.querySelector('.tabs').style.display = 'none';
-    document.querySelector('.nomina-panel').style.display = 'block';
-    document.getElementById('mapa').style.display = 'none';
-    document.getElementById('sedes').style.display = 'none';
-    document.querySelector('.notificaciones-panel').style.display = 'none';
-    document.querySelector('.upload-section').style.display = 'none';
-            }
-        }
-
-        // Cargar trabajadores desde el repositorio
-        await cargarTrabajadores();
-    } catch (error) {
-        console.error('Error durante la inicialización:', error);
-        alert('Ocurrió un error durante la inicialización. Revisa la consola para más detalles.');
-    }
-};
-
-async function procesarProgramacion() {
-    const file = document.getElementById('excelProgramacion').files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = async function(e) {
-        try {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            const jsonData = XLSX.utils.sheet_to_json(sheet);
-
-            // Validar columnas requeridas (incluyendo Sede)
-            if (!jsonData[0]?.Sede || !jsonData[0]?.Fecha || !jsonData[0]?.Turno || !jsonData[0]?.Nombre) {
-                throw new Error("Formato incorrecto. Columnas requeridas: Sede, Fecha, Turno, Nombre");
-            }
-
-            // Validar que la sede exista
-            const sedesResponse = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/sedes.json?ref=main');
-            const sedesData = await sedesResponse.json();
-            const sedesCargadas = JSON.parse(atob(sedesData.content));
-
-            const sedesInvalidas = jsonData.filter(t => 
-                !sedesCargadas.some(s => s.Nombre === t.Sede)
-            );
-
-            if (sedesInvalidas.length > 0) {
-                throw new Error(`Sedes no encontradas: ${sedesInvalidas.map(t => t.Sede).join(', ')}`);
-            }
-
-            await guardarEnRepositorio('programacion.json', JSON.stringify(jsonData, null, 2));
-            mostrarProgramacionAdmin(jsonData);
-            alert("Programación cargada exitosamente!");
-        } catch (error) {
-            alert(error.message);
-            console.error(error);
-        }
-    };
-    reader.readAsArrayBuffer(file);
-}
 
         function mostrarProgramacionAdmin(data) {
             const contenedor = document.getElementById('programacionData');
@@ -1360,198 +818,173 @@ async function procesarProgramacion() {
             contenedor.style.display = 'block';
         }
 
-async function cargarProgramacionTrabajador() {
-    const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/programacion.json?ref=main');
-    const data = await response.json();
-    const programacion = JSON.parse(atob(data.content));
+        async function cargarProgramacionTrabajador() {
+            try {
+                const response = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/programacion.json');
+                if (!response.ok) throw new Error('No se pudo cargar la programación');
+                const programacion = await response.json();
+                const turnosUsuario = programacion.filter(t => t.Nombre === usuarioActual.username);
+                const tbody = document.querySelector('#turnosTrabajador tbody');
+                tbody.innerHTML = turnosUsuario.map(turno => `
+                    <tr>
+                        <td>${turno.Fecha}</td>
+                        <td>${turno.Turno}</td>
+                        <td>${turno.estado || 'Pendiente'}</td>
+                        <td>
+                            ${!turno.estado || turno.estado === 'Pendiente' ? `
+                            <button class="confirmar-btn" onclick="confirmarTurno('${turno.Fecha}')">Confirmar</button>
+                            <button class="rechazar-btn" onclick="rechazarTurno('${turno.Fecha}')">Rechazar</button>` : 'Sin acciones'}
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error al cargar programación:', error);
+            }
+        }
 
-    const turnosUsuario = programacion.filter(t => t.Nombre === usuarioActual.username);
-    const tbody = document.querySelector('#turnosTrabajador tbody');
-
-    tbody.innerHTML = turnosUsuario.map(turno => `
-        <tr>
-            <td>${turno.Fecha}</td>
-            <td>${turno.Turno}</td>
-            <td>${turno.estado === 'confirmado' ? '✅ Confirmado' : 
-                turno.estado === 'rechazado' ? '❌ Rechazado' : '⏳ Pendiente'}</td>
-            <td>
-                ${turno.estado !== 'confirmado' ? `
-                <button class="confirmar-btn" 
-                    onclick="confirmarTurno('${turno.Fecha}')">
-                    Confirmar
-                </button>
-                <button class="rechazar-btn" 
-                    onclick="rechazarTurno('${turno.Fecha}')">
-                    Rechazar
-                </button>` : 'Sin acciones'}
-            </td>
-        </tr>
-    `).join('');
-}
-
-
-async function rechazarTurno(fecha) {
-    if (confirm("¿Estás seguro de rechazar este turno?")) {
-        const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/programacion.json?ref=main');
-        const data = await response.json();
-        let programacion = JSON.parse(atob(data.content));
-
-        programacion = await Promise.all(programacion.map(async (t) => {
-            if (t.Nombre === usuarioActual.username && t.Fecha === fecha) {
-                const turnoRechazado = {
-                    ...t,
-                    estado: 'rechazado',
-                    fechaRechazo: new Date().toISOString()
-                };
-
-                // Agregar notificación
-                const notificacionesResponse = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/notificaciones.json?ref=main');
-                const notificacionesData = await notificacionesResponse.json();
-                const notificaciones = JSON.parse(atob(notificacionesData.content));
-
-                notificaciones.push({
-                    trabajador: usuarioActual.username,
-                    fecha: fecha,
-                    turno: t.Turno,
-                    timestamp: new Date().toISOString()
+        async function confirmarTurno(fecha) {
+            try {
+                const response = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/programacion.json');
+                if (!response.ok) throw new Error('No se pudo cargar la programación');
+                let programacion = await response.json();
+                programacion = programacion.map(t => {
+                    if (t.Nombre === usuarioActual.username && t.Fecha === fecha) {
+                        return { ...t, estado: 'confirmado' };
+                    }
+                    return t;
                 });
+                await guardarEnRepositorio('programacion.json', JSON.stringify(programacion, null, 2));
+                cargarProgramacionTrabajador();
+            } catch (error) {
+                console.error('Error al confirmar turno:', error);
+                alert('Error al confirmar el turno.');
+            }
+        }
+
+        async function rechazarTurno(fecha) {
+            if (confirm("¿Estás seguro de rechazar este turno?")) {
+                try {
+                    const response = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/programacion.json');
+                    if (!response.ok) throw new Error('No se pudo cargar la programación');
+                    let programacion = await response.json();
+                    programacion = programacion.map(t => {
+                        if (t.Nombre === usuarioActual.username && t.Fecha === fecha) {
+                            return { ...t, estado: 'rechazado', fechaRechazo: new Date().toISOString() };
+                        }
+                        return t;
+                    });
+
+                    const notificacionesResponse = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/notificaciones.json');
+                    const notificaciones = notificacionesResponse.ok ? await notificacionesResponse.json() : [];
+                    notificaciones.push({
+                        trabajador: usuarioActual.username,
+                        fecha: fecha,
+                        turno: programacion.find(t => t.Nombre === usuarioActual.username && t.Fecha === fecha).Turno,
+                        timestamp: new Date().toISOString()
+                    });
+
+                    await guardarEnRepositorio('notificaciones.json', JSON.stringify(notificaciones, null, 2));
+                    await guardarEnRepositorio('programacion.json', JSON.stringify(programacion, null, 2));
+                    cargarProgramacionTrabajador();
+                    if (usuarioActual.role === 'admin') cargarNotificaciones();
+                } catch (error) {
+                    console.error('Error al rechazar turno:', error);
+                    alert('Error al rechazar el turno.');
+                }
+            }
+        }
+
+        async function cargarNotificaciones() {
+            try {
+                const response = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/notificaciones.json');
+                if (!response.ok) throw new Error('Error al cargar notificaciones');
+                const notificaciones = await response.json();
+                const listaNotificaciones = document.getElementById('listaNotificaciones');
+                listaNotificaciones.innerHTML = notificaciones.map((n, index) => `
+                    <div class="notificacion-item">
+                        <span>Trabajador ${n.trabajador} rechazó turno ${n.turno} el ${n.fecha}</span>
+                        <button onclick="marcarComoResuelto(${index})">✔️</button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error al cargar notificaciones:', error);
+            }
+        }
+
+        async function marcarComoResuelto(index) {
+            try {
+                const response = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/notificaciones.json');
+                if (!response.ok) throw new Error('Error al cargar notificaciones');
+                let notificaciones = await response.json();
+                notificaciones.splice(index, 1);
                 await guardarEnRepositorio('notificaciones.json', JSON.stringify(notificaciones, null, 2));
-
-                return turnoRechazado;
+                cargarNotificaciones();
+            } catch (error) {
+                console.error('Error al marcar como resuelto:', error);
             }
-            return t;
-        }));
-
-        await guardarEnRepositorio('programacion.json', JSON.stringify(programacion, null, 2));
-        cargarProgramacionTrabajador();
-        if (usuarioActual.role === 'admin') cargarNotificaciones();
-    }
-}
-
-async function cargarNotificaciones() {
-    try {
-        const response = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/notificaciones.json?ref=main');
-        if (!response.ok) throw new Error("Error al cargar las notificaciones");
-
-        const data = await response.json();
-        const notificaciones = JSON.parse(atob(data.content));
-        actualizarUIConNotificaciones(notificaciones); // Llamar a la nueva función
-    } catch (error) {
-        console.error('Error al cargar las notificaciones:', error);
-        alert('No se pudieron cargar las notificaciones.');
-    }
-}
-
-         function actualizarUIConNotificaciones(notificaciones) {
-    const listaNotificaciones = document.getElementById('listaNotificaciones');
-    listaNotificaciones.innerHTML = ''; // Limpia las notificaciones previas
-
-    notificaciones.forEach(notificacion => {
-        const item = document.createElement('div');
-        item.className = 'notificacion-item';
-        item.innerHTML = `
-            <span>${notificacion.mensaje}</span>
-            <button onclick="marcarComoLeida('${notificacion.id}')">✔️</button>
-        `;
-        listaNotificaciones.appendChild(item);
-    });
-}
-
-async function marcarComoResuelto(index) {
-    const response = await fetch('https://api.github.com/repos/barrasck/ubicacion/contents/notificaciones.json?ref=main');
-    const data = await response.json();
-    const notificaciones = JSON.parse(atob(data.content));
-
-    notificaciones.splice(index, 1);
-    await guardarEnRepositorio('notificaciones.json', JSON.stringify(notificaciones, null, 2));
-    cargarNotificaciones();
-}
-
-function openTab(tabName, event) {
-    if (usuarioActual.role !== 'admin') return;
-
-    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-
-    document.getElementById(tabName).classList.add('active');
-    event.currentTarget.classList.add('active');
-
-    if (tabName === 'mapa') {
-        if (!map) {
-            inicializarMapa();
-        } else {
-            map.invalidateSize(); // Recalcula el tamaño del mapa
         }
-    }
-}
 
-async function procesarSedes() {
-    const file = document.getElementById('excelSedes').files[0];
-    if (!file) return;
+        function openTab(tabName, event) {
+            if (usuarioActual.role !== 'admin') return;
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.currentTarget.classList.add('active');
+            if (tabName === 'mapa' && map) map.invalidateSize();
+        }
 
-    const reader = new FileReader();
-    reader.onload = async function(e) {
-        try {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            const jsonData = XLSX.utils.sheet_to_json(sheet);
+        async function procesarSedes() {
+            const file = document.getElementById('excelSedes').files[0];
+            if (!file) return;
 
-            // Validar columnas requeridas
-            if (!jsonData[0]?.['Nombre'] || !jsonData[0]?.['Latitud'] || !jsonData[0]?.['Longitud']) {
-                throw new Error("Formato incorrecto. Columnas requeridas: Nombre, Latitud, Longitud");
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+                    if (!jsonData[0]?.['Nombre'] || !jsonData[0]?.['Latitud'] || !jsonData[0]?.['Longitud']) {
+                        throw new Error("Formato incorrecto. Columnas requeridas: Nombre, Latitud, Longitud");
+                    }
+
+                    await guardarEnRepositorio('sedes.json', JSON.stringify(jsonData, null, 2));
+                    loadSedes();
+                    actualizarSedesEnMapa();
+                    alert("Sedes importadas exitosamente!");
+                } catch (error) {
+                    alert(error.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        async function actualizarSedesEnMapa() {
+            if (!map) return;
+            try {
+                const response = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/sedes.json');
+                if (!response.ok) throw new Error('Error al cargar sedes');
+                const sedesData = await response.json();
+                const sedeIcon = L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41]
+                });
+                sedesData.forEach(sede => {
+                    L.marker([sede.Latitud, sede.Longitud], { icon: sedeIcon })
+                        .addTo(map)
+                        .bindPopup(`<b>${sede.Nombre}</b>`);
+                });
+            } catch (error) {
+                console.error('Error al actualizar sedes en mapa:', error);
             }
-
-            await guardarEnRepositorio('sedes.json', JSON.stringify(jsonData, null, 2));
-            alert("Sedes importadas y guardadas exitosamente!");
-        } catch (error) {
-            alert(error.message);
-        }
-    };
-    reader.readAsArrayBuffer(file);
-}
-
-async function actualizarSedesEnMapa() {
-    if (!map) return;
-
-    try {
-        const response = await fetch('https://api.github.com/repos/barrasck/app-trabajador/contents/sedes.json?ref=main');
-        if (!response.ok) {
-            throw new Error(`Error: ${response.status} ${response.statusText}`);
         }
 
-        const data = await response.json();
-        const sedes = JSON.parse(atob(data.content));
-
-        // Agrega el console.log aquí:
-        console.log('Datos de las sedes:', sedes);
-
-        // Icono rojo para las sedes
-        const sedeIcon = L.icon({
-            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-            iconSize: [25, 41],
-            iconAnchor: [12, 41]
-        });
-
-        // Añadir sedes al mapa
-        sedes.forEach(sede => {
-            L.marker([sede.Latitud, sede.Longitud], { icon: sedeIcon })
-                .addTo(map)
-                .bindPopup(`<b>${sede.Nombre}</b>`);
-        });
-    } catch (error) {
-        console.error('Error al cargar las sedes:', error);
-    }
-}
-
-        function mostrarListaSedes() {
-            const contenedor = document.getElementById('listaSedes');
-            contenedor.innerHTML = sedes.map(sede => `
-                <div class="sede-item">
-                    <h4>${sede.Nombre}</h4>
-                    <p>Lat: ${sede.Latitud}, Lng: ${sede.Longitud}</p>
-                </div>
-            `).join('');
+        // Placeholder para guardar en repositorio (sin autenticación no funcionará)
+        async function guardarEnRepositorio(filePath, content) {
+            console.warn(`No se puede guardar ${filePath} sin autenticación con GitHub API. Contenido preparado:`, content);
+            // Para que funcione, necesitarías implementar la API de GitHub con un token aquí.
         }
     </script>
 </body>
