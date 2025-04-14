@@ -734,12 +734,9 @@ select {
 
         async function actualizarListaTrabajadores() {
             try {
-                const response = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/trabajadores.json');
-                const trabajadoresData = response.ok ? await response.json() : {};
-                const db = firebase.database();
-const snapshot = await db.ref("sedes").once("value");
-const sedesData = snapshot.val() || [];
-                const sedesData = sedesResponse.ok ? await sedesResponse.json() : [];
+        const db = firebase.database();
+        const snapshot = await db.ref("sedes").once("value");
+        const sedesData = snapshot.val() || []; // <-- Única declaración
 
                 const selectTrabajador = document.getElementById('selectTrabajador');
                 const selectSede = document.getElementById('selectSede');
