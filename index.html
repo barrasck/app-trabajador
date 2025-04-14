@@ -1072,31 +1072,12 @@ const trabajadores = snapshot.val() || {};
             }
         }
 
-        async function cargarNotificaciones() {
-            try {
-                const db = firebase.database();
-const snapshot = await db.ref("notificaciones").once("value");
-const notificaciones = snapshot.val() || [];
-                if (!response.ok) throw new Error('Error al cargar notificaciones');
-                const notificaciones = await response.json();
-                const listaNotificaciones = document.getElementById('listaNotificaciones');
-                listaNotificaciones.innerHTML = notificaciones.map((n, index) => `
-                    <div class="notificacion-item">
-                        <span>Trabajador ${n.trabajador} rechazó turno ${n.turno} el ${n.fecha}</span>
-                        <button onclick="marcarComoResuelto(${index})">✔️</button>
-                    </div>
-                `).join('');
-            } catch (error) {
-                console.error('Error al cargar notificaciones:', error);
-            }
-        }
-
 async function cargarNotificaciones() {
     try {
         const db = firebase.database();
         const snapshot = await db.ref("notificaciones").once("value");
-        const notificaciones = snapshot.val() || [];
-        
+        const notificaciones = snapshot.val() || []; // <-- Única declaración
+
         // Actualizar la interfaz
         const listaNotificaciones = document.getElementById('listaNotificaciones');
         listaNotificaciones.innerHTML = notificaciones.map(notif => `
@@ -1110,6 +1091,7 @@ async function cargarNotificaciones() {
         console.error("Error al cargar notificaciones:", error);
         alert("No se pudieron cargar las notificaciones.");
     }
+}
 }
 
         function openTab(tabName, event) {
