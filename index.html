@@ -468,61 +468,185 @@
             firebase.database().ref('ubicaciones').off();
         }
 
-        async function login(event) {
-            event.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+async function login(event) {
+    event.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value.trim();
 
-            try {
-                const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
-                const user = userCredential.user;
+    // Validaciones iniciales
+    if (!email || !password) {
+        return showError('Todos los campos son requeridos');
+    }
 
-                const db = firebase.database();
-                const snapshot = await db.ref(`usuarios/${user.uid}`).once('value');
-                let userData = snapshot.val();
+    if (!isValidEmail(email)) {
+        return showError('Formato de email inválido');
+    }
 
-                if (!userData) {
-                    // Crear registro automáticamente si no existe
-                    userData = {
-                        nombre: user.displayName || 'Sin nombre',
-                        email: user.email,
-                        role: 'worker'
-                    };
-                    await db.ref(`usuarios/${user.uid}`).set(userData);
-                }
+    try {
+        const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
+        const user = userCredential.user;
 
-                usuarioActual = {
-                    uid: user.uid,
-                    email: user.email,
-                    role: userData.role || 'worker',
-                    nombre: userData.nombre || 'Sin nombre'
-                };
-
-                document.getElementById('loginModal').style.display = 'none';
-                document.querySelector('.content-wrapper').style.display = 'block';
-                document.getElementById('logoutBtn').style.display = 'block';
-                sessionStorage.setItem('session', JSON.stringify(usuarioActual));
-                actualizarUI();
-
-                if (usuarioActual.role === 'admin') {
-                    await Promise.all([
-                        inicializarMapa(),
-                        cargarUbicacionesTrabajadores(),
-                        cargarNotificaciones()
-                    ]);
-                } else {
-                    await Promise.all([
-                        mostrarNomina(),
-                        iniciarTrackingTrabajador(),
-                        cargarProgramacionTrabajador()
-                    ]);
-                }
-            } catch (error) {
-                console.error('Error en login:', error);
-                alert(`Error al iniciar sesión: ${error.message}`);
-                document.getElementById('password').value = '';
-            }
+        // Verificar si el usuario existe en la base de datos
+        const db = firebase.database();
+        const userSnapshot = await db.ref(`usuarios/${user.uid}`).once('value');
+        
+        if (!userSnapshot.exists()) {
+            await firebase.auth().signOut();
+            return showError('Usuario no registrado en el sistema');
         }
+
+        const userData = userSnapshot.val();
+
+        // Verificar estado de la cuenta
+        if (userData.estado === 'inactivo') {
+            await firebase.auth().signOut();
+            return showError('Cuenta desactivada. Contacte al administrador');
+        }
+
+        // Actualizar UI y estado
+        usuarioActual = {
+            uid: user.uid,
+            email: user.email,
+            role: userData.role || 'worker',
+            nombre: userData.nombre || 'Sin nombre',
+            documento: userData.documento
+        };
+
+        handleSuccessfulLogin();
+
+    } catch (error) {
+        handleAuthError(error);
+    }
+}
+
+function handleAuthError(error) {
+    console.error('Error en login:', error);
+    let message = 'Error en autenticación';
+
+    switch (error.code) {
+        case 'auth/user-not-found':
+            message = 'Usuario no registrado';
+            break;
+        case 'auth/wrong-password':
+            message = 'Contraseña incorrecta';
+            break;
+        case 'auth/too-many-requests':
+            message = 'Demasiados intentos. Intente más tarde';
+            break;
+        case 'auth/user-disabled':
+            message = 'Cuenta desactivada';
+            break;
+        case 'auth/invalid-email':
+            message = 'Email inválido';
+            break;
+        case 'auth/invalid-login-credentials':
+            message = 'Credenciales inválidas. Verifique sus datos';
+            break;
+    }
+
+    showError(message);
+    document.getElementById('password').value = '';
+}
+
+async function procesarTrabajadores() {
+    const file = document.getElementById('excelTrabajadores').files[0];
+    if (!file) {
+        return showError('Seleccione un archivo Excel');
+    }
+
+    try {
+        const { data, errors } = await procesarExcel(file);
+        if (errors.length > 0) {
+            return handleImportErrors(errors);
+        }
+
+        const resultados = await Promise.allSettled(
+            data.map(t => registrarTrabajador(t))
+        );
+
+        handleImportResults(resultados);
+        cargarTrabajadores();
+
+    } catch (error) {
+        showError(`Error crítico: ${error.message}`);
+    }
+}
+
+async function registrarTrabajador(t) {
+    try {
+        // Validaciones
+        if (!t['Número de Documento'] || !t['Nombre'] || !t['Correo Electrónico']) {
+            throw new Error('Datos incompletos en el archivo');
+        }
+
+        const documento = t['Número de Documento'].toString().trim();
+        const email = t['Correo Electrónico'].trim();
+        const password = documento;
+
+        if (!isValidDocumentNumber(documento)) {
+            throw new Error(`Documento inválido: ${documento}`);
+        }
+
+        if (!isValidEmail(email)) {
+            throw new Error(`Email inválido: ${email}`);
+        }
+
+        // Crear usuario en Authentication
+        const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
+        
+        // Crear registro en Database
+        const trabajadorData = crearEstructuraTrabajador(t, documento, email);
+        
+        await Promise.all([
+            firebase.database().ref(`usuarios/${userCredential.user.uid}`).set({
+                nombre: trabajadorData.nombreApellidos,
+                email: email,
+                role: 'worker',
+                documento: documento,
+                estado: 'activo'
+            }),
+            firebase.database().ref(`trabajadores/${documento}`).set(trabajadorData)
+        ]);
+
+        return { success: true, documento };
+
+    } catch (error) {
+        if (error.code === 'auth/email-already-in-use') {
+            await handleExistingUser(t, documento, email);
+            return { success: false, documento, error: 'Email ya registrado' };
+        }
+        throw error;
+    }
+}
+
+// Funciones de utilidad
+function isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function isValidDocumentNumber(documento) {
+    return /^[0-9]{8,15}$/.test(documento);
+}
+
+async function handleExistingUser(t, documento, email) {
+    const snapshot = await firebase.database().ref('trabajadores').orderByChild('numeroDocumento').equalTo(documento).once('value');
+    if (!snapshot.exists()) {
+        await firebase.auth().signInWithEmailAndPassword(email, documento);
+        await firebase.auth().currentUser.delete();
+    }
+}
+
+function showError(message) {
+    alert(`Error: ${message}`);
+}
+
+function handleSuccessfulLogin() {
+    document.getElementById('loginModal').style.display = 'none';
+    document.querySelector('.content-wrapper').style.display = 'block';
+    document.getElementById('logoutBtn').style.display = 'block';
+    sessionStorage.setItem('session', JSON.stringify(usuarioActual));
+    actualizarUI();
+}
 
         async function cargarUbicacionesTrabajadores() {
             try {
