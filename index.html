@@ -38,8 +38,8 @@
         }
         #map {
             height: 70vh;
-            width: 100%;
-            margin: 20px 0;
+            width: calc(100% - 40px)
+            margin: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
@@ -667,17 +667,31 @@ function handleSuccessfulLogin() {
             }
         }
 
-        async function inicializarMapa() {
-            if (!map) {
-                map = L.map('map', {
-                    maxZoom: CONFIG.opcionesMapa.maxZoom
-                }).setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                }).addTo(map);
-                await actualizarSedesEnMapa();
-            }
-        }
+async function inicializarMapa() {
+    if (!map) {
+        await new Promise(resolve => setTimeout(resolve, 50)); // Esperar a que el DOM esté listo
+        
+        map = L.map('map', {
+            maxZoom: CONFIG.opcionesMapa.maxZoom,
+            preferCanvas: true // Mejor rendimiento para muchos marcadores
+        }).setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
+
+        // Añadir capa de tiles con reintentos
+        const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap',
+            maxNativeZoom: 19,
+            maxZoom: 22
+        }).on('tileerror', () => {
+            console.warn('Error cargando tiles, intentando con servidor alternativo...');
+            tileLayer.setUrl('https://tile.openstreetmap.de/{z}/{x}/{y}.png');
+        }).addTo(map);
+
+        // Forzar actualización después de mostrar el mapa
+        setTimeout(() => map.invalidateSize(), 100);
+        
+        await actualizarSedesEnMapa();
+    }
+}
 
         function actualizarMapaTrabajadores(ubicaciones) {
             if (!map) return;
@@ -1259,14 +1273,35 @@ window.onload = async function() {
             }
         }
 
-        function openTab(tabName, event) {
-            if (usuarioActual.role !== 'admin') return;
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(tabName).classList.add('active');
-            event.currentTarget.classList.add('active');
-            if (tabName === 'mapa' && map) map.invalidateSize();
+function openTab(tabName, event) {
+    if (usuarioActual.role !== 'admin') return;
+    
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+        if (tab.id === tabName) {
+            tab.style.display = 'block';
+            setTimeout(() => {
+                tab.classList.add('active');
+                if (map) {
+                    map.invalidateSize();
+                    map.setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
+                }
+            }, 10);
+        } else {
+            tab.style.display = 'none';
         }
+    });
+    
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+}
+
+// Añadir evento de resize para actualizar el mapa
+window.addEventListener('resize', () => {
+    if (map) {
+        map.invalidateSize();
+    }
+});
 
         async function procesarSedes() {
             const file = document.getElementById('excelSedes').files[0];
