@@ -13,7 +13,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
     <script src="firebase-config.js"></script>
     <style>
-        /* Estilos CSS (sin cambios, se mantienen como en el original) */
+        /* Estilos CSS mantenidos como en el original */
         .tabs {
             margin: 20px 0;
             gap: 10px;
@@ -479,10 +479,16 @@
 
                 const db = firebase.database();
                 const snapshot = await db.ref(`usuarios/${user.uid}`).once('value');
-                const userData = snapshot.val();
+                let userData = snapshot.val();
 
                 if (!userData) {
-                    throw new Error('Usuario no registrado en la base de datos');
+                    // Crear registro automáticamente si no existe
+                    userData = {
+                        nombre: user.displayName || 'Sin nombre',
+                        email: user.email,
+                        role: 'worker'
+                    };
+                    await db.ref(`usuarios/${user.uid}`).set(userData);
                 }
 
                 usuarioActual = {
@@ -496,16 +502,20 @@
                 document.querySelector('.content-wrapper').style.display = 'block';
                 document.getElementById('logoutBtn').style.display = 'block';
                 sessionStorage.setItem('session', JSON.stringify(usuarioActual));
+                actualizarUI();
 
                 if (usuarioActual.role === 'admin') {
-                    await inicializarMapa();
-                    cargarUbicacionesTrabajadores();
-                    document.querySelector('.tabs').style.display = 'flex';
-                    openTab('programacion', { currentTarget: document.querySelector('.tab-btn.active') });
+                    await Promise.all([
+                        inicializarMapa(),
+                        cargarUbicacionesTrabajadores(),
+                        cargarNotificaciones()
+                    ]);
                 } else {
-                    mostrarNomina();
-                    iniciarTrackingTrabajador();
-                    document.querySelector('.nomina-panel').style.display = 'block';
+                    await Promise.all([
+                        mostrarNomina(),
+                        iniciarTrackingTrabajador(),
+                        cargarProgramacionTrabajador()
+                    ]);
                 }
             } catch (error) {
                 console.error('Error en login:', error);
@@ -625,7 +635,7 @@
 
             const newSede = { nombre: sedeName, latitud: sedeLat, longitud: sedeLng };
             sedes.push(newSede);
-            await guardarEnFirebase('sedes', sedes);
+            await guardarEnFirebase(`sedes/${sedeName}`, newSede);
             loadSedes();
             alert('Sede agregada exitosamente.');
         });
@@ -668,9 +678,10 @@
                         throw new Error("Formato incorrecto. Columnas requeridas: Número de Documento, Nombre, Correo Electrónico");
                     }
 
-                    const trabajadores = jsonData.reduce((acc, t) => {
+                    const db = firebase.database();
+                    const promesas = jsonData.map(async (t) => {
                         const documento = t['Número de Documento'];
-                        acc[documento] = {
+                        const trabajador = {
                             password: documento,
                             role: 'worker',
                             numeroDocumento: documento,
@@ -678,10 +689,10 @@
                             correoElectronico: t['Correo Electrónico'],
                             nomina: []
                         };
-                        return acc;
-                    }, {});
+                        await db.ref(`trabajadores/${documento}`).set(trabajador);
+                    });
 
-                    await guardarEnFirebase('trabajadores', trabajadores);
+                    await Promise.all(promesas);
                     cargarTrabajadores();
                     alert("Trabajadores importados exitosamente!");
                 } catch (error) {
@@ -834,34 +845,45 @@
         function actualizarUI() {
             if (usuarioActual.role === 'admin') {
                 document.querySelector('.tabs').style.display = 'flex';
-                document.querySelector('.content-wrapper').style.display = 'block';
+                document.querySelector('.info-panel').style.display = 'block';
                 document.querySelector('.nomina-panel').style.display = 'none';
                 openTab('programacion', { currentTarget: document.querySelector('.tab-btn.active') });
-            } else if (usuarioActual.role === 'worker') {
+            } else {
                 document.querySelector('.tabs').style.display = 'none';
+                document.querySelector('.info-panel').style.display = 'none';
                 document.querySelector('.nomina-panel').style.display = 'block';
             }
         }
 
-        function mostrarNomina() {
-            const trabajador = usuarioActual;
-            const tbody = document.getElementById('registro-nomina');
-            let total = 0;
-            document.getElementById('nombre-trabajador').textContent = trabajador.nombre || usuarioActual.email;
-            tbody.innerHTML = '';
-            (trabajador.nomina || []).forEach(dia => {
-                const totalDia = dia.horas * dia.valorHora;
-                total += totalDia;
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${dia.fecha}</td>
-                        <td>${dia.horas}</td>
-                        <td>$${dia.valorHora.toLocaleString()}</td>
-                        <td>$${totalDia.toLocaleString()}</td>
-                    </tr>
-                `;
-            });
-            document.getElementById('total-pagar').textContent = total.toLocaleString();
+        async function mostrarNomina() {
+            try {
+                const db = firebase.database();
+                const snapshot = await db.ref(`trabajadores/${usuarioActual.documento}`).once('value');
+                const trabajadorData = snapshot.val() || {};
+                const tbody = document.getElementById('registro-nomina');
+                let total = 0;
+
+                document.getElementById('nombre-trabajador').textContent = trabajadorData.nombreApellidos || usuarioActual.email;
+                tbody.innerHTML = '';
+
+                const nomina = trabajadorData.nomina || [];
+                nomina.forEach(dia => {
+                    const totalDia = dia.horas * dia.valorHora;
+                    total += totalDia;
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${dia.fecha}</td>
+                            <td>${dia.horas}</td>
+                            <td>$${dia.valorHora.toLocaleString()}</td>
+                            <td>$${totalDia.toLocaleString()}</td>
+                        </tr>
+                    `;
+                });
+                document.getElementById('total-pagar').textContent = total.toLocaleString();
+            } catch (error) {
+                console.error('Error al mostrar nómina:', error);
+                alert('Error al cargar la nómina.');
+            }
         }
 
         window.onload = async function() {
@@ -1141,13 +1163,17 @@
                         throw new Error("Formato incorrecto. Columnas requeridas: Nombre, Latitud, Longitud");
                     }
 
-                    sedes = jsonData.map(row => ({
-                        nombre: row.Nombre,
-                        latitud: parseFloat(row.Latitud),
-                        longitud: parseFloat(row.Longitud)
-                    }));
+                    const db = firebase.database();
+                    const promesas = jsonData.map(async (row) => {
+                        const sede = {
+                            nombre: row.Nombre,
+                            latitud: parseFloat(row.Latitud),
+                            longitud: parseFloat(row.Longitud)
+                        };
+                        await db.ref(`sedes/${row.Nombre}`).set(sede);
+                    });
 
-                    await guardarEnFirebase('sedes', sedes);
+                    await Promise.all(promesas);
                     loadSedes();
                     alert("Sedes importadas exitosamente!");
                 } catch (error) {
