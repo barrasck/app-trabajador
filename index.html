@@ -436,28 +436,6 @@ select {
         let accuracyCircle = null;
         let trabajadoresMarkers = {};
 
-        const USUARIOS = {
-            administradores: {
-                'wendy@amalogistic.com': {password: 'WENDY123!', role: 'admin'},
-                'laura@amalogistic.com': {password: 'LAURA456@', role: 'admin'},
-                'jose@amalogistic.com': {password: 'JOSE789#', role: 'admin'},
-                'andres@amalogistic.com': {password: 'ANDRES012$', role: 'admin'},
-                'fabio@amalogistic.com': {password: 'FABIO345%', role: 'admin'},
-                'cristian@amalogistic.com': {password: 'CRISTIAN678^', role: 'admin'}
-            },
-            trabajadores: {
-                'PRUEBA': {
-                    password: 'PRUEBA123',
-                    role: 'worker',
-                    nomina: [
-                        { fecha: '2023-10-01', horas: 8, valorHora: 15000 },
-                        { fecha: '2023-10-02', horas: 6, valorHora: 15000 },
-                        { fecha: '2023-10-03', horas: 7, valorHora: 15000 }
-                    ]
-                }
-            }
-        };
-
         const CONFIG = {
             destino: {
                 lat: 4.688636,
@@ -493,7 +471,7 @@ select {
             document.getElementById('password').value = '';
         }
 
-        async function login(event) {
+async function login(event) {
     event.preventDefault();
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
@@ -502,8 +480,8 @@ select {
         // Autenticar con Firebase
         const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
         const user = userCredential.user;
-        
-        // Obtener datos adicionales de Realtime Database
+
+        // Obtener datos del usuario desde Realtime Database
         const db = firebase.database();
         const snapshot = await db.ref(`usuarios/${user.uid}`).once('value');
         const userData = snapshot.val();
@@ -517,36 +495,31 @@ select {
             uid: user.uid,
             email: user.email,
             role: userData.role || 'worker',
-            nombre: userData.nombre || 'Sin nombre',
-            documento: userData.documento || 'Sin documento'
+            nombre: userData.nombre || 'Sin nombre'
         };
 
-        // Actualizar UI
+        // Resto del código (actualizar UI, etc.)
         document.getElementById('loginModal').style.display = 'none';
         document.querySelector('.content-wrapper').style.display = 'block';
         document.getElementById('logoutBtn').style.display = 'block';
-        
-        // Guardar sesión
         sessionStorage.setItem('session', JSON.stringify(usuarioActual));
-        
-        // Cargar datos según rol
+
+        // Cargar datos según el rol
         if (usuarioActual.role === 'admin') {
             await inicializarMapa();
             cargarUbicacionesTrabajadores();
-            cargarNotificaciones();
             document.querySelector('.tabs').style.display = 'flex';
             openTab('programacion', event);
-        } else if (usuarioActual.role === 'worker') {
+        } else {
             mostrarNomina();
             iniciarTrackingTrabajador();
-            cargarProgramacionTrabajador();
             document.querySelector('.nomina-panel').style.display = 'block';
         }
 
     } catch (error) {
         console.error('Error en login:', error);
         alert(`Error al iniciar sesión: ${error.message}`);
-        document.getElementById('password').value = ''; // Limpiar contraseña
+        document.getElementById('password').value = '';
     }
 }
 
