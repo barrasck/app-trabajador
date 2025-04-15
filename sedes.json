@@ -1,86 +1,87 @@
 {
-  "users": {
-    "WENDY": {
+  "usuarios": {
+    "7yFW4Aa0Q1bDVY8Tr3gXeFrOtEY2": {
       "email": "wendy@amalogistic.com",
-      "password": "WENDY123!",
-      "role": "admin"
+      "role": "admin",
+      "nombre": "Wendy",
+      "documento": "123456789"
     },
-    "LAURA": {
+    "qywxXGgVJEU9El4tGPVwDQgX1Wj1": {
       "email": "laura@amalogistic.com",
-      "password": "LAURA456@",
-      "role": "admin"
+      "role": "admin",
+      "nombre": "Laura",
+      "documento": "987654321"
     },
-    "JOSE": {
+    "Fwcp8g6i0URHPtt7cEHhL4QhyzA2": {
       "email": "jose@amalogistic.com",
-      "password": "JOSE789#",
-      "role": "admin"
+      "role": "admin",
+      "nombre": "José",
+      "documento": "456123789"
     },
-    "ANDRES": {
+    "9KteMBb2KaVfDDcBAILGY7FoLYh2": {
       "email": "andres@amalogistic.com",
-      "password": "ANDRES012$",
-      "role": "admin"
+      "role": "admin",
+      "nombre": "Andrés",
+      "documento": "789321654"
     },
-    "FABIO": {
+    "yVm0W1wc3HUWHVTWwPDNWJcjgWK2": {
       "email": "fabio@amalogistic.com",
-      "password": "FABIO345%",
-      "role": "admin"
+      "role": "admin",
+      "nombre": "Fabio",
+      "documento": "159753468"
     },
-    "CRISTIAN": {
+    "0k1D38Q0sBf9a16rM4zXbdjA6l83": {
       "email": "cristian@amalogistic.com",
-      "password": "CRISTIAN678^",
-      "role": "admin"
-    },
-    "PRUEBA": {
-      "email": "prueba@amalogistic.com",
-      "password": "PRUEBA123",
-      "role": "worker"
+      "role": "admin",
+      "nombre": "Cristian",
+      "documento": "357159846"
     }
   },
-  "sedes": [
-    {
+  "sedes": {
+    "-Nabc123": {
       "nombre": "Newell",
       "latitud": 4.747593,
       "longitud": -74.163485
     },
-    {
+    "-Ndef456": {
       "nombre": "Maersk",
       "latitud": 4.740862,
       "longitud": -74.153751
     },
-    {
+    "-Nghi789": {
       "nombre": "Distriservices",
       "latitud": 4.673570,
       "longitud": -74.157371
     },
-    {
+    "-Njkl012": {
       "nombre": "Ceva600",
       "latitud": 4.768008,
       "longitud": -74.178495
     },
-    {
+    "-Nmno345": {
       "nombre": "Ceva700",
       "latitud": 4.768008,
       "longitud": -74.178495
     },
-    {
+    "-Npqr678": {
       "nombre": "Imbocar",
       "latitud": 4.682430,
       "longitud": -74.157172
     },
-    {
+    "-Nstu901": {
       "nombre": "Solistica",
       "latitud": 4.773591,
       "longitud": -74.176717
     },
-    {
+    "-Nvwx234": {
       "nombre": "Silogistica",
       "latitud": 4.680069,
       "longitud": -74.230599
     },
-    {
+    "-Nyza567": {
       "nombre": "Zalt",
       "latitud": 4.672489,
       "longitud": -74.162095
     }
-  ]
+  }
 }
