@@ -7,28 +7,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin=""/>
-        <!-- Firebase SDKs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-
-    <!-- Configuración de Firebase -->
-    <script>
-const firebaseConfig = {
-    apiKey: "AIzaSyBhSUhdGAb9DJw87vSp33CGk7VnSsRxQ60",
-    authDomain: "amalogistic-d2a79.firebaseapp.com",
-    databaseURL: "https://amalogistic-d2a79-default-rtdb.firebaseio.com",
-    projectId: "amalogistic-d2a79",
-    storageBucket: "amalogistic-d2a79.appspot.com",
-    messagingSenderId: "605672630537",
-    appId: "1:605672630537:web:18f7ddb2ad2d23c7becbd8"
-};
-
-// Inicializar Firebase
-firebase.initializeApp(firebaseConfig);
-    </script>
+    <script src="firebase-config.js"></script>
     <style>
-        /* Estilos CSS mejorados */
+        /* Estilos CSS (sin cambios, se mantienen como en el original) */
         .tabs {
             margin: 20px 0;
             gap: 10px;
@@ -210,78 +195,68 @@ firebase.initializeApp(firebaseConfig);
             background-color: #2563eb;
             color: white;
         }
-
         .form-section {
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 15px;
-    margin: 15px 0;
-    background: #f8fafc;
-}
-
-.form-section h4 {
-    color: #2563eb;
-    margin: 0 0 10px 0;
-    font-size: 16px;
-}
-
-input[type="text"],
-input[type="email"],
-input[type="tel"],
-input[type="date"],
-select {
-    width: 100%;
-    padding: 8px;
-    margin: 5px 0;
-    border: 1px solid #cbd5e1;
-    border-radius: 4px;
-}
-
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            background: #f8fafc;
+        }
+        .form-section h4 {
+            color: #2563eb;
+            margin: 0 0 10px 0;
+            font-size: 16px;
+        }
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="date"],
+        select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+        }
         .asignacion-section {
-    margin: 15px;
-    text-align: center; /* Centrar el botón */
-}
-
-.confirmar-btn {
-    background: #2563eb !important; /* Color corporativo */
-    margin: 10px 0;
-    padding: 12px 25px;
-    font-size: 16px;
-}
-
-.estado {
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 0.9em;
-}
-
-.confirmado {
-    background: #34d399;
-    color: white;
-}
-
-.rechazado {
-    background: #ef4444;
-    color: white;
-}
-
-.pendiente {
-    background: #fbbf24;
-    color: black;
-}
-        
+            margin: 15px;
+            text-align: center;
+        }
+        .confirmar-btn {
+            background: #2563eb !important;
+            margin: 10px 0;
+            padding: 12px 25px;
+            font-size: 16px;
+        }
+        .estado {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.9em;
+        }
+        .confirmado {
+            background: #34d399;
+            color: white;
+        }
+        .rechazado {
+            background: #ef4444;
+            color: white;
+        }
+        .pendiente {
+            background: #fbbf24;
+            color: black;
+        }
     </style>
 </head>
 <body>
     <button id="logoutBtn" onclick="cerrarSesion()">🚪 Cerrar Sesión</button>
-<div id="loginModal">
-  <div>
-    <h2>🔐 Inicio de Sesión</h2>
-    <input type="email" id="email" placeholder="Correo electrónico" required>
-    <input type="password" id="password" placeholder="Contraseña" required>
-    <button onclick="login(event)">Ingresar</button>
-  </div>
-</div>
+    <div id="loginModal">
+        <div>
+            <h2>🔐 Inicio de Sesión</h2>
+            <input type="email" id="email" placeholder="Correo electrónico" required>
+            <input type="password" id="password" placeholder="Contraseña" required>
+            <button onclick="login(event)">Ingresar</button>
+        </div>
+    </div>
     <div class="tabs">
         <button class="tab-btn active" onclick="openTab('programacion', event)">📅 Programación</button>
         <button class="tab-btn" onclick="openTab('mapa', event)">🗺️ Mapa</button>
@@ -291,7 +266,7 @@ select {
     <div class="content-wrapper">
         <!-- Panel para administradores -->
         <div class="info-panel">
-            <div id="programacion" class="tab-content active">
+            <div id="programacion" class="tab-content active programacion-panel">
                 <div class="upload-section">
                     <h3>📤 Subir Programación</h3>
                     <input type="file" id="excelProgramacion" accept=".xlsx, .xls">
@@ -338,64 +313,65 @@ select {
             </div>
             <div id="trabajadores" class="tab-content">
                 <div class="upload-section">
-<div id="crearTrabajador" class="upload-section">
-    <h3>🆕 Crear Trabajador</h3>
-    
-    <!-- Sección 1: Foto e Identificación -->
-    <div class="form-section">
-        <h4>📷 Foto y Documento</h4>
-        <input type="file" id="fotoTrabajador" accept="image/*" required>
-        <select id="tipoDocumento" required>
-            <option value="">Tipo de Documento</option>
-            <option value="Cédula">Cédula</option>
-            <option value="Pasaporte">Pasaporte</option>
-        </select>
-        <input type="text" id="numeroDocumento" placeholder="Número de Documento" required>
-    </div>
-
-    <!-- Sección 2: Datos Personales -->
-    <div class="form-section">
-        <h4>👤 Datos Personales</h4>
-        <input type="text" id="nombreApellidos" placeholder="Nombre completo" required>
-        <input type="date" id="fechaNacimiento" required>
-        <select id="rh" required>
-            <option value="">Grupo Sanguíneo</option>
-            <option value="A+">A+</option>
-            <option value="O-">O-</option>
-            <!-- Agregar otros tipos -->
-        </select>
-        <select id="genero" required>
-            <option value="">Género</option>
-            <option value="Masculino">Masculino</option>
-            <option value="Femenino">Femenino</option>
-        </select>
-    </div>
-
-    <!-- Sección 3: Datos de Contacto -->
-    <div class="form-section">
-        <h4>📞 Contacto</h4>
-        <input type="email" id="correoElectronico" placeholder="Correo electrónico" required>
-        <input type="text" id="ciudad" placeholder="Ciudad" required>
-        <input type="text" id="barrioResidencia" placeholder="Barrio de Residencia">
-        <input type="text" id="direccionResidencia" placeholder="Dirección Completa" required>
-        <input type="tel" id="telefonoContacto" placeholder="Teléfono de Contacto" required>
-        <input type="tel" id="telefonoEmergencia" placeholder="Teléfono de Emergencia" required>
-    </div>
-
-    <!-- Sección 4: Datos Bancarios -->
-    <div class="form-section">
-        <h4>💳 Datos Bancarios</h4>
-        <input type="text" id="banco" placeholder="Banco" required>
-        <select id="tipoCuenta" required>
-            <option value="">Tipo de Cuenta</option>
-            <option value="Ahorros">Ahorros</option>
-            <option value="Corriente">Corriente</option>
-        </select>
-        <input type="text" id="numeroCuenta" placeholder="Número de Cuenta" required>
-    </div>
-
-    <button onclick="crearTrabajador()" class="confirmar-btn">Guardar Trabajador</button>
-</div>
+                    <div id="crearTrabajador" class="upload-section">
+                        <h3>🆕 Crear Trabajador</h3>
+                        <!-- Sección 1: Foto e Identificación -->
+                        <div class="form-section">
+                            <h4>📷 Foto y Documento</h4>
+                            <input type="file" id="fotoTrabajador" accept="image/*" required>
+                            <select id="tipoDocumento" required>
+                                <option value="">Tipo de Documento</option>
+                                <option value="Cédula">Cédula</option>
+                                <option value="Pasaporte">Pasaporte</option>
+                            </select>
+                            <input type="text" id="numeroDocumento" placeholder="Número de Documento" required>
+                        </div>
+                        <!-- Sección 2: Datos Personales -->
+                        <div class="form-section">
+                            <h4>👤 Datos Personales</h4>
+                            <input type="text" id="nombreApellidos" placeholder="Nombre completo" required>
+                            <input type="date" id="fechaNacimiento" required>
+                            <select id="rh" required>
+                                <option value="">Grupo Sanguíneo</option>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                            </select>
+                            <select id="genero" required>
+                                <option value="">Género</option>
+                                <option value="Masculino">Masculino</option>
+                                <option value="Femenino">Femenino</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                        <!-- Sección 3: Datos de Contacto -->
+                        <div class="form-section">
+                            <h4>📞 Contacto</h4>
+                            <input type="email" id="correoElectronico" placeholder="Correo electrónico" required>
+                            <input type="text" id="ciudad" placeholder="Ciudad" required>
+                            <input type="text" id="barrioResidencia" placeholder="Barrio de Residencia">
+                            <input type="text" id="direccionResidencia" placeholder="Dirección Completa" required>
+                            <input type="tel" id="telefonoContacto" placeholder="Teléfono de Contacto" required>
+                            <input type="tel" id="telefonoEmergencia" placeholder="Teléfono de Emergencia" required>
+                        </div>
+                        <!-- Sección 4: Datos Bancarios -->
+                        <div class="form-section">
+                            <h4>💳 Datos Bancarios</h4>
+                            <input type="text" id="banco" placeholder="Banco" required>
+                            <select id="tipoCuenta" required>
+                                <option value="">Tipo de Cuenta</option>
+                                <option value="Ahorros">Ahorros</option>
+                                <option value="Corriente">Corriente</option>
+                            </select>
+                            <input type="text" id="numeroCuenta" placeholder="Número de Cuenta" required>
+                        </div>
+                        <button onclick="crearTrabajador()" class="confirmar-btn">Guardar Trabajador</button>
+                    </div>
                     <div id="listaTrabajadores">
                         <h3>👷 Lista de Trabajadores</h3>
                         <ul id="trabajadoresList"></ul>
@@ -404,13 +380,12 @@ select {
                     <input type="file" id="excelTrabajadores" accept=".xlsx, .xls">
                     <button onclick="procesarTrabajadores()">Cargar Trabajadores</button>
                 </div>
-<div class="asignacion-section">
-    <h3>🔄 Asignación Automática de Sedes</h3>
-    <button onclick="asignarSede()" class="confirmar-btn">Actualizar Asignaciones Diarias</button>
-</div>
+                <div class="asignacion-section">
+                    <h3>🔄 Asignación Automática de Sedes</h3>
+                    <button onclick="asignarSede()" class="confirmar-btn">Actualizar Asignaciones Diarias</button>
+                </div>
             </div>
         </div>
-
         <!-- Panel para trabajadores -->
         <div class="nomina-panel">
             <div class="programacion-panel">
@@ -474,7 +449,7 @@ select {
                     escala: 0.5
                 }
             }
-        },
+        };
 
         function cerrarSesion() {
             sessionStorage.removeItem('session');
@@ -488,69 +463,71 @@ select {
                 userMarker = null;
                 accuracyCircle = null;
             }
-            document.getElementById('username').value = '';
+            document.getElementById('email').value = '';
             document.getElementById('password').value = '';
+            firebase.database().ref('ubicaciones').off();
         }
 
-async function login(event) {
-    event.preventDefault();
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
+        async function login(event) {
+            event.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
 
-    try {
-        // Autenticar con Firebase
-        const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
-        const user = userCredential.user;
+            try {
+                const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
+                const user = userCredential.user;
 
-        // Obtener datos del usuario desde Realtime Database
-        const db = firebase.database();
-        const snapshot = await db.ref(`usuarios/${user.uid}`).once('value');
-        const userData = snapshot.val();
+                const db = firebase.database();
+                const snapshot = await db.ref(`usuarios/${user.uid}`).once('value');
+                const userData = snapshot.val();
 
-        if (!userData) {
-            throw new Error('Usuario no registrado en la base de datos');
+                if (!userData) {
+                    throw new Error('Usuario no registrado en la base de datos');
+                }
+
+                usuarioActual = {
+                    uid: user.uid,
+                    email: user.email,
+                    role: userData.role || 'worker',
+                    nombre: userData.nombre || 'Sin nombre'
+                };
+
+                document.getElementById('loginModal').style.display = 'none';
+                document.querySelector('.content-wrapper').style.display = 'block';
+                document.getElementById('logoutBtn').style.display = 'block';
+                sessionStorage.setItem('session', JSON.stringify(usuarioActual));
+
+                if (usuarioActual.role === 'admin') {
+                    await inicializarMapa();
+                    cargarUbicacionesTrabajadores();
+                    document.querySelector('.tabs').style.display = 'flex';
+                    openTab('programacion', { currentTarget: document.querySelector('.tab-btn.active') });
+                } else {
+                    mostrarNomina();
+                    iniciarTrackingTrabajador();
+                    document.querySelector('.nomina-panel').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error en login:', error);
+                alert(`Error al iniciar sesión: ${error.message}`);
+                document.getElementById('password').value = '';
+            }
         }
-
-        // Establecer usuario actual
-        usuarioActual = {
-            uid: user.uid,
-            email: user.email,
-            role: userData.role || 'worker',
-            nombre: userData.nombre || 'Sin nombre'
-        };
-
-        // Resto del código (actualizar UI, etc.)
-        document.getElementById('loginModal').style.display = 'none';
-        document.querySelector('.content-wrapper').style.display = 'block';
-        document.getElementById('logoutBtn').style.display = 'block';
-        sessionStorage.setItem('session', JSON.stringify(usuarioActual));
-
-        // Cargar datos según el rol
-        if (usuarioActual.role === 'admin') {
-            await inicializarMapa();
-            cargarUbicacionesTrabajadores();
-            document.querySelector('.tabs').style.display = 'flex';
-            openTab('programacion', event);
-        } else {
-            mostrarNomina();
-            iniciarTrackingTrabajador();
-            document.querySelector('.nomina-panel').style.display = 'block';
-        }
-
-    } catch (error) {
-        console.error('Error en login:', error);
-        alert(`Error al iniciar sesión: ${error.message}`);
-        document.getElementById('password').value = '';
-    }
-}
 
         async function cargarUbicacionesTrabajadores() {
             try {
-                const response = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/ubicaciones.json');
-                if (!response.ok) throw new Error('Error al cargar ubicaciones');
-                const ubicaciones = await response.json();
-                actualizarTablaUbicaciones(ubicaciones);
-                actualizarMapaTrabajadores(ubicaciones);
+                const db = firebase.database();
+                const ubicacionesRef = db.ref('ubicaciones');
+                
+                ubicacionesRef.on('value', (snapshot) => {
+                    const ubicaciones = snapshot.val() || {};
+                    actualizarTablaUbicaciones(ubicaciones);
+                    actualizarMapaTrabajadores(ubicaciones);
+                });
+
+                window.addEventListener('beforeunload', () => {
+                    ubicacionesRef.off();
+                });
             } catch (error) {
                 console.error('Error al cargar ubicaciones:', error);
             }
@@ -565,7 +542,6 @@ async function login(event) {
                     attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                 }).addTo(map);
                 await actualizarSedesEnMapa();
-                setInterval(cargarUbicacionesTrabajadores, 10000); // Actualizar cada 10 segundos
             }
         }
 
@@ -615,26 +591,27 @@ async function login(event) {
             });
         }
 
-async function loadSedes() {
-    try {
-        const db = firebase.database();
-        const snapshot = await db.ref("sedes").once("value");
-        const sedesData = snapshot.val() || {};
-        
-        // Convertir objeto a array
-        const sedes = Object.values(sedesData); // <--- Cambio clave
+        async function loadSedes() {
+            try {
+                const db = firebase.database();
+                const snapshot = await db.ref("sedes").once("value");
+                const sedesData = snapshot.val() || {};
+                sedes = Object.values(sedesData);
 
-        const sedesList = document.getElementById('lista-sedes');
-        sedesList.innerHTML = '';
-        sedes.forEach(sede => {
-            const li = document.createElement('li');
-            li.textContent = `${sede.nombre} - Lat: ${sede.latitud}, Lng: ${sede.longitud}`;
-            sedesList.appendChild(li);
-        });
-    } catch (error) {
-        console.error('Error al cargar sedes:', error);
-    }
-}
+                const sedesList = document.getElementById('lista-sedes');
+                sedesList.innerHTML = '';
+                sedes.forEach(sede => {
+                    const li = document.createElement('li');
+                    li.textContent = `${sede.nombre} - Lat: ${sede.latitud}, Lng: ${sede.longitud}`;
+                    sedesList.appendChild(li);
+                });
+
+                await actualizarSedesEnMapa();
+            } catch (error) {
+                console.error('Error al cargar sedes:', error);
+            }
+        }
+
         document.getElementById('add-sede-form').addEventListener('submit', async function(event) {
             event.preventDefault();
             const sedeName = document.getElementById('sede-name').value;
@@ -646,24 +623,24 @@ async function loadSedes() {
                 return;
             }
 
-            sedes.push({ Nombre: sedeName, Latitud: sedeLat, Longitud: sedeLng });
+            const newSede = { nombre: sedeName, latitud: sedeLat, longitud: sedeLng };
+            sedes.push(newSede);
             await guardarEnFirebase('sedes', sedes);
             loadSedes();
-            actualizarSedesEnMapa();
             alert('Sede agregada exitosamente.');
         });
 
         async function cargarTrabajadores() {
             try {
-                const response = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/trabajadores.json');
-                if (!response.ok) throw new Error('Error al cargar trabajadores');
-                const trabajadores = await response.json();
+                const db = firebase.database();
+                const snapshot = await db.ref("trabajadores").once("value");
+                const trabajadores = snapshot.val() || {};
                 const lista = document.getElementById('trabajadoresList');
                 lista.innerHTML = '';
                 Object.values(trabajadores).forEach(trabajador => {
-                    if (trabajador.nombre && trabajador.documento) {
+                    if (trabajador.nombreApellidos && trabajador.numeroDocumento) {
                         const li = document.createElement('li');
-                        li.textContent = `${trabajador.nombre} - Documento: ${trabajador.documento}`;
+                        li.textContent = `${trabajador.nombreApellidos} - Documento: ${trabajador.numeroDocumento}`;
                         lista.appendChild(li);
                     }
                 });
@@ -674,7 +651,10 @@ async function loadSedes() {
 
         async function procesarTrabajadores() {
             const file = document.getElementById('excelTrabajadores').files[0];
-            if (!file) return;
+            if (!file) {
+                alert('Por favor selecciona un archivo');
+                return;
+            }
 
             const reader = new FileReader();
             reader.onload = async function(e) {
@@ -684,8 +664,8 @@ async function loadSedes() {
                     const sheet = workbook.Sheets[workbook.SheetNames[0]];
                     const jsonData = XLSX.utils.sheet_to_json(sheet);
 
-                    if (!jsonData[0]?.['Número de Documento'] || !jsonData[0]?.Nombre || !jsonData[0]?.['Número de Celular']) {
-                        throw new Error("Formato incorrecto. Columnas requeridas: Número de Documento, Nombre, Número de Celular");
+                    if (!jsonData[0]?.['Número de Documento'] || !jsonData[0]?.['Nombre'] || !jsonData[0]?.['Correo Electrónico']) {
+                        throw new Error("Formato incorrecto. Columnas requeridas: Número de Documento, Nombre, Correo Electrónico");
                     }
 
                     const trabajadores = jsonData.reduce((acc, t) => {
@@ -693,9 +673,9 @@ async function loadSedes() {
                         acc[documento] = {
                             password: documento,
                             role: 'worker',
-                            documento: documento,
-                            nombre: t['Nombre'],
-                            celular: t['Número de Celular'],
+                            numeroDocumento: documento,
+                            nombreApellidos: t['Nombre'],
+                            correoElectronico: t['Correo Electrónico'],
                             nomina: []
                         };
                         return acc;
@@ -705,199 +685,151 @@ async function loadSedes() {
                     cargarTrabajadores();
                     alert("Trabajadores importados exitosamente!");
                 } catch (error) {
+                    console.error('Error al procesar trabajadores:', error);
                     alert(error.message);
                 }
             };
             reader.readAsArrayBuffer(file);
         }
 
-        let trabajadores = {};
+        async function actualizarListaTrabajadores() {
+            try {
+                const db = firebase.database();
+                const snapshot = await db.ref("trabajadores").once("value");
+                const trabajadoresData = snapshot.val() || {};
+                const trabajadores = Object.values(trabajadoresData);
 
-        function crearTrabajador() {
-            const nombre = document.getElementById('nombreTrabajador').value;
-            const documento = document.getElementById('documentoTrabajador').value;
-            const celular = document.getElementById('celularTrabajador').value;
+                const lista = document.getElementById('trabajadoresList');
+                lista.innerHTML = '';
 
-            if (!nombre || !documento || !celular) {
-                alert("Por favor, completa todos los campos.");
-                return;
-            }
-
-            trabajadores[documento] = {
-                nombre: nombre,
-                documento: documento,
-                celular: celular,
-                role: 'worker',
-                nomina: []
-            };
-            actualizarListaTrabajadores();
-            document.getElementById('nombreTrabajador').value = '';
-            document.getElementById('documentoTrabajador').value = '';
-            document.getElementById('celularTrabajador').value = '';
-            alert("Trabajador agregado exitosamente.");
-        }
-
-async function actualizarListaTrabajadores() {
-    try {
-        const db = firebase.database();
-        // Obtener trabajadores desde Firebase
-        const snapshot = await db.ref("trabajadores").once("value");
-        const trabajadoresData = snapshot.val() || {};
-
-        // Convertir objeto a array (si es necesario)
-        const trabajadores = Object.values(trabajadoresData);
-
-        // Actualizar lista en la interfaz
-        const lista = document.getElementById('trabajadoresList');
-        lista.innerHTML = ''; // Limpiar lista previa
-
-        if (trabajadores.length === 0) {
-            lista.innerHTML = '<li>No hay trabajadores registrados</li>';
-            return;
-        }
-
-        // Llenar lista con los trabajadores
-        trabajadores.forEach(trabajador => {
-            const li = document.createElement('li');
-            li.className = 'trabajador-item';
-            
-            // Mostrar información básica
-            li.innerHTML = `
-                <div class="trabajador-info">
-                    <span class="nombre">${trabajador.nombreApellidos || 'Sin nombre'}</span>
-                    <span class="documento">Documento: ${trabajador.numeroDocumento}</span>
-                </div>
-            `;
-
-            lista.appendChild(li);
-        });
-
-    } catch (error) {
-        console.error('Error al actualizar lista de trabajadores:', error);
-        const lista = document.getElementById('trabajadoresList');
-        lista.innerHTML = '<li>Error al cargar trabajadores</li>';
-    }
-}
-
-async function asignarSede() {
-    try {
-        const db = firebase.database();
-        
-        // 1. Obtener la fecha actual en formato YYYY-MM-DD
-        const hoy = new Date().toISOString().split('T')[0];
-        
-        // 2. Obtener la programación del día desde Firebase
-        const snapshotProgramacion = await db.ref(`programacion/${hoy}`).once("value");
-        const programacionHoy = snapshotProgramacion.val();
-        
-        if (!programacionHoy) {
-            alert("No hay programación cargada para hoy.");
-            return;
-        }
-        
-        // 3. Actualizar asignaciones en Firebase
-        const asignacionesRef = db.ref("asignaciones");
-        await asignacionesRef.set(programacionHoy); // Sobrescribe todas las asignaciones
-        
-        alert("✅ Sedes asignadas automáticamente según la programación de hoy.");
-        
-    } catch (error) {
-        console.error("Error al asignar sedes:", error);
-        alert("❌ Error al asignar sedes. Verifica la consola.");
-    }
-}
-
-async function iniciarTrackingTrabajador() {
-    if (!navigator.geolocation || usuarioActual.role !== 'worker') return;
-
-    try {
-        const db = firebase.database();
-        const ubicacionRef = db.ref(`ubicaciones/${usuarioActual.uid}`);
-        
-        const watchId = navigator.geolocation.watchPosition(
-            async (position) => {
-                const ubicacion = {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude,
-                    accuracy: position.coords.accuracy,
-                    timestamp: new Date().toISOString(),
-                    nombre: usuarioActual.nombre || 'Trabajador'
-                };
-
-                try {
-                    // Actualizar Firebase
-                    await ubicacionRef.set(ubicacion);
-                    
-                    // Actualizar mapa en tiempo real
-                    if (map) {
-                        const latLng = [ubicacion.lat, ubicacion.lng];
-                        
-                        // Actualizar marcador existente o crear nuevo
-                        if (userMarker) {
-                            userMarker.setLatLng(latLng)
-                                      .setPopupContent(`${usuarioActual.nombre}<br>Última actualización: ${new Date().toLocaleTimeString()}`);
-                        } else {
-                            userMarker = L.marker(latLng, {
-                                icon: L.icon({
-                                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
-                                    iconSize: [25, 41]
-                                })
-                            }).addTo(map).bindPopup(usuarioActual.nombre);
-                        }
-
-                        // Actualizar círculo de precisión
-                        if (accuracyCircle) {
-                            accuracyCircle.setLatLng(latLng)
-                                         .setRadius(ubicacion.accuracy);
-                        } else {
-                            accuracyCircle = L.circle(latLng, {
-                                radius: ubicacion.accuracy,
-                                color: '#3b82f6',
-                                fillOpacity: 0.2
-                            }).addTo(map);
-                        }
-                    }
-                    
-                    // Actualizar tabla de ubicaciones
-                    actualizarTablaUbicaciones({ [usuarioActual.uid]: ubicacion });
-
-                } catch (error) {
-                    console.error('Error al actualizar ubicación:', error);
+                if (trabajadores.length === 0) {
+                    lista.innerHTML = '<li>No hay trabajadores registrados</li>';
+                    return;
                 }
-            },
-            (error) => {
-                console.error('Error de geolocalización:', error);
-                alert(`Error de GPS: ${error.message}`);
-            },
-            {
-                enableHighAccuracy: true,
-                maximumAge: 0,
-                timeout: 10000
+
+                trabajadores.forEach(trabajador => {
+                    const li = document.createElement('li');
+                    li.className = 'trabajador-item';
+                    li.innerHTML = `
+                        <div class="trabajador-info">
+                            <span class="nombre">${trabajador.nombreApellidos || 'Sin nombre'}</span>
+                            <span class="documento">Documento: ${trabajador.numeroDocumento}</span>
+                        </div>
+                    `;
+                    lista.appendChild(li);
+                });
+            } catch (error) {
+                console.error('Error al actualizar lista de trabajadores:', error);
+                const lista = document.getElementById('trabajadoresList');
+                lista.innerHTML = '<li>Error al cargar trabajadores</li>';
             }
-        );
+        }
 
-        // Detener seguimiento al cerrar sesión
-        window.addEventListener('beforeunload', () => {
-            navigator.geolocation.clearWatch(watchId);
-            ubicacionRef.remove();
-        });
+        async function asignarSede() {
+            try {
+                const db = firebase.database();
+                const hoy = new Date().toISOString().split('T')[0];
 
-        // Actualizar ubicaciones de otros trabajadores cada 10 segundos
-        const interval = setInterval(async () => {
-            if (usuarioActual.role === 'worker') return;
-            await cargarUbicacionesTrabajadores();
-        }, 10000);
+                const snapshotProgramacion = await db.ref(`programacion/${hoy}`).once("value");
+                const programacionHoy = snapshotProgramacion.val();
 
-        return () => {
-            clearInterval(interval);
-            navigator.geolocation.clearWatch(watchId);
-        };
+                if (!programacionHoy) {
+                    alert("No hay programación cargada para hoy.");
+                    return;
+                }
 
-    } catch (error) {
-        console.error('Error en tracking:', error);
-        alert('No se pudo iniciar el seguimiento. Verifica los permisos de ubicación.');
-    }
-}
+                const snapshotTrabajadores = await db.ref("trabajadores").once("value");
+                const trabajadores = snapshotTrabajadores.val() || {};
+                const snapshotSedes = await db.ref("sedes").once("value");
+                const sedes = snapshotSedes.val() || {};
+
+                if (Object.keys(trabajadores).length === 0 || Object.keys(sedes).length === 0) {
+                    alert("No hay trabajadores o sedes registrados.");
+                    return;
+                }
+
+                const asignacionesRef = db.ref("asignaciones");
+                await asignacionesRef.child(hoy).set(programacionHoy);
+
+                alert("✅ Sedes asignadas automáticamente según la programación de hoy.");
+            } catch (error) {
+                console.error("Error al asignar sedes:", error);
+                alert("❌ Error al asignar sedes. Verifica la consola.");
+            }
+        }
+
+        async function iniciarTrackingTrabajador() {
+            if (!navigator.geolocation || usuarioActual.role !== 'worker') return;
+
+            try {
+                const db = firebase.database();
+                const ubicacionRef = db.ref(`ubicaciones/${usuarioActual.uid}`);
+                
+                const watchId = navigator.geolocation.watchPosition(
+                    async (position) => {
+                        const ubicacion = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude,
+                            accuracy: position.coords.accuracy,
+                            timestamp: new Date().toISOString(),
+                            nombre: usuarioActual.nombre || 'Trabajador'
+                        };
+
+                        try {
+                            await ubicacionRef.set(ubicacion);
+                            
+                            if (map) {
+                                const latLng = [ubicacion.lat, ubicacion.lng];
+                                
+                                if (userMarker) {
+                                    userMarker.setLatLng(latLng)
+                                             .setPopupContent(`${usuarioActual.nombre}<br>Última actualización: ${new Date().toLocaleTimeString()}`);
+                                } else {
+                                    userMarker = L.marker(latLng, {
+                                        icon: L.icon({
+                                            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
+                                            iconSize: [25, 41]
+                                        })
+                                    }).addTo(map).bindPopup(usuarioActual.nombre);
+                                }
+
+                                if (accuracyCircle) {
+                                    accuracyCircle.setLatLng(latLng)
+                                                 .setRadius(ubicacion.accuracy);
+                                } else {
+                                    accuracyCircle = L.circle(latLng, {
+                                        radius: ubicacion.accuracy,
+                                        color: '#3b82f6',
+                                        fillOpacity: 0.2
+                                    }).addTo(map);
+                                }
+                            }
+                            
+                            actualizarTablaUbicaciones({ [usuarioActual.uid]: ubicacion });
+                        } catch (error) {
+                            console.error('Error al actualizar ubicación:', error);
+                        }
+                    },
+                    (error) => {
+                        console.error('Error de geolocalización:', error);
+                        alert(`Error de GPS: ${error.message}`);
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        maximumAge: 0,
+                        timeout: 10000
+                    }
+                );
+
+                window.addEventListener('beforeunload', () => {
+                    navigator.geolocation.clearWatch(watchId);
+                    ubicacionRef.remove();
+                });
+            } catch (error) {
+                console.error('Error en tracking:', error);
+                alert('No se pudo iniciar el seguimiento. Verifica los permisos de ubicación.');
+            }
+        }
 
         function actualizarUI() {
             if (usuarioActual.role === 'admin') {
@@ -912,10 +844,10 @@ async function iniciarTrackingTrabajador() {
         }
 
         function mostrarNomina() {
-            const trabajador = usuarioActual.datos;
+            const trabajador = usuarioActual;
             const tbody = document.getElementById('registro-nomina');
             let total = 0;
-            document.getElementById('nombre-trabajador').textContent = trabajador.username || usuarioActual.username;
+            document.getElementById('nombre-trabajador').textContent = trabajador.nombre || usuarioActual.email;
             tbody.innerHTML = '';
             (trabajador.nomina || []).forEach(dia => {
                 const totalDia = dia.horas * dia.valorHora;
@@ -932,84 +864,98 @@ async function iniciarTrackingTrabajador() {
             document.getElementById('total-pagar').textContent = total.toLocaleString();
         }
 
-window.onload = async function() {
-    const session = sessionStorage.getItem('session');
-    document.getElementById('logoutBtn').style.display = session ? 'block' : 'none';
-    
-    if (!session) {
-        document.getElementById('loginModal').style.display = 'flex';
-    } else {
-        usuarioActual = JSON.parse(session);
-        document.querySelector('.content-wrapper').style.display = 'block';
-        actualizarUI();
-        
-        // Cargar datos esenciales primero
-        await cargarTrabajadores();
-        await loadSedes();
+        window.onload = async function() {
+            try {
+                const session = sessionStorage.getItem('session');
+                document.getElementById('logoutBtn').style.display = session ? 'block' : 'none';
+                
+                if (!session) {
+                    document.getElementById('loginModal').style.display = 'flex';
+                    return;
+                }
 
-        // Si es admin: ejecutar asignación automática y programar diariamente
-        if (usuarioActual.role === 'admin') {
-            await asignarSede(); // Ejecutar al iniciar
-            
-            // Programar ejecución diaria a las 00:00
-            const ahora = new Date();
-            const horaEjecucion = new Date(
-                ahora.getFullYear(),
-                ahora.getMonth(),
-                ahora.getDate() + 1, // Mañana
-                0, 0, 0 // 00:00:00
-            );
-            
-            const tiempoHastaEjecucion = horaEjecucion - ahora;
-            
-            setTimeout(() => {
-                setInterval(asignarSede, 86400000); // 24 horas
-            }, tiempoHastaEjecucion);
+                usuarioActual = JSON.parse(session);
+                document.querySelector('.content-wrapper').style.display = 'block';
+                actualizarUI();
 
-            // Resto de lógica para admins
-            inicializarMapa();
-            cargarUbicacionesTrabajadores();
-            cargarNotificaciones();
-            
-        } else if (usuarioActual.role === 'worker') {
-            // Lógica para trabajadores
-            mostrarNomina();
-            iniciarTrackingTrabajador();
-            cargarProgramacionTrabajador();
+                await Promise.all([
+                    cargarTrabajadores(),
+                    loadSedes()
+                ]);
+
+                if (usuarioActual.role === 'admin') {
+                    await asignarSede();
+                    const ahora = new Date();
+                    const horaEjecucion = new Date(
+                        ahora.getFullYear(),
+                        ahora.getMonth(),
+                        ahora.getDate() + 1,
+                        0, 0, 0
+                    );
+                    const tiempoHastaEjecucion = horaEjecucion - ahora;
+                    
+                    setTimeout(() => {
+                        setInterval(asignarSede, 86400000);
+                    }, tiempoHastaEjecucion);
+
+                    await inicializarMapa();
+                    cargarUbicacionesTrabajadores();
+                    cargarNotificaciones();
+                } else {
+                    mostrarNomina();
+                    iniciarTrackingTrabajador();
+                    cargarProgramacionTrabajador();
+                }
+            } catch (error) {
+                console.error('Error en carga inicial:', error);
+                alert('Error al iniciar la aplicación');
+                cerrarSesion();
+            }
+        };
+
+        async function procesarProgramacion() {
+            const file = document.getElementById('excelProgramacion').files[0];
+            if (!file) {
+                alert('Por favor selecciona un archivo');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+                    if (!jsonData[0]?.['Fecha'] || !jsonData[0]?.['Nombre'] || !jsonData[0]?.['Sede'] || !jsonData[0]?.['Turno']) {
+                        throw new Error("Formato incorrecto. Columnas requeridas: Fecha, Nombre, Sede, Turno");
+                    }
+
+                    const db = firebase.database();
+                    const programacionRef = db.ref("programacion");
+                    
+                    await Promise.all(
+                        jsonData.map(async (registro) => {
+                            const fecha = registro.Fecha;
+                            const email = registro.Nombre;
+                            await programacionRef.child(fecha).child(email).set({
+                                sede: registro.Sede,
+                                turno: registro.Turno,
+                                estado: 'pendiente'
+                            });
+                        })
+                    );
+
+                    mostrarProgramacionAdmin(jsonData);
+                    alert("Programación cargada exitosamente!");
+                } catch (error) {
+                    console.error('Error al procesar programación:', error);
+                    alert(error.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
         }
-    }
-};
-
-async function procesarProgramacion() {
-    const file = document.getElementById('excelProgramacion').files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = async function(e) {
-        try {
-            // ... (código existente para leer el Excel)
-            
-            const db = firebase.database();
-            
-            // Guardar programación por fechas
-            const programacionRef = db.ref("programacion");
-            await Promise.all(
-                jsonData.map(async (registro) => {
-                    const fecha = registro.Fecha; // Ej: "2023-10-25"
-                    await programacionRef.child(fecha).child(registro.Nombre).set({
-                        sede: registro.Sede,
-                        turno: registro.Turno
-                    });
-                })
-            );
-            
-            alert("Programación cargada exitosamente!");
-        } catch (error) {
-            alert(error.message);
-        }
-    };
-    reader.readAsArrayBuffer(file);
-}
 
         function mostrarProgramacionAdmin(data) {
             const contenedor = document.getElementById('programacionData');
@@ -1039,164 +985,133 @@ async function procesarProgramacion() {
             contenedor.style.display = 'block';
         }
 
-async function cargarProgramacionTrabajador() {
-    try {
-        const db = firebase.database();
-        const snapshot = await db.ref("programacion").once("value");
-        const programacion = snapshot.val() || {};
-        
-        // Obtener email del trabajador actual
-        const emailTrabajador = usuarioActual.email;
-        
-        // Convertir objeto anidado a array de turnos
-        const turnos = [];
-        
-        // Recorrer todas las fechas
-        Object.keys(programacion).forEach(fecha => {
-            const turnosFecha = programacion[fecha];
-            
-            // Buscar turnos asignados al trabajador actual
-            if (turnosFecha[emailTrabajador]) {
-                turnos.push({
-                    fecha: fecha,
-                    sede: turnosFecha[emailTrabajador].sede || 'Sin sede',
-                    turno: turnosFecha[emailTrabajador].turno || 'Sin turno',
-                    estado: turnosFecha[emailTrabajador].estado || 'pendiente'
+        async function cargarProgramacionTrabajador() {
+            try {
+                const db = firebase.database();
+                const snapshot = await db.ref("programacion").once("value");
+                const programacion = snapshot.val() || {};
+                
+                const emailTrabajador = usuarioActual.email;
+                const turnos = [];
+                
+                Object.keys(programacion).forEach(fecha => {
+                    const turnosFecha = programacion[fecha];
+                    if (turnosFecha[emailTrabajador]) {
+                        turnos.push({
+                            fecha: fecha,
+                            sede: turnosFecha[emailTrabajador].sede || 'Sin sede',
+                            turno: turnosFecha[emailTrabajador].turno || 'Sin turno',
+                            estado: turnosFecha[emailTrabajador].estado || 'pendiente'
+                        });
+                    }
                 });
-            }
-        });
 
-        // Actualizar tabla HTML
-        const tbody = document.querySelector('#turnosTrabajador tbody');
-        tbody.innerHTML = '';
+                const tbody = document.querySelector('#turnosTrabajador tbody');
+                tbody.innerHTML = '';
 
-        if (turnos.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4">No hay turnos asignados</td></tr>`;
-            return;
-        }
-
-        // Generar filas de la tabla
-        turnos.forEach(turno => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${turno.fecha}</td>
-                <td>${turno.turno}</td>
-                <td><span class="estado ${turno.estado}">${turno.estado.toUpperCase()}</span></td>
-                <td>
-                    ${turno.estado === 'pendiente' ? `
-                    <button class="confirmar-btn" 
-                            onclick="confirmarTurno('${turno.fecha}')">
-                        ✅ Confirmar
-                    </button>
-                    <button class="rechazar-btn" 
-                            onclick="rechazarTurno('${turno.fecha}')">
-                        ❌ Rechazar
-                    </button>
-                    ` : 'Sin acciones disponibles'}
-                </td>
-            `;
-            tbody.appendChild(row);
-        });
-
-        // Actualizar estilos de estado
-        document.querySelectorAll('.estado').forEach(estado => {
-            estado.classList.add(
-                estado.textContent.toLowerCase() === 'confirmado' ? 'confirmado' :
-                estado.textContent.toLowerCase() === 'rechazado' ? 'rechazado' : 'pendiente'
-            );
-        });
-
-    } catch (error) {
-        console.error('Error al cargar programación:', error);
-        const tbody = document.querySelector('#turnosTrabajador tbody');
-        tbody.innerHTML = `<tr><td colspan="4">Error al cargar la programación</td></tr>`;
-    }
-}
-
-async function confirmarTurno(fecha) {
-    try {
-        const db = firebase.database();
-        // Obtener programación desde Firebase
-        const snapshot = await db.ref("programacion").once("value");
-        let programacion = snapshot.val() || [];
-
-        // Actualizar el estado del turno
-        programacion = programacion.map(t => {
-            if (t.Nombre === usuarioActual.email && t.Fecha === fecha) { // Usar email, no username
-                return { ...t, estado: 'confirmado' };
-            }
-            return t;
-        });
-
-        // Guardar en Firebase
-        await guardarEnFirebase('programacion', programacion);
-        cargarProgramacionTrabajador();
-        alert("Turno confirmado exitosamente.");
-    } catch (error) {
-        console.error('Error al confirmar turno:', error);
-        alert('Error al confirmar el turno.');
-    }
-}
-
-async function rechazarTurno(fecha) {
-    if (confirm("¿Estás seguro de rechazar este turno?")) {
-        try {
-            const db = firebase.database();
-            // Obtener programación desde Firebase
-            const snapshot = await db.ref("programacion").once("value");
-            let programacion = snapshot.val() || [];
-
-            // Actualizar el estado del turno
-            programacion = programacion.map(t => {
-                if (t.Nombre === usuarioActual.email && t.Fecha === fecha) {
-                    return { ...t, estado: 'rechazado', fechaRechazo: new Date().toISOString() };
+                if (turnos.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4">No hay turnos asignados</td></tr>`;
+                    return;
                 }
-                return t;
-            });
 
-            // Guardar en Firebase
-            await guardarEnFirebase('programacion', programacion);
+                turnos.forEach(turno => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${turno.fecha}</td>
+                        <td>${turno.turno}</td>
+                        <td><span class="estado ${turno.estado}">${turno.estado.toUpperCase()}</span></td>
+                        <td>
+                            ${turno.estado === 'pendiente' ? `
+                            <button class="confirmar-btn" 
+                                    onclick="confirmarTurno('${turno.fecha}')">
+                                ✅ Confirmar
+                            </button>
+                            <button class="rechazar-btn" 
+                                    onclick="rechazarTurno('${turno.fecha}')">
+                                ❌ Rechazar
+                            </button>
+                            ` : 'Sin acciones disponibles'}
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
 
-            // Crear notificación
-            const notificacionesRef = db.ref("notificaciones");
-            const notificacion = {
-                trabajador: usuarioActual.email,
-                fecha: fecha,
-                turno: programacion.find(t => t.Nombre === usuarioActual.email && t.Fecha === fecha).Turno,
-                timestamp: new Date().toISOString()
-            };
-            await notificacionesRef.push(notificacion); // Usar push() para generar ID único
-
-            cargarProgramacionTrabajador();
-            if (usuarioActual.role === 'admin') cargarNotificaciones();
-            alert("Turno rechazado exitosamente.");
-        } catch (error) {
-            console.error('Error al rechazar turno:', error);
-            alert('Error al rechazar el turno.');
+                document.querySelectorAll('.estado').forEach(estado => {
+                    estado.classList.add(
+                        estado.textContent.toLowerCase() === 'confirmado' ? 'confirmado' :
+                        estado.textContent.toLowerCase() === 'rechazado' ? 'rechazado' : 'pendiente'
+                    );
+                });
+            } catch (error) {
+                console.error('Error al cargar programación:', error);
+                const tbody = document.querySelector('#turnosTrabajador tbody');
+                tbody.innerHTML = `<tr><td colspan="4">Error al cargar la programación</td></tr>`;
+            }
         }
-    }
-}
 
-async function cargarNotificaciones() {
-    try {
-        const db = firebase.database();
-        const snapshot = await db.ref("notificaciones").once("value");
-        const notificaciones = snapshot.val() || []; // <-- Única declaración
+        async function confirmarTurno(fecha) {
+            try {
+                const db = firebase.database();
+                const programacionRef = db.ref(`programacion/${fecha}/${usuarioActual.email}`);
+                await programacionRef.update({ estado: 'confirmado' });
+                cargarProgramacionTrabajador();
+                alert("Turno confirmado exitosamente.");
+            } catch (error) {
+                console.error('Error al confirmar turno:', error);
+                alert('Error al confirmar el turno.');
+            }
+        }
 
-        // Actualizar la interfaz
-        const listaNotificaciones = document.getElementById('listaNotificaciones');
-        listaNotificaciones.innerHTML = notificaciones.map(notif => `
-            <div class="notificacion-item">
-                <span>${notif.mensaje}</span>
-                <small>${new Date(notif.timestamp).toLocaleDateString()}</small>
-            </div>
-        `).join('');
-        
-    } catch (error) {
-        console.error("Error al cargar notificaciones:", error);
-        alert("No se pudieron cargar las notificaciones.");
-    }
-}
+        async function rechazarTurno(fecha) {
+            if (confirm("¿Estás seguro de rechazar este turno?")) {
+                try {
+                    const db = firebase.database();
+                    const programacionRef = db.ref(`programacion/${fecha}/${usuarioActual.email}`);
+                    const snapshot = await programacionRef.once("value");
+                    const turnoData = snapshot.val();
+
+                    await programacionRef.update({ 
+                        estado: 'rechazado',
+                        fechaRechazo: new Date().toISOString()
+                    });
+
+                    const notificacionesRef = db.ref("notificaciones");
+                    const notificacion = {
+                        trabajador: usuarioActual.email,
+                        fecha: fecha,
+                        turno: turnoData.turno,
+                        timestamp: new Date().toISOString()
+                    };
+                    await notificacionesRef.push(notificacion);
+
+                    cargarProgramacionTrabajador();
+                    if (usuarioActual.role === 'admin') cargarNotificaciones();
+                    alert("Turno rechazado exitosamente.");
+                } catch (error) {
+                    console.error('Error al rechazar turno:', error);
+                    alert('Error al rechazar el turno.');
+                }
+            }
+        }
+
+        async function cargarNotificaciones() {
+            try {
+                const db = firebase.database();
+                const snapshot = await db.ref("notificaciones").once("value");
+                const notificaciones = snapshot.val() || {};
+
+                const listaNotificaciones = document.getElementById('listaNotificaciones');
+                listaNotificaciones.innerHTML = Object.values(notificaciones).map(notif => `
+                    <div class="notificacion-item">
+                        <span>Turno rechazado por ${notif.trabajador} para ${notif.fecha}</span>
+                        <small>${new Date(notif.timestamp).toLocaleDateString()}</small>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error("Error al cargar notificaciones:", error);
+                alert("No se pudieron cargar las notificaciones.");
+            }
+        }
 
         function openTab(tabName, event) {
             if (usuarioActual.role !== 'admin') return;
@@ -1209,7 +1124,10 @@ async function cargarNotificaciones() {
 
         async function procesarSedes() {
             const file = document.getElementById('excelSedes').files[0];
-            if (!file) return;
+            if (!file) {
+                alert('Por favor selecciona un archivo');
+                return;
+            }
 
             const reader = new FileReader();
             reader.onload = async function(e) {
@@ -1223,11 +1141,17 @@ async function cargarNotificaciones() {
                         throw new Error("Formato incorrecto. Columnas requeridas: Nombre, Latitud, Longitud");
                     }
 
+                    sedes = jsonData.map(row => ({
+                        nombre: row.Nombre,
+                        latitud: parseFloat(row.Latitud),
+                        longitud: parseFloat(row.Longitud)
+                    }));
+
                     await guardarEnFirebase('sedes', sedes);
                     loadSedes();
-                    actualizarSedesEnMapa();
                     alert("Sedes importadas exitosamente!");
                 } catch (error) {
+                    console.error('Error al procesar sedes:', error);
                     alert(error.message);
                 }
             };
@@ -1237,149 +1161,125 @@ async function cargarNotificaciones() {
         async function actualizarSedesEnMapa() {
             if (!map) return;
             try {
-                const response = await fetch('https://raw.githubusercontent.com/barrasck/app-trabajador/refs/heads/main/sedes.json');
-                if (!response.ok) throw new Error('Error al cargar sedes');
-                const sedesData = await response.json();
                 const sedeIcon = L.icon({
                     iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
                     iconSize: [25, 41],
                     iconAnchor: [12, 41]
                 });
-                sedesData.forEach(sede => {
-                    L.marker([sede.Latitud, sede.Longitud], { icon: sedeIcon })
+                sedes.forEach(sede => {
+                    L.marker([sede.latitud, sede.longitud], { icon: sedeIcon })
                         .addTo(map)
-                        .bindPopup(`<b>${sede.Nombre}</b>`);
+                        .bindPopup(`<b>${sede.nombre}</b>`);
                 });
             } catch (error) {
                 console.error('Error al actualizar sedes en mapa:', error);
             }
         }
 
-async function guardarEnFirebase(ruta, datos) {
-    try {
-        const db = firebase.database();
-        const referencia = db.ref(ruta);
-        
-        await referencia.set(datos);
-        console.log("Datos guardados exitosamente en:", ruta);
-        return { exito: true, mensaje: "Datos guardados correctamente" };
-        
-    } catch (error) {
-        console.error("Error al guardar en Firebase:", error);
-        return { 
-            exito: false, 
-            mensaje: `Error al guardar: ${error.message || error}` 
-        };
-    }
-}
-
-        async function convertirImagenABase64(file) {
-    if (!file) return null;
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result.split(',')[1]); // Quitar prefijo
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-    });
-}
-
-async function crearTrabajador() {
-    try {
-        // Validar campos obligatorios
-        const camposRequeridos = [
-            'nombreApellidos', 'correoElectronico', 'numeroDocumento',
-            'fechaNacimiento', 'rh', 'genero', 'ciudad', 'direccionResidencia',
-            'telefonoContacto', 'banco', 'tipoCuenta', 'numeroCuenta'
-        ];
-
-        const faltantes = camposRequeridos.filter(id => !document.getElementById(id).value);
-        if (faltantes.length > 0) {
-            throw new Error(`Faltan campos requeridos: ${faltantes.join(', ')}`);
+        async function guardarEnFirebase(ruta, datos) {
+            try {
+                const db = firebase.database();
+                const referencia = db.ref(ruta);
+                await referencia.set(datos);
+                console.log("Datos guardados exitosamente en:", ruta);
+                return { exito: true, mensaje: "Datos guardados correctamente" };
+            } catch (error) {
+                console.error("Error al guardar en Firebase:", error);
+                return { 
+                    exito: false, 
+                    mensaje: `Error al guardar: ${error.message || error}` 
+                };
+            }
         }
 
-        // Convertir imagen a Base64
-        const fotoFile = document.getElementById('fotoTrabajador').files[0];
-        if (!fotoFile) throw new Error("Debes subir una foto");
-        const fotoBase64 = await convertirImagenABase64(fotoFile);
+        async function convertirImagenABase64(file) {
+            if (!file) return null;
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
 
-        // Crear objeto con datos del trabajador
-        const trabajadorData = {
-            // Sección de identificación
-            foto: fotoBase64,
-            tipoDocumento: document.getElementById('tipoDocumento').value,
-            numeroDocumento: document.getElementById('numeroDocumento').value,
-            
-            // Datos personales
-            nombreApellidos: document.getElementById('nombreApellidos').value,
-            fechaNacimiento: document.getElementById('fechaNacimiento').value,
-            rh: document.getElementById('rh').value,
-            genero: document.getElementById('genero').value,
-            
-            // Datos de contacto
-            correoElectronico: document.getElementById('correoElectronico').value,
-            ciudad: document.getElementById('ciudad').value,
-            barrioResidencia: document.getElementById('barrioResidencia').value || '',
-            direccionResidencia: document.getElementById('direccionResidencia').value,
-            telefonoContacto: document.getElementById('telefonoContacto').value,
-            telefonoEmergencia: document.getElementById('telefonoEmergencia').value,
-            
-            // Datos bancarios
-            banco: document.getElementById('banco').value,
-            tipoCuenta: document.getElementById('tipoCuenta').value,
-            numeroCuenta: document.getElementById('numeroCuenta').value,
-            
-            // Metadatos del sistema
-            role: "worker",
-            fechaRegistro: new Date().toISOString(),
-            activo: true
-        };
+        async function crearTrabajador() {
+            try {
+                const camposRequeridos = [
+                    'nombreApellidos', 'correoElectronico', 'numeroDocumento',
+                    'fechaNacimiento', 'rh', 'genero', 'ciudad', 'direccionResidencia',
+                    'telefonoContacto', 'banco', 'tipoCuenta', 'numeroCuenta'
+                ];
 
-        // Crear usuario en Firebase Authentication
-        const userCredential = await firebase.auth().createUserWithEmailAndPassword(
-            trabajadorData.correoElectronico,
-            trabajadorData.numeroDocumento // Usar el número de documento como contraseña inicial
-        );
+                const faltantes = camposRequeridos.filter(id => !document.getElementById(id).value);
+                if (faltantes.length > 0) {
+                    throw new Error(`Faltan campos requeridos: ${faltantes.join(', ')}`);
+                }
 
-        // Guardar datos en Realtime Database
-        const db = firebase.database();
-        
-        // 1. Guardar en nodo 'usuarios' con UID de Authentication
-        await db.ref(`usuarios/${userCredential.user.uid}`).set({
-            nombre: trabajadorData.nombreApellidos,
-            email: trabajadorData.correoElectronico,
-            role: "worker",
-            documento: trabajadorData.numeroDocumento
-        });
+                const email = document.getElementById('correoElectronico').value;
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    throw new Error('Formato de correo electrónico inválido');
+                }
 
-        // 2. Guardar en nodo 'trabajadores' con número de documento como clave
-        await db.ref(`trabajadores/${trabajadorData.numeroDocumento}`).set(trabajadorData);
+                const telefono = document.getElementById('telefonoContacto').value;
+                if (!/^\+?\d{10,15}$/.test(telefono)) {
+                    throw new Error('Formato de teléfono inválido');
+                }
 
-        // Actualizar lista y limpiar formulario
-        actualizarListaTrabajadores();
-        document.getElementById('crearTrabajador').reset();
-        
-        alert("¡Trabajador registrado exitosamente! Credenciales temporales:\n" +
-            `Email: ${trabajadorData.correoElectronico}\n` +
-            `Contraseña: ${trabajadorData.numeroDocumento}`);
+                const fotoFile = document.getElementById('fotoTrabajador').files[0];
+                if (!fotoFile) throw new Error("Debes subir una foto");
+                const fotoBase64 = await convertirImagenABase64(fotoFile);
 
-    } catch (error) {
-        console.error("Error al crear trabajador:", error);
-        alert(`Error: ${error.message}\n${error.code === 'auth/email-already-in-use' ? 
-            'El correo ya está registrado' : 
-            'Verifica todos los campos'}`);
-    }
-}
+                const trabajadorData = {
+                    foto: fotoBase64,
+                    tipoDocumento: document.getElementById('tipoDocumento').value,
+                    numeroDocumento: document.getElementById('numeroDocumento').value,
+                    nombreApellidos: document.getElementById('nombreApellidos').value,
+                    fechaNacimiento: document.getElementById('fechaNacimiento').value,
+                    rh: document.getElementById('rh').value,
+                    genero: document.getElementById('genero').value,
+                    correoElectronico: email,
+                    ciudad: document.getElementById('ciudad').value,
+                    barrioResidencia: document.getElementById('barrioResidencia').value || '',
+                    direccionResidencia: document.getElementById('direccionResidencia').value,
+                    telefonoContacto: telefono,
+                    telefonoEmergencia: document.getElementById('telefonoEmergencia').value,
+                    banco: document.getElementById('banco').value,
+                    tipoCuenta: document.getElementById('tipoCuenta').value,
+                    numeroCuenta: document.getElementById('numeroCuenta').value,
+                    role: "worker",
+                    fechaRegistro: new Date().toISOString(),
+                    activo: true,
+                    nomina: []
+                };
 
-// Función auxiliar para convertir imágenes
-async function convertirImagenABase64(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result.split(',')[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-    });
-}
-        
+                const userCredential = await firebase.auth().createUserWithEmailAndPassword(
+                    trabajadorData.correoElectronico,
+                    trabajadorData.numeroDocumento
+                );
+
+                const db = firebase.database();
+                await db.ref(`usuarios/${userCredential.user.uid}`).set({
+                    nombre: trabajadorData.nombreApellidos,
+                    email: trabajadorData.correoElectronico,
+                    role: "worker",
+                    documento: trabajadorData.numeroDocumento
+                });
+
+                await db.ref(`trabajadores/${trabajadorData.numeroDocumento}`).set(trabajadorData);
+
+                actualizarListaTrabajadores();
+                document.getElementById('crearTrabajador').reset();
+                
+                alert("¡Trabajador registrado exitosamente! Credenciales temporales:\n" +
+                      `Email: ${trabajadorData.correoElectronico}\n` +
+                      `Contraseña: ${trabajadorData.numeroDocumento}`);
+            } catch (error) {
+                console.error("Error al crear trabajador:", error);
+                alert(`Error: ${error.message}\n${error.code === 'auth/email-already-in-use' ? 
+                      'El correo ya está registrado' : 
+                      'Verifica todos los campos'}`);
+            }
+        }
     </script>
 </body>
 </html>
