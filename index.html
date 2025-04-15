@@ -1010,76 +1010,54 @@ function handleSuccessfulLogin() {
             }
         }
 
-    // 1. Añade la nueva función debugUsuarios
-    async function debugUsuarios() {
-        try {
-            const { users } = await firebase.auth().listUsers();
-            const db = firebase.database();
-            const dbUsers = await db.ref("usuarios").once("value");
-            
-            console.log("=== Usuarios en Authentication ===");
-            users.forEach(user => console.log(`UID: ${user.uid} | Email: ${user.email}`));
-
-            console.log("=== Usuarios en Database ===");
-            Object.entries(dbUsers.val() || {}).forEach(([uid, data]) => {
-                console.log(`UID: ${uid} | Documento: ${data.documento}`);
-            });
-        } catch (error) {
-            console.error("Error en debug:", error);
-        }
-    }
-
-    // 2. Modifica el window.onload existente
-    window.onload = async function() {
-        await debugUsuarios(); // <-- Esta línea se añade primero
+window.onload = async function() {
+    try {
+        const session = sessionStorage.getItem('session');
+        document.getElementById('logoutBtn').style.display = session ? 'block' : 'none';
         
-        try {
-            const session = sessionStorage.getItem('session');
-            document.getElementById('logoutBtn').style.display = session ? 'block' : 'none';
+        if (!session) {
+            document.getElementById('loginModal').style.display = 'flex';
+            return;
+        }
+
+        usuarioActual = JSON.parse(session);
+        document.querySelector('.content-wrapper').style.display = 'block';
+        actualizarUI();
+
+        await Promise.all([
+            cargarTrabajadores(),
+            loadSedes()
+        ]);
+
+        if (usuarioActual.role === 'admin') {
+            await asignarSede();
+            const ahora = new Date();
+            const horaEjecucion = new Date(
+                ahora.getFullYear(),
+                ahora.getMonth(),
+                ahora.getDate() + 1,
+                0, 0, 0
+            );
+            const tiempoHastaEjecucion = horaEjecucion - ahora;
             
-            if (!session) {
-                document.getElementById('loginModal').style.display = 'flex';
-                return;
-            }
+            setTimeout(() => {
+                setInterval(asignarSede, 86400000);
+            }, tiempoHastaEjecucion);
 
-            usuarioActual = JSON.parse(session);
-            document.querySelector('.content-wrapper').style.display = 'block';
-            actualizarUI();
-
-            await Promise.all([
-                cargarTrabajadores(),
-                loadSedes()
-            ]);
-
-                if (usuarioActual.role === 'admin') {
-                    await asignarSede();
-                    const ahora = new Date();
-                    const horaEjecucion = new Date(
-                        ahora.getFullYear(),
-                        ahora.getMonth(),
-                        ahora.getDate() + 1,
-                        0, 0, 0
-                    );
-                    const tiempoHastaEjecucion = horaEjecucion - ahora;
-                    
-                    setTimeout(() => {
-                        setInterval(asignarSede, 86400000);
-                    }, tiempoHastaEjecucion);
-
-                    await inicializarMapa();
-                    cargarUbicacionesTrabajadores();
-                    cargarNotificaciones();
-                } else {
-                    mostrarNomina();
-                    iniciarTrackingTrabajador();
-                    cargarProgramacionTrabajador();
-                }
-            } catch (error) {
-                console.error('Error en carga inicial:', error);
-                alert('Error al iniciar la aplicación');
-                cerrarSesion();
-            }
-        };
+            await inicializarMapa();
+            cargarUbicacionesTrabajadores();
+            cargarNotificaciones();
+        } else {
+            mostrarNomina();
+            iniciarTrackingTrabajador();
+            cargarProgramacionTrabajador();
+        }
+    } catch (error) {
+        console.error('Error en carga inicial:', error);
+        alert('Error al iniciar la aplicación');
+        cerrarSesion();
+    }
+};
 
         async function procesarProgramacion() {
             const file = document.getElementById('excelProgramacion').files[0];
