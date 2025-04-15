@@ -1,3 +1,87 @@
 {
+  "usuarios": {
+    7yFW4Aa0Q1bDVY8Tr3gXeFrOtEY2: {
+      "email": "wendy@amalogistic.com",
+      "role": "admin",
+      "nombre": "Wendy",
+      "documento": "123456789"
+    },
+    qywxXGgVJEU9El4tGPVwDQgX1Wj1: {
+      "email": "laura@amalogistic.com",
+      "role": "admin",
+      "nombre": "Laura",
+      "documento": "987654321"
+    },
+    Fwcp8g6i0URHPtt7cEHhL4QhyzA2: {
+      "email": "jose@amalogistic.com",
+      "role": "admin",
+      "nombre": "José",
+      "documento": "456123789"
+    },
+    9KteMBb2KaVfDDcBAILGY7FoLYh2: {
+      "email": "andres@amalogistic.com",
+      "role": "admin",
+      "nombre": "Andrés",
+      "documento": "789321654"
+    },
+    yVm0W1wc3HUWHVTWwPDNWJcjgWK2: {
+      "email": "fabio@amalogistic.com",
+      "role": "admin",
+      "nombre": "Fabio",
+      "documento": "159753468"
+    },
+    0k1D38Q0sBf9a16rM4zXbdjA6l83: {
+      "email": "cristian@amalogistic.com",
+      "role": "admin",
+      "nombre": "Cristian",
+      "documento": "357159846"
+    },
 
+  "sedes": [
+    {
+      "nombre": "Newell",
+      "latitud": 4.747593,
+      "longitud": -74.163485
+    },
+    {
+      "nombre": "Maersk",
+      "latitud": 4.740862,
+      "longitud": -74.153751
+    },
+    {
+      "nombre": "Distriservices",
+      "latitud": 4.673570,
+      "longitud": -74.157371
+    },
+    {
+      "nombre": "Ceva600",
+      "latitud": 4.768008,
+      "longitud": -74.178495
+    },
+    {
+      "nombre": "Ceva700",
+      "latitud": 4.768008,
+      "longitud": -74.178495
+    },
+    {
+      "nombre": "Imbocar",
+      "latitud": 4.682430,
+      "longitud": -74.157172
+    },
+    {
+      "nombre": "Solistica",
+      "latitud": 4.773591,
+      "longitud": -74.176717
+    },
+    {
+      "nombre": "Silogistica",
+      "latitud": 4.680069,
+      "longitud": -74.230599
+    },
+    {
+      "nombre": "Zalt",
+      "latitud": 4.672489,
+      "longitud": -74.162095
+    }
+  ]
 }
