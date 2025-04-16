@@ -6,7 +6,9 @@
     <title>AMA PLUS LOGISTICS</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin=""/>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" 
+          integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" 
+          crossorigin=""/>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
@@ -245,6 +247,13 @@
             color: black;
         }
     </style>
+        <script>
+        // Deshabilitar source maps para evitar errores en consola
+        L_NOOP = function(){};
+        
+        // Definir variable global del mapa
+        var map;
+    </script>
 </head>
 <body>
     <button id="logoutBtn" onclick="cerrarSesion()">🚪 Cerrar Sesión</button>
