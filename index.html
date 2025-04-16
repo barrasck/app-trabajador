@@ -1061,7 +1061,7 @@
                         setInterval(asignarSede, 86400000);
                     }, tiempoHastaEjecucion);
 
-                    await inicializarMapa();
+                    
                     cargarUbicacionesTrabajadores();
                     cargarNotificaciones();
                 } else {
@@ -1276,35 +1276,32 @@
             }
         }
 
-        function openTab(tabName, event) {
-            if (usuarioActual.role !== 'admin') return;
-            
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-                if (tab.id === tabName) {
-                    tab.style.display = 'block';
-                    setTimeout(() => {
-                        tab.classList.add('active');
-                        if (map) {
-                            map.invalidateSize();
-                            map.setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
-                        }
-                    }, 10);
-                } else {
-                    tab.style.display = 'none';
+async function openTab(tabName, event) {
+    if (usuarioActual.role !== 'admin') return;
+    
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+        if (tab.id === tabName) {
+            tab.style.display = 'block';
+            setTimeout(() => {
+                tab.classList.add('active');
+                if (tabName === 'mapa') {
+                    if (!map) {
+                        inicializarMapa(); // Inicializa el mapa solo cuando se abre la pestaña
+                    } else {
+                        map.invalidateSize(); // Actualiza el tamaño si ya está inicializado
+                        map.setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
+                    }
                 }
-            });
-            
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+            }, 10);
+        } else {
+            tab.style.display = 'none';
         }
-
-        // Añadir evento de resize para actualizar el mapa
-        window.addEventListener('resize', () => {
-            if (map) {
-                map.invalidateSize();
-            }
-        });
+    });
+    
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+}
 
         async function procesarSedes() {
             const file = document.getElementById('excelSedes').files[0];
