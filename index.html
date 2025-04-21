@@ -1275,6 +1275,11 @@ function openTab(tabName, event) {
     if (selectedTab) {
         selectedTab.style.display = 'block'; // Muestra el contenido de la pestaña seleccionada
         selectedTab.classList.add('active'); // Agrega la clase activa
+        
+        // Llama a la función para inicializar el mapa si la pestaña es 'mapa'
+        if (tabName === 'mapa') {
+            inicializarMapa(); // Asegúrate de que esta función esté definida
+        }
     }
     
     // Manejar clases activas en los botones
