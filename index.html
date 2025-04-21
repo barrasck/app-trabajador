@@ -672,14 +672,18 @@
             alert(`Error: ${message}`);
         }
 
-        function handleSuccessfulLogin() {
-            document.getElementById('loginModal').style.display = 'none';
-            document.querySelector('.content-wrapper').style.display = 'block';
-            document.getElementById('logoutBtn').style.display = 'block';
-            sessionStorage.setItem('session', JSON.stringify(usuarioActual));
-            actualizarUI();
-        }
-
+function handleSuccessfulLogin() {
+    document.getElementById('loginModal').style.display = 'none';
+    document.querySelector('.content-wrapper').style.display = 'block';
+    document.getElementById('logoutBtn').style.display = 'block';
+    sessionStorage.setItem('session', JSON.stringify(usuarioActual));
+    actualizarUI();
+    
+    // Llama a cargarUsuarios después de iniciar sesión
+    if (usuarioActual.role === 'admin') {
+        cargarUsuarios(); // Cargar usuarios si el rol es admin
+    }
+}
         async function cargarUbicacionesTrabajadores() {
             try {
                 const db = firebase.database();
@@ -1458,7 +1462,6 @@ async function cargarUsuarios() {
         const tbody = document.querySelector('#usuariosTable tbody');
         tbody.innerHTML = '';
         
-        // Recorrer todos los usuarios usando Object.keys
         Object.keys(usuarios).forEach(uid => {
             const usuario = usuarios[uid];
             const row = document.createElement('tr');
