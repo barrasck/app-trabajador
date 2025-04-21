@@ -571,39 +571,60 @@
             }
         }
 
-        async function registrarTrabajador(t) {
-            try {
-                const camposRequeridos = ['Número de Documento', 'Nombre', 'Correo Electrónico'];
-                const faltantes = camposRequeridos.filter(campo => !t[campo]);
-                if (faltantes.length > 0) throw new Error(`Campos faltantes: ${faltantes.join(', ')}`);
+async function registrarTrabajador(t) {
+    try {
+        const db = firebase.database();
+        const documento = t['Número de Documento'];
+        const email = t['Correo Electrónico'];
 
-                const userCredential = await firebase.auth().createUserWithEmailAndPassword(
-                    t['Correo Electrónico'],
-                    t['Número de Documento']
-                );
-
-                const trabajadorData = {
-                    numeroDocumento: t['Número de Documento'],
-                    nombreApellidos: t['Nombre'],
-                    correoElectronico: t['Correo Electrónico'],
-                    role: 'worker',
-                    estado: 'activo'
-                };
-
-                const db = firebase.database();
-                await Promise.all([
-                    db.ref(`usuarios/${userCredential.user.uid}`).set(trabajadorData),
-                    db.ref(`trabajadores/${t['Número de Documento']}`).set(trabajadorData)
-                ]);
-
-                return { success: true, documento: t['Número de Documento'] };
-            } catch (error) {
-                if (error.code === 'auth/email-already-in-use') {
-                    return { success: false, error: 'Email ya registrado' };
-                }
-                throw error;
-            }
+        // Verificar si el trabajador ya existe
+        const snapshot = await db.ref(`trabajadores/${documento}`).once('value');
+        if (snapshot.exists()) {
+            console.log(`Trabajador con documento ${documento} ya existe. Saltando...`);
+            return { success: false, error: 'Trabajador ya existe' };
         }
+
+        // Crear usuario en Firebase Authentication
+        const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, documento);
+
+        // Preparar datos del trabajador con valores predeterminados
+        const trabajadorData = {
+            numeroDocumento: documento,
+            nombreApellidos: t['Nombre completo'] || 'Sin nombre',
+            correoElectronico: email,
+            tipoDocumento: t['Tipo de Documento'] || 'CC',
+            fechaNacimiento: t['Fecha Nacimiento'] || '',
+            rh: t['RH'] || '',
+            genero: t['Género'] || '',
+            ciudad: t['Ciudad'] || '',
+            barrioResidencia: t['Barrio de Residencia'] || '',
+            direccionResidencia: t['Dirección Completa'] || '',
+            telefonoContacto: t['Teléfono de Contacto'] || '',
+            telefonoEmergencia: t['Teléfono de Emergencia'] || '',
+            banco: t['Banco'] || 'Davivienda',
+            tipoCuenta: t['Tipo de Cuenta'] || 'AHORROS',
+            numeroCuenta: t['Número de Cuenta'] || '0',
+            role: 'worker',
+            estado: 'activo'
+        };
+
+        // Guardar en la base de datos
+        await Promise.all([
+            db.ref(`usuarios/${userCredential.user.uid}`).set(trabajadorData),
+            db.ref(`trabajadores/${documento}`).set(trabajadorData)
+        ]);
+
+        console.log(`Trabajador ${documento} creado exitosamente.`);
+        return { success: true, documento };
+    } catch (error) {
+        if (error.code === 'auth/email-already-in-use') {
+            console.log(`Email ${email} ya está registrado. Saltando...`);
+            return { success: false, error: 'Email ya registrado' };
+        }
+        console.error(`Error al registrar trabajador ${documento}:`, error);
+        throw error;
+    }
+}
 
         function isValidEmail(email) {
             return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
