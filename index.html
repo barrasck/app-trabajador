@@ -964,18 +964,25 @@ async function loadSedes() {
             }
         }
 
-        function actualizarUI() {
-            if (usuarioActual.role === 'admin') {
-                document.querySelector('.tabs').style.display = 'flex';
-                document.querySelector('.info-panel').style.display = 'block';
-                document.querySelector('.nomina-panel').style.display = 'none';
-                openTab('programacion', { currentTarget: document.querySelector('.tab-btn.active') });
-            } else {
-                document.querySelector('.tabs').style.display = 'none';
-                document.querySelector('.info-panel').style.display = 'none';
-                document.querySelector('.nomina-panel').style.display = 'block';
-            }
-        }
+function actualizarUI() {
+    if (usuarioActual.role === 'admin') {
+        document.querySelector('.tabs').style.display = 'flex';
+        document.querySelector('.info-panel').style.display = 'block';
+        document.querySelector('.nomina-panel').style.display = 'none';
+        // Ocultar todos los tabs primero
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.style.display = 'none';
+            tab.classList.remove('active');
+        });
+        // Mostrar solo programación
+        document.getElementById('programacion').style.display = 'block';
+        document.getElementById('programacion').classList.add('active');
+    } else {
+        document.querySelector('.tabs').style.display = 'none';
+        document.querySelector('.info-panel').style.display = 'none';
+        document.querySelector('.nomina-panel').style.display = 'block';
+    }
+}
 
         async function mostrarNomina() {
             try {
@@ -1259,29 +1266,34 @@ async function loadSedes() {
 function openTab(tabName, event) {
     if (usuarioActual.role !== 'admin') return;
     
+    // Ocultar todos los tab-content
     document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.style.display = 'none';
         tab.classList.remove('active');
-        if (tab.id === tabName) {
-            tab.style.display = 'block';
-            setTimeout(() => {
-                tab.classList.add('active');
-                if (tabName === 'mapa') {
-                    inicializarMapa();
-                    if (map) {
-                        map.invalidateSize();
-                        map.setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
-                    }
-                } else if (tabName === 'usuarios') {
-                    cargarUsuarios();
-                }
-            }, 10);
-        }
     });
     
+    // Mostrar solo el tab seleccionado
+    const selectedTab = document.getElementById(tabName);
+    if (selectedTab) {
+        selectedTab.style.display = 'block';
+        setTimeout(() => {
+            selectedTab.classList.add('active');
+            if (tabName === 'mapa') {
+                inicializarMapa();
+                if (map) {
+                    map.invalidateSize();
+                    map.setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
+                }
+            } else if (tabName === 'usuarios') {
+                cargarUsuarios();
+            }
+        }, 10);
+    }
+    
+    // Manejar clases activas en los botones
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     event.currentTarget.classList.add('active');
 }
-
         async function procesarSedes() {
             const file = document.getElementById('excelSedes').files[0];
             if (!file) return alert('Por favor selecciona un archivo');
