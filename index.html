@@ -1266,11 +1266,13 @@ function openTab(tabName, event) {
             setTimeout(() => {
                 tab.classList.add('active');
                 if (tabName === 'mapa') {
-                    inicializarMapa(); // Asegura que se llame aquí
+                    inicializarMapa();
                     if (map) {
                         map.invalidateSize();
                         map.setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
                     }
+                } else if (tabName === 'usuarios') {
+                    cargarUsuarios();
                 }
             }, 10);
         }
@@ -1444,28 +1446,31 @@ function actualizarSedesEnMapa() {
             }
         }
 
-        async function cargarUsuarios() {
-            try {
-                const db = firebase.database();
-                const snapshot = await db.ref("usuarios").once("value");
-                const usuarios = snapshot.val() || {};
-                const tbody = document.querySelector('#usuariosTable tbody');
-                tbody.innerHTML = '';
-                Object.values(usuarios).forEach(usuario => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${usuario.nombre || 'Sin nombre'}</td>
-                        <td>${usuario.email}</td>
-                        <td>${usuario.password || 'No disponible'}</td>
-                        <td><button onclick="resetPassword('${usuario.email}')">Restablecer Contraseña</button></td>
-                    `;
-                    tbody.appendChild(row);
-                });
-            } catch (error) {
-                console.error('Error al cargar usuarios:', error);
-                alert('Error al cargar la lista de usuarios.');
-            }
-        }
+async function cargarUsuarios() {
+    try {
+        const db = firebase.database();
+        const snapshot = await db.ref("usuarios").once("value");
+        const usuarios = snapshot.val() || {};
+        const tbody = document.querySelector('#usuariosTable tbody');
+        tbody.innerHTML = '';
+        
+        // Recorrer todos los usuarios usando Object.keys
+        Object.keys(usuarios).forEach(uid => {
+            const usuario = usuarios[uid];
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${usuario.nombre || 'Sin nombre'}</td>
+                <td>${usuario.email}</td>
+                <td>${usuario.password || 'No disponible'}</td>
+                <td><button onclick="resetPassword('${usuario.email}')">Restablecer Contraseña</button></td>
+            `;
+            tbody.appendChild(row);
+        });
+    } catch (error) {
+        console.error('Error al cargar usuarios:', error);
+        alert('Error al cargar la lista de usuarios.');
+    }
+}
 
         async function resetPassword(email) {
             try {
