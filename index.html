@@ -440,6 +440,7 @@
         let userMarker = null;
         let accuracyCircle = null;
         let trabajadoresMarkers = {};
+        let sedesLayer = L.layerGroup();
 
         const CONFIG = {
             destino: {
@@ -698,29 +699,28 @@
             }
         }
 
-        async function inicializarMapa() {
-            if (!map) {
-                await new Promise(resolve => setTimeout(resolve, 50));
-                
-                map = L.map('map', {
-                    maxZoom: CONFIG.opcionesMapa.maxZoom,
-                    preferCanvas: true
-                }).setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
+async function inicializarMapa() {
+    if (!map) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+        
+        map = L.map('map', {
+            maxZoom: CONFIG.opcionesMapa.maxZoom,
+            preferCanvas: true
+        }).setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
 
-                const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '© OpenStreetMap',
-                    maxNativeZoom: 19,
-                    maxZoom: 22
-                }).on('tileerror', () => {
-                    console.warn('Error cargando tiles, intentando con servidor alternativo...');
-                    tileLayer.setUrl('https://tile.openstreetmap.de/{z}/{x}/{y}.png');
-                }).addTo(map);
+        const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap',
+            maxNativeZoom: 19,
+            maxZoom: 22
+        }).addTo(map);
 
-                setTimeout(() => map.invalidateSize(), 100);
-                
-                await actualizarSedesEnMapa();
-            }
-        }
+        setTimeout(() => map.invalidateSize(), 100);
+    }
+
+    // Cargar y mostrar sedes
+    await loadSedes();
+    actualizarSedesEnMapa();
+}
 
         function actualizarMapaTrabajadores(ubicaciones) {
             if (!map) return;
@@ -768,26 +768,25 @@
             });
         }
 
-        async function loadSedes() {
-            try {
-                const db = firebase.database();
-                const snapshot = await db.ref("sedes").once("value");
-                const sedesData = snapshot.val() || {};
-                sedes = Object.values(sedesData);
+async function loadSedes() {
+    try {
+        const db = firebase.database();
+        const snapshot = await db.ref("sedes").once("value");
+        const sedesData = snapshot.val() || {};
+        sedes = Object.values(sedesData);
 
-                const sedesList = document.getElementById('lista-sedes');
-                sedesList.innerHTML = '';
-                sedes.forEach(sede => {
-                    const li = document.createElement('li');
-                    li.textContent = `${sede.nombre} - Lat: ${sede.latitud}, Lng: ${sede.longitud}`;
-                    sedesList.appendChild(li);
-                });
+        const sedesList = document.getElementById('lista-sedes');
+        sedesList.innerHTML = '';
+        sedes.forEach(sede => {
+            const li = document.createElement('li');
+            li.textContent = `${sede.nombre} - Lat: ${sede.latitud}, Lng: ${sede.longitud}`;
+            sedesList.appendChild(li);
+        });
 
-                await actualizarSedesEnMapa();
-            } catch (error) {
-                console.error('Error al cargar sedes:', error);
-            }
-        }
+    } catch (error) {
+        console.error('Error al cargar sedes:', error);
+    }
+}
 
         document.getElementById('add-sede-form').addEventListener('submit', async function(event) {
             event.preventDefault();
@@ -1257,34 +1256,29 @@
             }
         }
 
-        async function openTab(tabName, event) {
-            if (usuarioActual.role !== 'admin') return;
-            
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-                if (tab.id === tabName) {
-                    tab.style.display = 'block';
-                    setTimeout(() => {
-                        tab.classList.add('active');
-                        if (tabName === 'mapa') {
-                            if (!map) {
-                                inicializarMapa();
-                            } else {
-                                map.invalidateSize();
-                                map.setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
-                            }
-                        } else if (tabName === 'usuarios') {
-                            cargarUsuarios();
-                        }
-                    }, 10);
-                } else {
-                    tab.style.display = 'none';
+function openTab(tabName, event) {
+    if (usuarioActual.role !== 'admin') return;
+    
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+        if (tab.id === tabName) {
+            tab.style.display = 'block';
+            setTimeout(() => {
+                tab.classList.add('active');
+                if (tabName === 'mapa') {
+                    inicializarMapa(); // Asegura que se llame aquí
+                    if (map) {
+                        map.invalidateSize();
+                        map.setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
+                    }
                 }
-            });
-            
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+            }, 10);
         }
+    });
+    
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+}
 
         async function procesarSedes() {
             const file = document.getElementById('excelSedes').files[0];
@@ -1323,23 +1317,31 @@
             reader.readAsArrayBuffer(file);
         }
 
-        async function actualizarSedesEnMapa() {
-            if (!map) return;
-            try {
-                const sedeIcon = L.icon({
-                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-                    iconSize: [25, 41],
-                    iconAnchor: [12, 41]
-                });
-                sedes.forEach(sede => {
-                    L.marker([sede.latitud, sede.longitud], { icon: sedeIcon })
-                        .addTo(map)
-                        .bindPopup(`<b>${sede.nombre}</b>`);
-                });
-            } catch (error) {
-                console.error('Error al actualizar sedes en mapa:', error);
-            }
-        }
+function actualizarSedesEnMapa() {
+    if (!map) return;
+    try {
+        // Limpiar marcadores anteriores
+        sedesLayer.clearLayers();
+
+        const sedeIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41]
+        });
+
+        // Añadir nuevos marcadores
+        sedes.forEach(sede => {
+            L.marker([sede.latitud, sede.longitud], { icon: sedeIcon })
+                .addTo(sedesLayer)
+                .bindPopup(`<b>${sede.nombre}</b>`);
+        });
+
+        // Añadir el grupo al mapa
+        sedesLayer.addTo(map);
+    } catch (error) {
+        console.error('Error al actualizar sedes en mapa:', error);
+    }
+}
 
         async function guardarEnFirebase(ruta, datos) {
             try {
