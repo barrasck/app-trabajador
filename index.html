@@ -1264,35 +1264,22 @@ function actualizarUI() {
         }
 
 function openTab(tabName, event) {
-    if (usuarioActual.role !== 'admin') return;
-    
     // Ocultar todos los tab-content
     document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.style.display = 'none';
-        tab.classList.remove('active');
+        tab.style.display = 'none'; // Oculta todos los contenidos de las pestañas
+        tab.classList.remove('active'); // Elimina la clase activa
     });
     
     // Mostrar solo el tab seleccionado
     const selectedTab = document.getElementById(tabName);
     if (selectedTab) {
-        selectedTab.style.display = 'block';
-        setTimeout(() => {
-            selectedTab.classList.add('active');
-            if (tabName === 'mapa') {
-                inicializarMapa();
-                if (map) {
-                    map.invalidateSize();
-                    map.setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
-                }
-            } else if (tabName === 'usuarios') {
-                cargarUsuarios();
-            }
-        }, 10);
+        selectedTab.style.display = 'block'; // Muestra el contenido de la pestaña seleccionada
+        selectedTab.classList.add('active'); // Agrega la clase activa
     }
     
     // Manejar clases activas en los botones
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    event.currentTarget.classList.add('active');
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active')); // Elimina la clase activa de todos los botones
+    event.currentTarget.classList.add('active'); // Agrega la clase activa al botón que fue clicado
 }
         async function procesarSedes() {
             const file = document.getElementById('excelSedes').files[0];
