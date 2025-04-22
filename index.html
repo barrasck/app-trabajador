@@ -582,21 +582,25 @@
             });
         }
 
-        function handleImportResults(resultados) {
-            const exitosos = resultados.filter(r => r.status === 'fulfilled' && r.value.success);
-            const fallidos = resultados.filter(r => r.status === 'rejected' || !r.value.success);
-
-            if (fallidos.length > 0) {
-                const errores = fallidos.map(f => 
-                    f.reason?.message || f.value?.error || 'Error desconocido'
-                );
-                showError(`Errores en ${fallidos.length} registros: ${errores.join(', ')}`);
-            }
-            
-            if (exitosos.length > 0) {
-                alert(`${exitosos.length} trabajadores importados exitosamente`);
-            }
-        }
+ * @param {PromiseSettledResult[]} resultados - Resultados de registrarTrabajador() para cada fila
+ */
+function handleImportResults(resultados) {
+    const exitosos = resultados.filter(r => r.status === 'fulfilled' && r.value.success);
+    const fallidos = resultados.filter(r => r.status === 'rejected' || !r.value.success);
+    if (fallidos.length > 0) {
+        const errores = fallidos.map((f, i) => {
+            const mensaje = f.reason?.message || f.value?.error || 'Error desconocido';
+            return `Fila ${i + 2}: ${mensaje}`; // +2 porque Excel empieza en la fila 2 para los datos
+        });
+        handleImportErrors(errores);
+    }
+    if (exitosos.length > 0) {
+        alert(`✅ ${exitosos.length} trabajador(es) importado(s) exitosamente.`);
+    }
+    if (exitosos.length === 0 && fallidos.length === 0) {
+        showError("No se procesó ningún registro. Verifica el archivo.");
+    }
+}
 
         async function procesarTrabajadores() {
             const file = document.getElementById('excelTrabajadores').files[0];
@@ -1379,80 +1383,104 @@ function actualizarSedesEnMapa() {
             });
         }
 
-        async function crearTrabajador() {
-            try {
-                const camposRequeridos = [
-                    'nombreApellidos', 'correoElectronico', 'numeroDocumento',
-                    'fechaNacimiento', 'rh', 'genero', 'ciudad', 'direccionResidencia',
-                    'telefonoContacto', 'banco', 'tipoCuenta', 'numeroCuenta'
-                ];
+async function crearTrabajador(event) {
+    event.preventDefault();
+    const form = document.getElementById('crearTrabajador');
+    const btn = form.querySelector('button.confirmar-btn');
 
-                const faltantes = camposRequeridos.filter(id => !document.getElementById(id).value);
-                if (faltantes.length > 0) throw new Error(`Faltan campos requeridos: ${faltantes.join(', ')}`);
+    // Mostrar indicador de carga
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
 
-                const email = document.getElementById('correoElectronico').value;
-                if (!isValidEmail(email)) throw new Error('Formato de correo electrónico inválido');
+    try {
+        // Requerir campos esenciales
+        const requiredIds = [
+            'fotoTrabajador', 'tipoDocumento', 'numeroDocumento', 'nombreApellidos',
+            'fechaNacimiento', 'rh', 'genero', 'correoElectronico', 'ciudad',
+            'direccionResidencia', 'telefonoContacto', 'telefonoEmergencia',
+            'banco', 'tipoCuenta', 'numeroCuenta'
+        ];
+        const missing = requiredIds.filter(id => {
+            const el = document.getElementById(id);
+            return !(el && (el.type === 'file' ? el.files.length : el.value));
+        });
+        if (missing.length) throw new Error(`Faltan campos: ${missing.join(', ')}`);
 
-                const telefono = document.getElementById('telefonoContacto').value;
-                if (!/^\+?\d{10,15}$/.test(telefono)) throw new Error('Formato de teléfono inválido');
+        // Validaciones específicas
+        const email = document.getElementById('correoElectronico').value.trim();
+        if (!isValidEmail(email)) throw new Error('Correo inválido');
 
-                const fotoFile = document.getElementById('fotoTrabajador').files[0];
-                if (!fotoFile) throw new Error("Debes subir una foto");
-                const fotoBase64 = await convertirImagenABase64(fotoFile);
+        const documento = document.getElementById('numeroDocumento').value.trim();
+        if (!isValidDocumentNumber(documento)) throw new Error('Documento inválido');
 
-                const trabajadorData = {
-                    foto: fotoBase64,
-                    tipoDocumento: document.getElementById('tipoDocumento').value,
-                    numeroDocumento: document.getElementById('numeroDocumento').value,
-                    nombreApellidos: document.getElementById('nombreApellidos').value,
-                    fechaNacimiento: document.getElementById('fechaNacimiento').value,
-                    rh: document.getElementById('rh').value,
-                    genero: document.getElementById('genero').value,
-                    correoElectronico: email,
-                    ciudad: document.getElementById('ciudad').value,
-                    barrioResidencia: document.getElementById('barrioResidencia').value || '',
-                    direccionResidencia: document.getElementById('direccionResidencia').value,
-                    telefonoContacto: telefono,
-                    telefonoEmergencia: document.getElementById('telefonoEmergencia').value,
-                    banco: document.getElementById('banco').value,
-                    tipoCuenta: document.getElementById('tipoCuenta').value,
-                    numeroCuenta: document.getElementById('numeroCuenta').value,
-                    role: "worker",
-                    fechaRegistro: new Date().toISOString(),
-                    activo: true,
-                    password: document.getElementById('numeroDocumento').value, // Contraseña temporal
-                    nomina: []
-                };
+        const telefono = document.getElementById('telefonoContacto').value.trim();
+        if (!/^\+?\d{10,15}$/.test(telefono)) throw new Error('Teléfono inválido');
 
-                const userCredential = await firebase.auth().createUserWithEmailAndPassword(
-                    trabajadorData.correoElectronico,
-                    trabajadorData.numeroDocumento
-                );
+        // Convertir foto a Base64
+        const fotoFile = document.getElementById('fotoTrabajador').files[0];
+        const fotoBase64 = await convertirImagenABase64(fotoFile);
 
-                const db = firebase.database();
-                await db.ref(`usuarios/${userCredential.user.uid}`).set({
-                    nombre: trabajadorData.nombreApellidos,
-                    email: trabajadorData.correoElectronico,
-                    role: "worker",
-                    documento: trabajadorData.numeroDocumento,
-                    password: trabajadorData.password // Almacenar contraseña temporalmente
-                });
+        // Preparar datos
+        const trabajadorData = {
+            foto: fotoBase64,
+            tipoDocumento: document.getElementById('tipoDocumento').value,
+            numeroDocumento: documento,
+            nombreApellidos: document.getElementById('nombreApellidos').value.trim(),
+            fechaNacimiento: document.getElementById('fechaNacimiento').value,
+            rh: document.getElementById('rh').value,
+            genero: document.getElementById('genero').value,
+            correoElectronico: email,
+            ciudad: document.getElementById('ciudad').value.trim(),
+            barrioResidencia: document.getElementById('barrioResidencia').value.trim(),
+            direccionResidencia: document.getElementById('direccionResidencia').value.trim(),
+            telefonoContacto: telefono,
+            telefonoEmergencia: document.getElementById('telefonoEmergencia').value.trim(),
+            banco: document.getElementById('banco').value.trim(),
+            tipoCuenta: document.getElementById('tipoCuenta').value,
+            numeroCuenta: document.getElementById('numeroCuenta').value.trim(),
+            role: 'worker',
+            fechaRegistro: new Date().toISOString(),
+            activo: true,
+            password: documento, // temporal
+            nomina: []
+        };
 
-                await db.ref(`trabajadores/${trabajadorData.numeroDocumento}`).set(trabajadorData);
+        // Crear usuario en Firebase Auth
+        const cred = await firebase.auth()
+            .createUserWithEmailAndPassword(email, documento);
+        const uid = cred.user.uid;
 
-                actualizarListaTrabajadores();
-                document.getElementById('crearTrabajador').reset();
-                
-                alert("¡Trabajador registrado exitosamente! Credenciales temporales:\n" +
-                      `Email: ${trabajadorData.correoElectronico}\n` +
-                      `Contraseña: ${trabajadorData.password}`);
-            } catch (error) {
-                console.error("Error al crear trabajador:", error);
-                alert(`Error: ${error.message}\n${error.code === 'auth/email-already-in-use' ? 
-                      'El correo ya está registrado' : 
-                      'Verifica todos los campos'}`);
-            }
-        }
+        // Guardar en real-time database
+        const db = firebase.database();
+        await Promise.all([
+            db.ref(`usuarios/${uid}`).set({
+                nombre: trabajadorData.nombreApellidos,
+                email,
+                role: 'worker',
+                documento,
+                // No guardar contraseña en texto plano en producción
+                password: trabajadorData.password
+            }),
+            db.ref(`trabajadores/${documento}`).set(trabajadorData)
+        ]);
+
+        // Refrescar vistas
+        form.reset();
+        actualizarListaTrabajadores();
+        cargarUsuarios();
+
+        alert(`Trabajador registrado:\nEmail: ${email}\nContraseña: ${documento}`);
+
+    } catch (error) {
+        console.error('Error al crear trabajador:', error);
+        alert(`Error: ${error.message}`);
+    } finally {
+        // Restaurar estado del botón
+        btn.disabled = false;
+        btn.textContent = 'Guardar Trabajador';
+    }
+}
+
 
 async function cargarUsuarios() {
     try {
