@@ -749,6 +749,11 @@ function handleSuccessfulLogin() {
     // Inicializar el mapa después de un breve retraso para asegurar que el DOM esté listo
     setTimeout(inicializarMapa, 150); // Ajusta el tiempo si es necesario
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    inicializarMapa();
+});
+        
 async function inicializarMapa() {
     if (!map) {
         // Esperar un breve momento para asegurar que el elemento del mapa esté en el DOM
