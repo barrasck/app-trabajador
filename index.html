@@ -706,6 +706,7 @@ function handleSuccessfulLogin() {
     // Llama a cargarUsuarios después de iniciar sesión (solo para administradores)
     if (usuarioActual.role === 'admin') {
         cargarUsuarios();
+        cargarUbicacionesTrabajadores();
     }
 
     // Solicitar la ubicación del trabajador después de iniciar sesión (solo para trabajadores)
@@ -745,12 +746,37 @@ function handleSuccessfulLogin() {
         }
     }
 
-    // Iniciar el proceso de carga y escucha de ubicaciones e inicializar el mapa
-    // Esto se hace independientemente del rol para que los administradores vean el mapa
-    // y los trabajadores puedan potencialmente ver el mapa también (si aplica).
-    inicializarMapa();
-    if (usuarioActual.role === 'admin') {
-        cargarUbicacionesTrabajadores();
+    // Inicializar el mapa después de un breve retraso para asegurar que el DOM esté listo
+    setTimeout(inicializarMapa, 150); // Ajusta el tiempo si es necesario
+}
+
+async function inicializarMapa() {
+    if (!map) {
+        const mapElement = document.getElementById('map');
+        if (mapElement) {
+            map = L.map('map', {
+                maxZoom: CONFIG.opcionesMapa.maxZoom,
+                preferCanvas: true
+            }).setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxNativeZoom: 19,
+                maxZoom: 22
+            }).addTo(map);
+
+            setTimeout(() => {
+                if (map) {
+                    map.invalidateSize();
+                }
+            }, 200);
+
+            await loadSedes();
+            actualizarSedesEnMapa();
+        } else {
+            console.error('El elemento con ID "map" no se encontró en el DOM.');
+            alert('Error al inicializar el mapa: el contenedor no se encontró.');
+        }
     }
 }
 
@@ -789,41 +815,6 @@ async function cargarUbicacionesTrabajadores() {
     } catch (error) {
         console.error('Error al cargar ubicaciones:', error);
         alert('Error al cargar las ubicaciones de los trabajadores.');
-    }
-}
-
-async function inicializarMapa() {
-    if (!map) {
-        // Esperar un breve momento para asegurar que el elemento del mapa esté en el DOM
-        await new Promise(resolve => setTimeout(resolve, 100));
-
-        const mapElement = document.getElementById('map');
-        if (mapElement) {
-            map = L.map('map', {
-                maxZoom: CONFIG.opcionesMapa.maxZoom,
-                preferCanvas: true
-            }).setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
-
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-                maxNativeZoom: 19,
-                maxZoom: 22
-            }).addTo(map);
-
-            // Invalida el tamaño del mapa después de un breve retraso para asegurar que se renderice correctamente
-            setTimeout(() => {
-                if (map) {
-                    map.invalidateSize();
-                }
-            }, 200);
-
-            // Cargar y mostrar sedes
-            await loadSedes();
-            actualizarSedesEnMapa();
-        } else {
-            console.error('El elemento con ID "map" no se encontró en el DOM.');
-            alert('Error al inicializar el mapa: el contenedor no se encontró.');
-        }
     }
 }
 
@@ -887,25 +878,12 @@ function actualizarTablaUbicaciones(ubicaciones) {
     });
 }
 
-async function loadSedes() {
-    try {
-        const db = firebase.database();
-        const snapshot = await db.ref("sedes").once("value");
-        const sedesData = snapshot.val() || {};
-        sedes = Object.values(sedesData);
-
-        const sedesList = document.getElementById('lista-sedes');
-        sedesList.innerHTML = '';
-        sedes.forEach(sede => {
-            const li = document.createElement('li');
-            li.textContent = `${sede.nombre} - Lat: ${sede.latitud}, Lng: ${sede.longitud}`;
-            sedesList.appendChild(li);
-        });
-
-    } catch (error) {
-        console.error('Error al cargar sedes:', error);
-    }
-}
+// Asegura que inicializarMapa se llame cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    // Si quieres que el mapa cargue inmediatamente al cargar la página, llama a inicializarMapa aquí.
+    // Si prefieres que cargue solo después del login, asegúrate de que se llame en handleSuccessfulLogin.
+    // La llamada en handleSuccessfulLogin se ha modificado para que se ejecute con un pequeño retraso.
+});
 
         document.getElementById('add-sede-form').addEventListener('submit', async function(event) {
             event.preventDefault();
