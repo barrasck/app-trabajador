@@ -749,12 +749,8 @@ function handleSuccessfulLogin() {
     // Inicializar el mapa después de un breve retraso para asegurar que el DOM esté listo
     setTimeout(inicializarMapa, 150); // Ajusta el tiempo si es necesario
 }
-
 async function inicializarMapa() {
     if (!map) {
-        // Esperar un breve momento para asegurar que el elemento del mapa esté en el DOM
-        await new Promise(resolve => setTimeout(resolve, 100));
-
         const mapElement = document.getElementById('map');
         if (mapElement) {
             map = L.map('map', {
@@ -768,16 +764,20 @@ async function inicializarMapa() {
                 maxZoom: 22
             }).addTo(map);
 
-            // Invalida el tamaño del mapa después de un breve retraso para asegurar que se renderice correctamente
             setTimeout(() => {
                 if (map) {
                     map.invalidateSize();
                 }
             }, 200);
 
-            // Cargar y mostrar sedes
-            await loadSedes();
-            actualizarSedesEnMapa();
+            try {
+                await loadSedes();
+                actualizarSedesEnMapa();
+            } catch (error) {
+                console.error('Error al cargar o actualizar sedes:', error);
+                alert('Error al cargar la información de las sedes.');
+            }
+
         } else {
             console.error('El elemento con ID "map" no se encontró en el DOM.');
             alert('Error al inicializar el mapa: el contenedor no se encontró.');
