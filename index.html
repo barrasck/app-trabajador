@@ -668,7 +668,8 @@ async function procesarTrabajadores() {
 
             } catch (error) {
                 if (error.code === 'auth/email-already-in-use') {
-                    await handleExistingUser(t);
+                    await handleExistingUser(t, t['Número de Documento'], t['Correo Electrónico']);
+
                     return { success: false, error: 'Email ya registrado' };
                 }
                 throw error;
