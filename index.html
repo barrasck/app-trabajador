@@ -751,6 +751,9 @@ function handleSuccessfulLogin() {
 }
 async function inicializarMapa() {
     if (!map) {
+        // Esperar un breve momento para asegurar que el elemento del mapa esté en el DOM
+        await new Promise(resolve => setTimeout(resolve, 50));
+
         const mapElement = document.getElementById('map');
         if (mapElement) {
             map = L.map('map', {
