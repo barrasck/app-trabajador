@@ -762,8 +762,8 @@ async function guardarUbicacionEnFirebase(userId, latitude, longitude) {
         await ubicacionRef.set({
             lat: latitude,
             lng: longitude,
-            nombre: userData ? userData.displayName : 'Trabajador',
-            timestamp: firebase.database.ServerValue.TIMESTAMP // Añadir marca de tiempo
+            nombre: userData && userData.displayName ? userData.displayName : 'Trabajador',
+            timestamp: firebase.database.ServerValue.TIMESTAMP
         });
         console.log('Ubicación guardada en Firebase');
     } catch (error) {
