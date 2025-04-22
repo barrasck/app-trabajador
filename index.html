@@ -582,45 +582,64 @@
             });
         }
 
+/**
+ * 📛 Muestra los errores encontrados al importar trabajadores desde Excel.
+ * @param {string[]} errors - Lista de mensajes de error generados por fila
+ */
+function handleImportErrors(errors) {
+    if (!errors || errors.length === 0) return;
+
+    const mensaje = `❌ Se encontraron ${errors.length} errores en el archivo:\n\n` + 
+                    errors.map(error => `• ${error}`).join('\n');
+
+    showError(mensaje);
+}
+
+/**
+ * ✅ Procesa los resultados de la importación de trabajadores desde Excel.
  * @param {PromiseSettledResult[]} resultados - Resultados de registrarTrabajador() para cada fila
  */
 function handleImportResults(resultados) {
     const exitosos = resultados.filter(r => r.status === 'fulfilled' && r.value.success);
     const fallidos = resultados.filter(r => r.status === 'rejected' || !r.value.success);
+
     if (fallidos.length > 0) {
         const errores = fallidos.map((f, i) => {
             const mensaje = f.reason?.message || f.value?.error || 'Error desconocido';
-            return `Fila ${i + 2}: ${mensaje}`; // +2 porque Excel empieza en la fila 2 para los datos
+            return `Fila ${i + 2}: ${mensaje}`;
         });
         handleImportErrors(errores);
     }
+
     if (exitosos.length > 0) {
         alert(`✅ ${exitosos.length} trabajador(es) importado(s) exitosamente.`);
     }
+
     if (exitosos.length === 0 && fallidos.length === 0) {
         showError("No se procesó ningún registro. Verifica el archivo.");
     }
 }
 
-        async function procesarTrabajadores() {
-            const file = document.getElementById('excelTrabajadores').files[0];
-            if (!file) return showError('Seleccione un archivo Excel');
+async function procesarTrabajadores() {
+    const file = document.getElementById('excelTrabajadores').files[0];
+    if (!file) return showError('Seleccione un archivo Excel');
 
-            try {
-                const { data, errors } = await procesarExcel(file);
-                if (errors.length > 0) return handleImportErrors(errors);
+    try {
+        const { data, errors } = await procesarExcel(file);
+        if (errors.length > 0) return handleImportErrors(errors);
 
-                const resultados = await Promise.allSettled(
-                    data.map(t => registrarTrabajador(t))
-                );
+        const resultados = await Promise.allSettled(
+            data.map(t => registrarTrabajador(t))
+        );
 
-                handleImportResults(resultados);
-                cargarTrabajadores();
+        handleImportResults(resultados);
+        cargarTrabajadores();
 
-            } catch (error) {
-                showError(`Error crítico: ${error.message}`);
-            }
-        }
+    } catch (error) {
+        showError(`Error crítico: ${error.message}`);
+    }
+}
+
 
         async function registrarTrabajador(t) {
             try {
