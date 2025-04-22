@@ -1507,7 +1507,13 @@ async function cargarUsuarios() {
         const db = firebase.database();
         const snapshot = await db.ref("usuarios").once("value");
         const usuarios = snapshot.val() || {};
+        
         const tbody = document.querySelector('#usuariosTable tbody');
+        if (!tbody) {
+            console.warn('Tabla de usuarios no encontrada en el DOM.');
+            return;
+        }
+        
         tbody.innerHTML = '';
         
         Object.keys(usuarios).forEach(uid => {
@@ -1526,6 +1532,7 @@ async function cargarUsuarios() {
         alert('Error al cargar la lista de usuarios.');
     }
 }
+
 
         async function resetPassword(email) {
             try {
