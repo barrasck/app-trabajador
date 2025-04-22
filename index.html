@@ -703,43 +703,55 @@ function handleSuccessfulLogin() {
     sessionStorage.setItem('session', JSON.stringify(usuarioActual));
     actualizarUI();
 
-    // Llama a cargarUsuarios después de iniciar sesión
+    // Llama a cargarUsuarios después de iniciar sesión (solo para administradores)
     if (usuarioActual.role === 'admin') {
-        cargarUsuarios(); // Cargar usuarios si el rol es admin
+        cargarUsuarios();
     }
 
-    // Solicitar la ubicación del trabajador después de iniciar sesión
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            function(position) {
-                // Éxito al obtener la ubicación
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-                console.log('Ubicación obtenida:', lat, lng);
-                // Aquí podrías enviar esta ubicación a Firebase
-                guardarUbicacionEnFirebase(usuarioActual.uid, lat, lng);
-            },
-            function(error) {
-                // Error al obtener la ubicación
-                console.error('Error al obtener la ubicación:', error);
-                // Aquí podrías mostrar un mensaje al usuario o intentar de nuevo
-            },
-            {
-                enableHighAccuracy: true, // Opcional: intentar obtener la ubicación más precisa
-                timeout: 10000,          // Opcional: tiempo máximo para obtener la ubicación (en milisegundos)
-                maximumAge: 0           // Opcional: no usar caché de ubicación
-            }
-        );
-    } else {
-        console.error('La geolocalización no es soportada por este navegador.');
-        // Aquí podrías mostrar un mensaje al usuario
+    // Solicitar la ubicación del trabajador después de iniciar sesión (solo para trabajadores)
+    if (usuarioActual.role === 'trabajador') {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const { latitude, longitude } = position.coords;
+                    console.log('Ubicación obtenida:', latitude, longitude);
+                    guardarUbicacionEnFirebase(usuarioActual.uid, latitude, longitude);
+                },
+                function(error) {
+                    console.error('Error al obtener la ubicación:', error);
+                    let mensajeError = 'No se pudo obtener la ubicación.';
+                    switch (error.code) {
+                        case error.PERMISSION_DENIED:
+                            mensajeError = 'Permiso de ubicación denegado.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            mensajeError = 'Información de ubicación no disponible.';
+                            break;
+                        case error.TIMEOUT:
+                            mensajeError = 'Tiempo de espera agotado al intentar obtener la ubicación.';
+                            break;
+                    }
+                    alert(mensajeError + ' Por favor, verifica la configuración de tu dispositivo.');
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 20000,
+                    maximumAge: 0
+                }
+            );
+        } else {
+            console.error('La geolocalización no es soportada por este navegador.');
+            alert('La geolocalización no es compatible con tu navegador.');
+        }
     }
 
-    // Iniciar el proceso de carga y escucha de ubicaciones (si es admin)
+    // Iniciar el proceso de carga y escucha de ubicaciones e inicializar el mapa
+    // Esto se hace independientemente del rol para que los administradores vean el mapa
+    // y los trabajadores puedan potencialmente ver el mapa también (si aplica).
+    inicializarMapa();
     if (usuarioActual.role === 'admin') {
         cargarUbicacionesTrabajadores();
     }
-    inicializarMapa();
 }
 
 async function guardarUbicacionEnFirebase(userId, latitude, longitude) {
@@ -750,100 +762,130 @@ async function guardarUbicacionEnFirebase(userId, latitude, longitude) {
         await ubicacionRef.set({
             lat: latitude,
             lng: longitude,
-            nombre: userData ? userData.displayName : 'Trabajador' // Ejemplo: obtener el nombre del usuario
+            nombre: userData ? userData.displayName : 'Trabajador',
+            timestamp: firebase.database.ServerValue.TIMESTAMP // Añadir marca de tiempo
         });
         console.log('Ubicación guardada en Firebase');
     } catch (error) {
         console.error('Error al guardar la ubicación en Firebase:', error);
+        alert('Error al guardar la ubicación.');
     }
 }
-        async function cargarUbicacionesTrabajadores() {
-            try {
-                const db = firebase.database();
-                const ubicacionesRef = db.ref('ubicaciones');
-                
-                ubicacionesRef.on('value', (snapshot) => {
-                    const ubicaciones = snapshot.val() || {};
-                    actualizarTablaUbicaciones(ubicaciones);
-                    actualizarMapaTrabajadores(ubicaciones);
-                });
 
-                window.addEventListener('beforeunload', () => {
-                    ubicacionesRef.off();
-                });
-            } catch (error) {
-                console.error('Error al cargar ubicaciones:', error);
-            }
-        }
+async function cargarUbicacionesTrabajadores() {
+    try {
+        const db = firebase.database();
+        const ubicacionesRef = db.ref('ubicaciones');
+
+        ubicacionesRef.on('value', (snapshot) => {
+            const ubicaciones = snapshot.val() || {};
+            actualizarTablaUbicaciones(ubicaciones);
+            actualizarMapaTrabajadores(ubicaciones);
+        });
+
+        window.addEventListener('beforeunload', () => {
+            ubicacionesRef.off();
+        });
+    } catch (error) {
+        console.error('Error al cargar ubicaciones:', error);
+        alert('Error al cargar las ubicaciones de los trabajadores.');
+    }
+}
 
 async function inicializarMapa() {
     if (!map) {
-        await new Promise(resolve => setTimeout(resolve, 50));
-        
-        map = L.map('map', {
-            maxZoom: CONFIG.opcionesMapa.maxZoom,
-            preferCanvas: true
-        }).setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
+        // Esperar un breve momento para asegurar que el elemento del mapa esté en el DOM
+        await new Promise(resolve => setTimeout(resolve, 100));
 
-        const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap',
-            maxNativeZoom: 19,
-            maxZoom: 22
-        }).addTo(map);
+        const mapElement = document.getElementById('map');
+        if (mapElement) {
+            map = L.map('map', {
+                maxZoom: CONFIG.opcionesMapa.maxZoom,
+                preferCanvas: true
+            }).setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
 
-        setTimeout(() => map.invalidateSize(), 100);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxNativeZoom: 19,
+                maxZoom: 22
+            }).addTo(map);
+
+            // Invalida el tamaño del mapa después de un breve retraso para asegurar que se renderice correctamente
+            setTimeout(() => {
+                if (map) {
+                    map.invalidateSize();
+                }
+            }, 200);
+
+            // Cargar y mostrar sedes
+            await loadSedes();
+            actualizarSedesEnMapa();
+        } else {
+            console.error('El elemento con ID "map" no se encontró en el DOM.');
+            alert('Error al inicializar el mapa: el contenedor no se encontró.');
+        }
     }
-
-    // Cargar y mostrar sedes
-    await loadSedes();
-    actualizarSedesEnMapa();
 }
 
-        function actualizarMapaTrabajadores(ubicaciones) {
-            if (!map) return;
-            const procesados = new Set();
-            Object.keys(ubicaciones).forEach(trabajadorKey => {
-                const ubicacion = ubicaciones[trabajadorKey];
-                if (ubicacion && typeof ubicacion.lat === 'number' && typeof ubicacion.lng === 'number') {
-                    const marker = trabajadoresMarkers[trabajadorKey];
-                    procesados.add(trabajadorKey);
-                    if (marker) {
-                        marker.setLatLng([ubicacion.lat, ubicacion.lng])
-                            .setPopupContent(`Trabajador: ${ubicacion.nombre || trabajadorKey}`);
-                    } else {
-                        trabajadoresMarkers[trabajadorKey] = L.marker([ubicacion.lat, ubicacion.lng], {
-                            icon: L.icon({
-                                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-                                iconSize: [25, 41]
-                            })
-                        }).addTo(map).bindPopup(`Trabajador: ${ubicacion.nombre || trabajadorKey}`);
-                    }
-                }
-            });
-            Object.keys(trabajadoresMarkers).forEach(key => {
-                if (!procesados.has(key)) {
-                    map.removeLayer(trabajadoresMarkers[key]);
-                    delete trabajadoresMarkers[key];
-                }
-            });
-        }
-
-        function actualizarTablaUbicaciones(ubicaciones) {
-            const tbody = document.querySelector('#compartiendo-ubicacion tbody');
-            tbody.innerHTML = '';
-            if (!ubicaciones || Object.keys(ubicaciones).length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3">No hay ubicaciones disponibles</td></tr>';
-                return;
+function actualizarMapaTrabajadores(ubicaciones) {
+    if (!map) return;
+    const procesados = new Set();
+    Object.keys(ubicaciones).forEach(trabajadorKey => {
+        const ubicacion = ubicaciones[trabajadorKey];
+        if (ubicacion && typeof ubicacion.lat === 'number' && typeof ubicacion.lng === 'number') {
+            const marker = trabajadoresMarkers[trabajadorKey];
+            procesados.add(trabajadorKey);
+            const popupContent = `Trabajador: ${ubicacion.nombre || trabajadorKey}<br>Lat: ${ubicacion.lat.toFixed(5)}<br>Lng: ${ubicacion.lng.toFixed(5)}`;
+            if (marker) {
+                marker.setLatLng([ubicacion.lat, ubicacion.lng]).setPopupContent(popupContent);
+            } else {
+                trabajadoresMarkers[trabajadorKey] = L.marker([ubicacion.lat, ubicacion.lng], {
+                    icon: L.icon({
+                        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                        iconSize: [25, 41],
+                        iconAnchor: [12, 41],
+                        popupAnchor: [1, -34]
+                    })
+                }).addTo(map).bindPopup(popupContent);
             }
-            Object.keys(ubicaciones).forEach(trabajadorKey => {
-                const ubicacion = ubicaciones[trabajadorKey];
-                const row = document.createElement('tr');
-                row.innerHTML = ubicacion && ubicacion.lat && ubicacion.lng
-                    ? `<td>${trabajadorKey}</td><td>${ubicacion.lat.toFixed(5)}</td><td>${ubicacion.lng.toFixed(5)}</td>`
-                    : `<td>${trabajadorKey}</td><td colspan="2">Ubicación no disponible</td>`;
-                tbody.appendChild(row);
-            });
         }
+    });
+    Object.keys(trabajadoresMarkers).forEach(key => {
+        if (!procesados.has(key)) {
+            map.removeLayer(trabajadoresMarkers[key]);
+            delete trabajadoresMarkers[key];
+        }
+    });
+}
+
+function actualizarTablaUbicaciones(ubicaciones) {
+    const tbody = document.querySelector('#compartiendo-ubicacion tbody');
+    if (!tbody) {
+        console.error('No se encontró la tabla de ubicaciones.');
+        return;
+    }
+    tbody.innerHTML = '';
+    if (!ubicaciones || Object.keys(ubicaciones).length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4">No hay ubicaciones disponibles</td></tr>';
+        return;
+    }
+    Object.keys(ubicaciones).forEach(trabajadorKey => {
+        const ubicacion = ubicaciones[trabajadorKey];
+        const row = document.createElement('tr');
+        if (ubicacion && ubicacion.lat && ubicacion.lng) {
+            const fecha = ubicacion.timestamp ? new Date(ubicacion.timestamp).toLocaleString() : 'Sin fecha';
+            row.innerHTML = `
+                <td>${trabajadorKey}</td>
+                <td>${ubicacion.lat.toFixed(5)}</td>
+                <td>${ubicacion.lng.toFixed(5)}</td>
+                <td>${fecha}</td>
+            `;
+        } else {
+            row.innerHTML = `<td>${trabajadorKey}</td><td colspan="3">Ubicación no disponible</td>`;
+        }
+        tbody.appendChild(row);
+    });
+}
 
 async function loadSedes() {
     try {
