@@ -702,10 +702,59 @@ function handleSuccessfulLogin() {
     document.getElementById('logoutBtn').style.display = 'block';
     sessionStorage.setItem('session', JSON.stringify(usuarioActual));
     actualizarUI();
-    
+
     // Llama a cargarUsuarios después de iniciar sesión
     if (usuarioActual.role === 'admin') {
         cargarUsuarios(); // Cargar usuarios si el rol es admin
+    }
+
+    // Solicitar la ubicación del trabajador después de iniciar sesión
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                // Éxito al obtener la ubicación
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                console.log('Ubicación obtenida:', lat, lng);
+                // Aquí podrías enviar esta ubicación a Firebase
+                guardarUbicacionEnFirebase(usuarioActual.uid, lat, lng);
+            },
+            function(error) {
+                // Error al obtener la ubicación
+                console.error('Error al obtener la ubicación:', error);
+                // Aquí podrías mostrar un mensaje al usuario o intentar de nuevo
+            },
+            {
+                enableHighAccuracy: true, // Opcional: intentar obtener la ubicación más precisa
+                timeout: 10000,          // Opcional: tiempo máximo para obtener la ubicación (en milisegundos)
+                maximumAge: 0           // Opcional: no usar caché de ubicación
+            }
+        );
+    } else {
+        console.error('La geolocalización no es soportada por este navegador.');
+        // Aquí podrías mostrar un mensaje al usuario
+    }
+
+    // Iniciar el proceso de carga y escucha de ubicaciones (si es admin)
+    if (usuarioActual.role === 'admin') {
+        cargarUbicacionesTrabajadores();
+    }
+    inicializarMapa();
+}
+
+async function guardarUbicacionEnFirebase(userId, latitude, longitude) {
+    try {
+        const db = firebase.database();
+        const ubicacionRef = db.ref(`ubicaciones/${userId}`);
+        const userData = JSON.parse(sessionStorage.getItem('session'));
+        await ubicacionRef.set({
+            lat: latitude,
+            lng: longitude,
+            nombre: userData ? userData.displayName : 'Trabajador' // Ejemplo: obtener el nombre del usuario
+        });
+        console.log('Ubicación guardada en Firebase');
+    } catch (error) {
+        console.error('Error al guardar la ubicación en Firebase:', error);
     }
 }
         async function cargarUbicacionesTrabajadores() {
