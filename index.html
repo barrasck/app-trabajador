@@ -639,8 +639,6 @@ async function procesarTrabajadores() {
         showError(`Error crítico: ${error.message}`);
     }
 }
-
-
         async function registrarTrabajador(t) {
             try {
                 const camposRequeridos = ['Número de Documento', 'Nombre', 'Correo Electrónico'];
@@ -757,26 +755,22 @@ document.addEventListener('DOMContentLoaded', function() {
 async function inicializarMapa() {
     if (!map) {
         await new Promise(resolve => setTimeout(resolve, 50));
-        const mapElement = document.getElementById('map');
-        if (mapElement) {
-            map = L.map('map', {
-                maxZoom: CONFIG.opcionesMapa.maxZoom,
-                preferCanvas: true
-            }).setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap',
-                maxNativeZoom: 19,
-                maxZoom: 22
-            }).addTo(map);
+        
+        map = L.map('map', {
+            maxZoom: CONFIG.opcionesMapa.maxZoom,
+            preferCanvas: true
+        }).setView([CONFIG.destino.lat, CONFIG.destino.lng], CONFIG.opcionesMapa.zoomInicial);
 
-            map.invalidateSize(); // Prueba llamándolo aquí inmediatamente
+        const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap',
+            maxNativeZoom: 19,
+            maxZoom: 22
+        }).addTo(map);
 
-            setTimeout(() => map.invalidateSize(), 300); // Intenta con un retraso mayor
-        } else {
-            console.error('El elemento con ID "map" no se encontró en el DOM.');
-            alert('Error al inicializar el mapa: el contenedor no se encontró.');
-        }
+        setTimeout(() => map.invalidateSize(), 100);
     }
+
+    // Cargar y mostrar sedes
     await loadSedes();
     actualizarSedesEnMapa();
 }
