@@ -752,6 +752,9 @@ function handleSuccessfulLogin() {
 
 async function inicializarMapa() {
     if (!map) {
+        // Esperar un breve momento para asegurar que el elemento del mapa esté en el DOM
+        await new Promise(resolve => setTimeout(resolve, 100));
+
         const mapElement = document.getElementById('map');
         if (mapElement) {
             map = L.map('map', {
@@ -765,12 +768,14 @@ async function inicializarMapa() {
                 maxZoom: 22
             }).addTo(map);
 
+            // Invalida el tamaño del mapa después de un breve retraso para asegurar que se renderice correctamente
             setTimeout(() => {
                 if (map) {
                     map.invalidateSize();
                 }
             }, 200);
 
+            // Cargar y mostrar sedes
             await loadSedes();
             actualizarSedesEnMapa();
         } else {
@@ -876,6 +881,25 @@ function actualizarTablaUbicaciones(ubicaciones) {
         }
         tbody.appendChild(row);
     });
+}
+        async function loadSedes() {
+    try {
+        const db = firebase.database();
+        const snapshot = await db.ref("sedes").once("value");
+        const sedesData = snapshot.val() || {};
+        sedes = Object.values(sedesData);
+
+        const sedesList = document.getElementById('lista-sedes');
+        sedesList.innerHTML = '';
+        sedes.forEach(sede => {
+            const li = document.createElement('li');
+            li.textContent = `${sede.nombre} - Lat: ${sede.latitud}, Lng: ${sede.longitud}`;
+            sedesList.appendChild(li);
+        });
+
+    } catch (error) {
+        console.error('Error al cargar sedes:', error);
+    }
 }
 
 // Asegura que inicializarMapa se llame cuando el DOM esté listo
